@@ -1,3 +1,7 @@
+{% load static %}
+<head>
+    <link href="{% static 'css/stylesheet.css' %}" rel="stylesheet">
+</head>
 <h1>Welcome</h1>
 <ul>
     <li><a href="{% url 'customer_list' %}">Customers</a></li>

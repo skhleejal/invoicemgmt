@@ -1,0 +1,33 @@
+<h1>Invoice List</h1>
+
+{% if invoices %}
+    <table border="1" cellspacing="0" cellpadding="8">
+        <thead>
+            <tr>
+                <th>Invoice ID</th>
+                <th>Customer Name</th>
+                <th>Total Amount</th>
+                <th>Amount in Words</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for invoice in invoices %}
+                <tr>
+                    <td>
+                        <a href="{% url 'invoice_detail' invoice.pk %}">
+                            #{{ invoice.id }}
+                        </a>
+                    </td>
+                    <td>{{ invoice.customer.name }}</td>
+                    <td>${{ invoice.total_amount }}</td>
+                    <td>{{ invoice.amount_in_words }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No invoices found.</p>
+{% endif %}
+<a href="{% url 'create_invoice' %}">Create New Invoice</a>
+<a href="{% url 'customer_list' %}">View Customers</a>
+<a href="{% url 'home' %}">Back to Home</a>

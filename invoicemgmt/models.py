@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.utils.timezone import now
 
 def number_to_words(n):
     # Simple implementation for demonstration; use 'num2words' for production
@@ -8,7 +8,6 @@ def number_to_words(n):
         return num2words(n, to='currency', lang='en')
     except ImportError:
         return str(n)
-
 
 class Customer(models.Model):
     name = models.CharField(max_length=255)
@@ -23,7 +22,7 @@ class Customer(models.Model):
         return self.name
 
 class Invoice(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)  # Foreign key to Customer
     invoice_number = models.IntegerField(unique=True)
     invoice_date = models.DateField()
     vat_number = models.CharField(max_length=100)
@@ -35,16 +34,15 @@ class Invoice(models.Model):
     total_taxable = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_vat = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    amount_in_words = models.CharField(max_length=512, blank=True)
     payment_method = models.CharField(max_length=100, blank=True, null=True, default="CDC")
-    created_at = models.DateTimeField(auto_now_add=True)
-
+    amount_in_words = models.CharField(max_length=512, blank=True, default="N/A")  # Add default
+    created_at = models.DateTimeField(auto_now_add=True)  # No default needed for auto_now_add
     
+
     def save(self, *args, **kwargs):
         self.total_amount = self.total_taxable + self.total_vat
         self.amount_in_words = number_to_words(self.total_amount)
         super().save(*args, **kwargs)
-
 
     def __str__(self):
         return f"Invoice #{self.invoice_number} for {self.customer.name}"
@@ -54,9 +52,9 @@ class InvoiceLineItem(models.Model):
     description = models.TextField()
     quantity = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.DecimalField(max_digits=20, decimal_places=2, default=0.00)
     vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=5.00)
-    vat_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def save(self, *args, **kwargs):
         self.amount = self.quantity * self.unit_price

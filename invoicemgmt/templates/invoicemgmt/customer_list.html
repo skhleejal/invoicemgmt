@@ -1,0 +1,10 @@
+<h1>Customer List</h1>
+<ul>
+    <p>This is the customer list template.</p>
+    {% for customer in customers %}
+        <li>{{ customer.name }}</li>
+    {% empty %}
+        <li>No customers found.</li>
+    {% endfor %}
+</ul>
+<a href="{% url 'home' %}">Back to Home</a>
