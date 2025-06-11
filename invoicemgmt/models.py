@@ -35,9 +35,8 @@ class Invoice(models.Model):
     total_vat = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     payment_method = models.CharField(max_length=100, blank=True, null=True, default="CDC")
-    amount_in_words = models.CharField(max_length=512, blank=True, default="N/A")  # Add default
-    created_at = models.DateTimeField(auto_now_add=True)  # No default needed for auto_now_add
-    
+    amount_in_words = models.CharField(max_length=512, blank=True, default="N/A")  # Fixed default
+    created_at = models.DateTimeField(auto_now_add=True)  # Fixed
 
     def save(self, *args, **kwargs):
         self.total_amount = self.total_taxable + self.total_vat

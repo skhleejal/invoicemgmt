@@ -1,6 +1,12 @@
 from django import forms
-from .models import Invoice, InvoiceLineItem
+from .models import Invoice, InvoiceLineItem,Customer
 
+
+
+class CustomerForm(forms.ModelForm):
+    class Meta:
+        model = Customer
+        fields = ['name', 'po_box', 'city', 'country', 'phone', 'fax', 'vat_number']
 class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice

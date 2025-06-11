@@ -1,10 +1,20 @@
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <link href="{% static 'css/stylesheet.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/stylesheet.css' %}">
+
+
+    <title>Home</title>
 </head>
-<h1>Welcome</h1>
-<ul>
-    <li><a href="{% url 'customer_list' %}">Customers</a></li>
-    <li><a href="{% url 'invoice_list' %}">Invoices</a></li>
-    <li><a href="/admin/">Admin</a></li>
-</ul>
+<body>
+    <h1>  Welcome</h1>
+    <ul>
+        <li><a href="{% url 'customer_list' %}">Customers</a></li>
+        <li><a href="{% url 'invoice_list' %}">Invoices</a></li>
+        <li><a href="{% url 'create_invoice' %}">Add invoice</a></li>
+        <li><a href="{% url 'create_customer' %}">Add Customer</a></li>
+        <li><a href="/admin/">Admin</a></li>
+    </ul>
+</body>
+</html>

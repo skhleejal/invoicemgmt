@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'invoicemgmt',
     'rest_framework',
     'django_extensions',
+    'crispy_forms',
+    'crispy_bootstrap5'
 ]
 
 MIDDLEWARE = [
@@ -120,10 +122,20 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-STATICFILES_DIRS = [
-    BASE_DIR / "static",  # Directory for static files
-]
-STATIC_URL = '/static/'  # URL prefix for static files
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Directory where static files will be collected
+
+STATIC_URL = '/static/' 
+
+
+# Optional (for production or collectstatic)
+STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+# settings.py
+# DEFAULT_VAT_RATE = 5.00
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"

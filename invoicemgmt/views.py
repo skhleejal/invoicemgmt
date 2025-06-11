@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.forms import inlineformset_factory
 from .models import Customer, Invoice, InvoiceLineItem
-from .forms import InvoiceForm, InvoiceLineItemForm
+from .forms import InvoiceForm, InvoiceLineItemForm,CustomerForm
 
 
 def home(request):
@@ -11,6 +11,15 @@ def customer_list(request):
     customers = Customer.objects.all()
     return render(request, 'invoicemgmt/customer_list.html', {'customers': customers})
 
+def create_customer(request):
+    if request.method == 'POST':
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('customer_list')
+    else:
+        form = CustomerForm()
+    return render(request, 'invoicemgmt/create_customer.html', {'form': form})
 def invoice_list(request):
     invoices = Invoice.objects.all()
     return render(request, 'invoicemgmt/invoice_list.html', {'invoices': invoices})
