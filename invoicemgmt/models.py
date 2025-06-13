@@ -14,20 +14,68 @@ COUNTRY_CURRENCY = {
     # Add more as needed
 }
 
+
+CURRENCY_SYMBOL = {
+    'USD': '$',
+    'INR': '₹',
+    'EUR': '€',
+    'GBP': '£',
+    'AED': 'د.إ',
+    # Add more as needed
+}
+
+
+COUNTRY_CHOICES = [
+    ('United States', 'United States'),
+    ('India', 'India'),
+    ('United Kingdom', 'United Kingdom'),
+    ('Germany', 'Germany'),
+    ('France', 'France'),
+    ('Italy', 'Italy'),
+    ('Spain', 'Spain'),
+    ('UAE', 'UAE'),
+    # Add more as needed
+]
+
+
+COUNTRY_PHONE_CODES = {
+    'United States': '+1',
+    'India': '+91',
+    'United Kingdom': '+44',
+    'Germany': '+49',
+    'France': '+33',
+    'Italy': '+39',
+    'Spain': '+34',
+    'UAE': '+971',
+    # Add more as needed
+}
+
 def number_to_words(n, currency='USD'):
     try:
-        return num2words(n, to='currency', lang='en', currency=currency)
+        # Only use 'currency' if supported
+        if currency in ['USD', 'INR', 'EUR', 'GBP']:
+            return num2words(n, to='currency', lang='en', currency=currency)
+        else:
+            # Fallback: just return the number in words
+            return num2words(n, lang='en') + f" {currency}"
     except Exception:
         return str(n)
-    
+
 class Customer(models.Model):
     name = models.CharField(max_length=255)
     po_box = models.CharField(max_length=50, blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
-    country = models.CharField(max_length=100, blank=True, null=True)
+    country = models.CharField(max_length=100, choices=COUNTRY_CHOICES, blank=True, null=True)
+    phone_code = models.CharField(max_length=10, blank=True, null=True) 
     phone = models.CharField(max_length=50, blank=True, null=True)
     fax = models.CharField(max_length=50, blank=True, null=True)
     vat_number = models.CharField(max_length=100, blank=True, null=True)
+    
+    def save(self, *args, **kwargs):
+        # Always sync phone_code with selected country
+        if self.country:
+            self.phone_code = COUNTRY_PHONE_CODES.get(self.country, '')
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -58,12 +106,26 @@ class Invoice(models.Model):
     payment_method = models.CharField(max_length=100, blank=True, null=True, default="CDC")
     amount_in_words = models.CharField(max_length=512, blank=True, default="N/A")
     created_at = models.DateTimeField(auto_now_add=True)
+    invoice_type_choice=(
+        ('Receipt','Receipt'),
+        ('Invoice','Invoice'),
+      
+    )
+    invoice_type=models.CharField(max_length=50,default='',blank=True,null=True,choices=invoice_type_choice)
+
+    
 
     STATUS_CHOICES = [
         ('open', 'Open'),
         ('paid', 'Paid'),
     ]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
+
+    def get_currency_symbol(self):
+        country = self.customer.country if self.customer and self.customer.country else ''
+        currency = COUNTRY_CURRENCY.get(country, 'USD')
+        return CURRENCY_SYMBOL.get(currency, '$')
+    
 
 
     def save(self, *args, **kwargs):
@@ -85,6 +147,16 @@ class Invoice(models.Model):
 
     def __str__(self):
         return f"Invoice #{self.invoice_number} for {self.customer.name}"
+    
+class RecurringInvoice(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    interval = models.CharField(max_length=10, choices=[('monthly', 'Monthly'), ('weekly', 'Weekly')])
+    next_due_date = models.DateField()
+    active = models.BooleanField(default=True)
+
+
 class InvoiceLineItem(models.Model):
     invoice = models.ForeignKey(Invoice, related_name='line_items', on_delete=models.CASCADE)
     description = models.TextField()

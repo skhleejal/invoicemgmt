@@ -12,15 +12,22 @@
         <input type="text" name="q" placeholder="Search customers..." value="{{ query|default:'' }}" class="form-control" style="width: 300px; display: inline-block;">
         <button type="submit" class="btn btn-primary">Search</button>
     </form>
+
     <ul class="list-group">
         {% for customer in customers %}
-            <li class="list-group-item">{{ customer.name }}
-            <a href="{% url 'customer_detail' customer.pk %}">{{ customer.name }}</a>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>{{ customer.name }}</span>
+                <div>
+                    <a href="{% url 'customer_detail' customer.pk %}" class="btn btn-info btn-sm me-2">View</a>
+                    <a href="{% url 'delete_customer' customer.pk %}" class="btn btn-danger btn-sm">Delete</a>
+                </div>
             </li>
         {% empty %}
             <li class="list-group-item">No customers found.</li>
         {% endfor %}
     </ul>
+
+    
     <a href="{% url 'home' %}" class="btn btn-secondary mt-3">Back to Home</a>
 </div>
 </body>

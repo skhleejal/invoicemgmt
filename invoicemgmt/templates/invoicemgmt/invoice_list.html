@@ -9,6 +9,17 @@
 </head>
 <body>
 <div class="container mt-5">
+    {% if messages %}
+        <div class="mb-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <h1 class="mb-4">Invoice List</h1>
     <form method="get" class="mb-3">
         <input type="text" name="q" placeholder="Search by customer or invoice number..." value="{{ query|default:'' }}" class="form-control" style="width: 300px; display: inline-block;">
@@ -36,7 +47,7 @@
                         </td>
                         <td>{{ invoice.invoice_date }}</td>
                         <td>{{ invoice.customer.name }}</td>
-                        <td>${{ invoice.total_amount }}</td>
+                        <td>{{ invoice.get_currency_symbol }}{{ invoice.total_amount }}</td>
                         <td>{{ invoice.amount_in_words }}</td>
                         <td>
                             {% if invoice.status == 'open' %}
@@ -44,6 +55,9 @@
                             {% else %}
                                 <span class="badge bg-success">Paid</span>
                             {% endif %}
+                                <a href="{% url 'delete_invoice' invoice.pk %}" class="btn btn-danger btn-sm ms-2">Delete</a>
+                            <br>
+                            <a href="{% url 'update_invoice' invoice.pk %}" class="btn btn-warning btn-sm mt-1">Edit</a>
                         </td>
                     </tr>
                 {% endfor %}

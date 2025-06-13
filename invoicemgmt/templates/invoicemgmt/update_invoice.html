@@ -1,0 +1,10 @@
+<h2>Update Invoice #{{ invoice.invoice_number }}</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  {{ formset.management_form }}
+  {% for form in formset %}
+    {{ form.as_p }}
+  {% endfor %}
+  <button type="submit" class="btn btn-primary">Update Invoice</button>
+</form>

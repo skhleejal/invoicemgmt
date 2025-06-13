@@ -6,13 +6,19 @@ class CustomerForm(forms.ModelForm):
         model = Customer
         fields = ['name', 'po_box', 'city', 'country', 'phone', 'fax', 'vat_number']
 
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        if phone and not phone.isdigit():
+            raise forms.ValidationError("Phone number must contain only digits.")
+        return phone
+
 class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
         fields = [
             'customer', 'invoice_number', 'invoice_date', 'vat_number',
             'po_number', 'po_date', 'delivery_note', 'do_date', 'ship_to',
-            'total_taxable', 'total_vat', 'total_amount', 'amount_in_words', 'payment_method'
+            'total_taxable', 'total_vat', 'total_amount', 'amount_in_words', 'payment_method','invoice_type'
         ]
         widgets = {
             'invoice_date': forms.DateInput(attrs={'type': 'date'}),
