@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Detail</title>
+</head>
+<body>
+    <h1>{{ customer.name }}</h1>
+    <p>City: {{ customer.city }}</p>
+    <p>Country: {{ customer.country }}</p>
+    <p>Phone: {{ customer.phone }}</p>
+    <p>VAT Number: {{ customer.vat_number }}</p>
+    <a href="{% url 'customer_list' %}">Back to Customer List</a>
+</body>
+</html>

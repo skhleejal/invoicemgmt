@@ -1,11 +1,29 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.forms import inlineformset_factory
-from .models import Customer, Invoice, InvoiceLineItem
-from .forms import InvoiceForm, InvoiceLineItemForm,CustomerForm
-
+from .models import Customer, Invoice, InvoiceLineItem,Product
+from .forms import InvoiceForm, InvoiceLineItemForm, CustomerForm
+from django.db.models import Sum
+from django.shortcuts import redirect, get_object_or_404
 
 def home(request):
-    return render(request, 'invoicemgmt/home.html')
+    sales_amount = Invoice.objects.filter(status="paid").aggregate(total=Sum('total_amount'))['total'] or 0
+    total_invoices = Invoice.objects.count()
+    pending_bills = Invoice.objects.filter(status="open").count()
+    due_amount = Invoice.objects.filter(status="open").aggregate(total=Sum('total_amount'))['total'] or 0
+    total_products = Product.objects.count() if 'Product' in globals() else 0
+    total_customers = Customer.objects.count()
+    paid_bills = Invoice.objects.filter(status="paid").count()
+
+    context = {
+        'sales_amount': sales_amount,
+        'total_invoices': total_invoices,
+        'pending_bills': pending_bills,
+        'due_amount': due_amount,
+        'total_products': total_products,
+        'total_customers': total_customers,
+        'paid_bills': paid_bills,
+    }
+    return render(request, 'invoicemgmt/home.html', context)
 
 def customer_list(request):
     customers = Customer.objects.all()
@@ -16,10 +34,12 @@ def create_customer(request):
         form = CustomerForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('customer_list')
+            return redirect('create_invoice')
+           
     else:
         form = CustomerForm()
     return render(request, 'invoicemgmt/create_customer.html', {'form': form})
+
 def invoice_list(request):
     invoices = Invoice.objects.all()
     return render(request, 'invoicemgmt/invoice_list.html', {'invoices': invoices})
@@ -38,7 +58,8 @@ def create_invoice(request):
             invoice = form.save()
             formset.instance = invoice
             formset.save()
-            return redirect('/add_invoice')
+            invoice.save()  # Recalculate totals after line items are saved
+            return redirect('invoice_list')
     else:
         form = InvoiceForm()
         formset = InvoiceLineItemFormSet()
@@ -47,16 +68,40 @@ def create_invoice(request):
         'form': form,
         'formset': formset,
     })
-from django.shortcuts import get_object_or_404
-
 def invoice_detail(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     return render(request, 'invoicemgmt/invoice_detail.html', {'invoice': invoice})
-# from django.shortcuts import get_object_or_404
-# def invoice_detail(request, pk):
-#     invoice = Invoice.objects.get(pk=pk)
-#     related_items = invoice.invoicelineitem_set.all()  # Example: Fetch related line items
-#     return render(request, 'invoicemgmt/invoice_detail.html', {
-#         'invoice': invoice,
-#         'related_items': related_items,
-#     })
+
+
+
+def mark_invoice_paid(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+    invoice.status = 'paid'
+    invoice.save()
+    return redirect('invoice_list')
+
+def customer_list(request):
+    query = request.GET.get('q')
+    if query:
+        customers = Customer.objects.filter(name__icontains=query)
+    else:
+        customers = Customer.objects.all()
+    return render(request, 'invoicemgmt/customer_list.html', {'customers': customers, 'query': query})
+
+def invoice_list(request):
+    query = request.GET.get('q')
+    if query:
+        invoices = Invoice.objects.filter(
+            customer__name__icontains=query
+        ) | Invoice.objects.filter(
+            invoice_number__icontains=query
+        )
+    else:
+        invoices = Invoice.objects.all()
+    return render(request, 'invoicemgmt/invoice_list.html', {'invoices': invoices, 'query': query})
+
+
+
+def customer_detail(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+    return render(request, 'invoicemgmt/customer_detail.html', {'customer': customer})

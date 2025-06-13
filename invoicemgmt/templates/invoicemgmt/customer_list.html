@@ -1,10 +1,27 @@
-<h1>Customer List</h1>
-<ul>
-    <p>This is the customer list template.</p>
-    {% for customer in customers %}
-        <li>{{ customer.name }}</li>
-    {% empty %}
-        <li>No customers found.</li>
-    {% endfor %}
-</ul>
-<a href="{% url 'home' %}">Back to Home</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer List</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h1>Customer List</h1>
+    <form method="get" class="mb-3">
+        <input type="text" name="q" placeholder="Search customers..." value="{{ query|default:'' }}" class="form-control" style="width: 300px; display: inline-block;">
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+    <ul class="list-group">
+        {% for customer in customers %}
+            <li class="list-group-item">{{ customer.name }}
+            <a href="{% url 'customer_detail' customer.pk %}">{{ customer.name }}</a>
+            </li>
+        {% empty %}
+            <li class="list-group-item">No customers found.</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'home' %}" class="btn btn-secondary mt-3">Back to Home</a>
+</div>
+</body>
+</html>
