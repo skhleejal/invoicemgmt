@@ -58,6 +58,10 @@
                                 <a href="{% url 'delete_invoice' invoice.pk %}" class="btn btn-danger btn-sm ms-2">Delete</a>
                             <br>
                             <a href="{% url 'update_invoice' invoice.pk %}" class="btn btn-warning btn-sm mt-1">Edit</a>
+                            <a href="{% url 'generate_invoice_pdf' invoice.pk %}" class="btn btn-info btn-sm mt-1" target="_blank">
+                                Download PDF
+                            </a>
+
                         </td>
                     </tr>
                 {% endfor %}

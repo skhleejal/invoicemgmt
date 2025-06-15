@@ -171,7 +171,14 @@
                     <li class="nav-item"><a class="nav-link" href="{% url 'create_customer' %}">Add Customer</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'customer_list' %}">Customers</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'invoice_list' %}">Invoices</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'add_product' %}">Add Product</a></li>
                     <li class="nav-item"><a class="nav-link" href="/admin/">Admin</a></li>
+                    <li class="nav-item">
+                      <a class="nav-link btn btn-warning text-dark ms-2" href="{% url 'generate_recurring_invoices' %}">
+                        Generate Recurring Invoices
+                      </a>
+                    </li>
+
                 </ul>
             </div>
         </div>
@@ -224,7 +231,17 @@
                 </div>
             </div>
         </div>
-
+       <section class="content">
+        {% if low_stock_products %}
+        <div class="alert alert-warning mt-4">
+          <strong>⚠ Low Stock Alert:</strong>
+        <ul class="mb-0">
+            {% for product in low_stock_products %}
+                <li><strong>{{ product.name }}</strong> – only {{ product.stock }} left in stock.</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %} 
         <div class="row mt-4">
             <div class="col-lg-3 col-xs-6">
                 <div class="small-box bg-info">

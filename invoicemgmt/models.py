@@ -70,6 +70,7 @@ class Customer(models.Model):
     phone = models.CharField(max_length=50, blank=True, null=True)
     fax = models.CharField(max_length=50, blank=True, null=True)
     vat_number = models.CharField(max_length=100, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True) 
     
     def save(self, *args, **kwargs):
         # Always sync phone_code with selected country
@@ -84,17 +85,22 @@ class Product(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=5.00)
+    stock = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    reorder_level = models.IntegerField(default=2)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} – {self.description[:30]}"  # show both name and short desc
+    
+    def is_low_stock(self):
+        return self.stock <= self.reorder_level
 
 class Invoice(models.Model):
     invoice_number = models.CharField(max_length=100)
     invoice_date = models.DateField()
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    vat_number = models.CharField(max_length=100)
+    vat_number = models.CharField(max_length=100,blank=True, null=True)
     po_number = models.CharField(max_length=100, blank=True, null=True)
     po_date = models.DateField(blank=True, null=True)
     delivery_note = models.CharField(max_length=100, blank=True, null=True)
@@ -160,6 +166,7 @@ class RecurringInvoice(models.Model):
 class InvoiceLineItem(models.Model):
     invoice = models.ForeignKey(Invoice, related_name='line_items', on_delete=models.CASCADE)
     description = models.TextField()
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     amount = models.DecimalField(max_digits=20, decimal_places=2, default=0.00)
@@ -167,9 +174,15 @@ class InvoiceLineItem(models.Model):
     vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def save(self, *args, **kwargs):
+        if self.product and not self.unit_price:
+            self.unit_price = self.product.price
+
         self.amount = self.quantity * self.unit_price
         self.vat_amount = (self.vat_rate / 100) * self.amount
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.description[:30]}"
+    
+    # products
+
