@@ -53,6 +53,15 @@
     <h3>Total VAT: {{ invoice.total_vat }}</h3>
     <h3>Grand Total (Including VAT): {{ invoice.total_amount }}</h3>
 
+    <form method="post" action="{% url 'email_invoice' invoice.pk %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">
+            📧 Email Invoice to Customer
+        </button>
+    </form>
+
+
+
     <a href="{% url 'invoice_list' %}" class="btn btn-secondary mt-3">Back to Invoice List</a>
 </div>
 </body>

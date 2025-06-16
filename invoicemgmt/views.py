@@ -17,8 +17,12 @@ from django.utils.timezone import now
 from django.template.loader import get_template
 from django.utils.timezone import now
 from xhtml2pdf import pisa
+from django.contrib.staticfiles import finders
 from django.http import HttpResponse
 from django.core.mail import EmailMessage
+from io import BytesIO
+from django.conf import settings
+
 
 def generate_invoice_pdf(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
@@ -48,6 +52,21 @@ def generate_invoice_pdf(request, pk):
     response = HttpResponse(pdf_file.getvalue(), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="Invoice_{invoice.pk}.pdf"'
     return response
+
+
+def link_callback(uri, rel):
+    """
+    Convert HTML URIs to absolute system paths for xhtml2pdf to access local files.
+    """
+    result = finders.find(uri)
+    if result:
+        return result
+    elif uri.startswith(settings.MEDIA_URL):
+        path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, ""))
+        if os.path.isfile(path):
+            return path
+    return uri  # Fallback, may cause failure if file doesn't exist
+
 
 
 def generate_recurring_invoices(request):
@@ -109,6 +128,38 @@ def home(request):
     return render(request, 'invoicemgmt/home.html', context)
 
 
+def update_product(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, instance=product)
+        if form.is_valid():
+            form.save()
+            return redirect('product_list')
+    else:
+        form = ProductForm(instance=product)
+    return render(request, 'invoicemgmt/product_form.html', {'form': form})
+
+
+def restock_product(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+
+    if request.method == "POST":
+        quantity = int(request.POST.get("quantity", 0))
+        if quantity > 0:
+            product.stock += quantity
+            product.save()
+            messages.success(request, f"✅ Restocked {product.name} by {quantity} units.")
+        else:
+            messages.warning(request, "⚠️ Enter a valid quantity.")
+
+    return redirect('product_list')
+
+
+def delete_product(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    product.delete()
+    messages.success(request, f"🗑️ Product '{product.name}' deleted successfully.")
+    return redirect('product_list')
 
 def create_receipt(request):
     InvoiceLineItemFormSet = inlineformset_factory(
@@ -326,6 +377,7 @@ def add_product(request):
     return render(request, 'invoicemgmt/add_products.html', {'form': form})
 
 
+
 def product_list(request):
     products = Product.objects.all()
     return render(request, 'invoicemgmt/product_list.html', {'products': products})
@@ -336,3 +388,41 @@ def delete(self, request, *args, **kwargs):
         item.product.stock += item.quantity
         item.product.save()
     return super().delete(request, *args, **kwargs)
+
+def email_invoice(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+    template = get_template('invoicemgmt/invoice_pdf.html')
+
+    invoice_count = Invoice.objects.count()  # Optional, if used in the template
+
+    html = template.render({
+        'invoice': invoice,
+        'now': now(),
+        'invoice_count': invoice_count
+    })
+
+    pdf_file = BytesIO()
+    pisa_status = pisa.CreatePDF(html, dest=pdf_file)
+
+    if pisa_status.err:
+        messages.error(request, "❌ Failed to generate invoice PDF.")
+        return redirect('invoice_detail', pk=pk)
+
+    pdf_file.seek(0)
+    customer_email = invoice.customer.email
+
+    if customer_email:
+        subject = f"Invoice #{invoice.pk} from Sherook Kalba"
+        body = (
+            f"Dear {invoice.customer.name},\n\n"
+            f"Please find attached your invoice #{invoice.pk}.\n\n"
+            "Thank you!"
+        )
+        email = EmailMessage(subject, body, to=[customer_email])
+        email.attach(f"Invoice_{invoice.pk}.pdf", pdf_file.read(), 'application/pdf')
+        email.send()
+        messages.success(request, "✅ Invoice emailed to customer.")
+    else:
+        messages.warning(request, "⚠️ Customer has no email address.")
+
+    return redirect('invoice_detail', pk=pk)

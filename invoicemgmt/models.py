@@ -72,6 +72,7 @@ class Customer(models.Model):
     vat_number = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(blank=True, null=True) 
     
+    
     def save(self, *args, **kwargs):
         # Always sync phone_code with selected country
         if self.country:

@@ -4,7 +4,7 @@ from .models import Invoice, InvoiceLineItem, Customer,Product
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
-        fields = ['name', 'po_box', 'city', 'country', 'phone', 'fax', 'vat_number']
+        fields = ['name', 'po_box', 'city', 'email' ,'country', 'phone', 'fax', 'vat_number']
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone')

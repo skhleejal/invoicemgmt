@@ -6,21 +6,22 @@
     <meta charset="UTF-8">
     <title>Add Customer</title>
 
-    <!-- Your custom stylesheet -->
+    <!-- Custom stylesheet -->
     <link rel="stylesheet" href="{% static 'css/stylesheet.css' %}">
 
-    <!-- ✅ Bootstrap 5 CDN (Add this below your custom CSS or above) -->
+    <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container mt-5">
-        <h2>Add New Customer</h2>
-        <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Create Customer</button>
-</form>
-        <a href="{% url 'customer_list' %}">Back to Customer List</a>
+        <h2 class="mb-4">➕ Add New Customer</h2>
+
+        <form method="post" class="border p-4 shadow-sm rounded bg-light">
+            {% csrf_token %}
+            {{ form|crispy }}  <!-- 🧠 Use Crispy for clean Bootstrap styling -->
+            <button type="submit" class="btn btn-success mt-3">✅ Create Customer</button>
+            <a href="{% url 'customer_list' %}" class="btn btn-secondary mt-3 ms-2">🔙 Back to Customer List</a>
+        </form>
     </div>
 </body>
 </html>
