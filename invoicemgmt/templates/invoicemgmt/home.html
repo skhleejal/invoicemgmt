@@ -1,42 +1,10 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard</title>
 
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="{% static 'css/stylesheet.css' %}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'home' %}">Management</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'create_customer' %}">➕Add Customer</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'customer_list' %}">👤Customers</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'invoice_list' %}">📄Invoices</a></li>
-                    <!-- <li class="nav-item"><a class="nav-link" href="{% url 'add_product' %}">📦Add Product</a></li> -->
-                    <li class="nav-item"><a class="nav-link" href="{% url 'product_list' %}">📦Product List</a></li>
-                    <!-- <li class="nav-item"><a class="nav-link" href="{% url 'add_product' %}">📦Add Product</a></li> -->
-                    <li class="nav-item"><a class="nav-link" href="/admin/">Admin</a></li>
-                    <li class="nav-item">
-                      <a class="nav-link btn btn-warning text-dark ms-2" href="{% url 'generate_recurring_invoices' %}">
-                        Generate Recurring Invoices
-                      </a>
-                    </li>
+{% block title %}Dashboard{% endblock %}
 
-                </ul>
-            </div>
-        </div>
-    </nav>
-        {% if low_stock_products %}
+{% block content %}
+    {% if low_stock_products %}
         <div class="alert alert-warning mt-4">
             <strong>⚠ Low Stock Alert:</strong>
             <ul class="mb-0">
@@ -45,129 +13,100 @@
                 {% endfor %}
             </ul>
         </div>
-        {% endif %}
+    {% endif %}
+    
+    {% if user.is_authenticated %}
+    <div class="alert alert-success mt-4">
+        Welcome, <strong>{{ user.username }}</strong>! 🎉
+    </div>
+    {% else %}
+    <div class="alert alert-danger mt-4">
+        You are not logged in.
+    </div>
+    {% endif %}
+    {% if user.is_authenticated %}
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Logout</button>
+    </form>
+    {% endif %}
 
-    <section class="content">
+
+    <div class="container">
         <div class="row">
-            <div class="col-lg-3 col-xs-6">
-                <div class="small-box bg-success">
-                    <div class="inner">
-                        <h3>{{ sales_amount }}</h3>
-                        <p>Sales Amount</p>
-                    </div>
-                    <div class="icon">
-                        <i class="ion ion-social-usd"></i>
-                    </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="small-box bg-success text-white p-3 rounded">
+                    <h3>{{ sales_amount }}</h3>
+                    <p>Sales Amount</p>
                 </div>
             </div>
-            <div class="col-lg-3 col-xs-6">
-                <div class="small-box bg-primary">
-                    <div class="inner">
-                        <h3>{{ total_invoices }}</h3>
-                        <p>Total Invoices</p>
-                    </div>
-                    <div class="icon">
-                        <i class="ion ion-printer"></i>
-                    </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="small-box bg-primary text-white p-3 rounded">
+                    <h3>{{ total_invoices }}</h3>
+                    <p>Total Invoices</p>
                 </div>
             </div>
-            <div class="col-lg-3 col-xs-6">
-                <div class="small-box bg-warning">
-                    <div class="inner">
-                        <h3>{{ pending_bills }}</h3>
-                        <p>Pending Bills</p>
-                    </div>
-                    <div class="icon">
-                        <i class="ion ion-load-a"></i>
-                    </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="small-box bg-warning text-dark p-3 rounded">
+                    <h3>{{ pending_bills }}</h3>
+                    <p>Pending Bills</p>
                 </div>
             </div>
-            <div class="col-lg-3 col-xs-6">
-                <div class="small-box bg-danger">
-                    <div class="inner">
-                        <h3>{{ due_amount }}</h3>
-                        <p>Due Amount</p>
-                    </div>
-                    <div class="icon">
-                        <i class="ion ion-alert-circled"></i>
-                    </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="small-box bg-danger text-white p-3 rounded">
+                    <h3>{{ due_amount }}</h3>
+                    <p>Due Amount</p>
                 </div>
             </div>
         </div>
-       
-     
+
         <div class="row mt-4">
-            <div class="col-lg-3 col-xs-6">
-                <div class="small-box bg-info">
-                    <div class="inner">
-                        <h3>{{ total_products }}</h3>
-                        <p>Total Products</p>
-                    </div>
-                    <div class="icon">
-                        <i class="ion ion-social-dropbox"></i>
-                    </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="small-box bg-info text-white p-3 rounded">
+                    <h3>{{ total_products }}</h3>
+                    <p>Total Products</p>
                 </div>
             </div>
-            <div class="col-lg-3 col-xs-6">
-                <div class="small-box bg-secondary">
-                    <div class="inner">
-                        <h3>{{ total_customers }}</h3>
-                        <p>Total Customers</p>
-                    </div>
-                    <div class="icon">
-                        <i class="ion ion-ios-people"></i>
-                    </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="small-box bg-secondary text-white p-3 rounded">
+                    <h3>{{ total_customers }}</h3>
+                    <p>Total Customers</p>
                 </div>
             </div>
-            <div class="col-lg-3 col-xs-6">
-                <div class="small-box bg-success">
-                    <div class="inner">
-                        <h3>{{ paid_bills }}</h3>
-                        <p>Paid Bills</p>
-                    </div>
-                    <div class="icon">
-                        <i class="ion ion-ios-paper"></i>
-                    </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="small-box bg-success text-white p-3 rounded">
+                    <h3>{{ paid_bills }}</h3>
+                    <p>Paid Bills</p>
                 </div>
             </div>
         </div>
 
         <div class="row mt-4">
             <div class="col-lg-6">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-primary text-white">
-                        Recent Invoices
-                    </div>
+                <div class="card">
+                    <div class="card-header bg-primary text-white">Recent Invoices</div>
                     <ul class="list-group list-group-flush">
-                        {% for invoice in recent_invoices %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>
-                                        <a href="{% url 'invoice_detail' invoice.id %}" class="text-decoration-none">
-                                            {{ invoice.customer.name }}
-                                        </a>
-                                    </strong><br>
-                                    <small class="text-muted">{{ invoice.invoice_date }}</small><br>
-                                    {% if invoice.status == "paid" %}
-                                        <span class="badge bg-success">{{ invoice.status|title }}</span>
-                                    {% else %}
-                                        <span class="badge bg-warning">{{ invoice.status|title }}</span>
-                                    {% endif %}
-                                </div>
-                                <span class="fw-bold">{{ invoice.get_currency_symbol }}{{ invoice.total_amount }}</span>
-                            </li>
-                        {% empty %}
-                            <li class="list-group-item">No recent invoices.</li>
-                        {% endfor %}
+                      {% for invoice in recent_invoices %}
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                          <strong>
+                            <a href="{% url 'invoice_detail' invoice.id %}" class="text-decoration-none">
+                              {{ invoice.customer.name }}
+                            </a>
+                          </strong><br>
+                          <small class="text-muted">{{ invoice.invoice_date }}</small><br>
+                          <span class="badge bg-{% if invoice.status == 'paid' %}success{% else %}warning{% endif %}">
+                            {{ invoice.status|title }}
+                          </span>
+                        </div>
+                        <span>{{ invoice.get_currency_symbol }}{{ invoice.total_amount }}</span>
+                      </li>
+                      {% empty %}
+                      <li class="list-group-item">No recent invoices.</li>
+                      {% endfor %}
                     </ul>
                 </div>
             </div>
         </div>
-    </section>
-
-    <!-- Scripts at the end for performance -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    </div>
+{% endblock %}

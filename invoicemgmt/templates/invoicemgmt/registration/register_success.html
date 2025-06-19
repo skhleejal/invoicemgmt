@@ -1,0 +1,8 @@
+<!-- templates/registration/register_success.html -->
+
+{% extends "base.html" %}  
+
+{% block content %}
+<h2>Registration successful!</h2>
+<p>You can now <a href="{% url 'login' %}">log in</a>.</p>
+{% endblock %}

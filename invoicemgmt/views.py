@@ -22,8 +22,61 @@ from django.http import HttpResponse
 from django.core.mail import EmailMessage
 from io import BytesIO
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+import os
+from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.http import HttpResponseForbidden
 
 
+
+# def register(request):
+#     if request.method == 'POST':
+#         form = UserCreationForm(request.POST)
+#         if form.is_valid():
+#             user = form.save()
+#             # login(request, user)  # ✅ This is critical — logs in new user
+#             return render(request, 'login')
+#     else:
+#         form = UserCreationForm()
+#     return render(request, 'registration/register.html', {'form': form})
+
+
+# def register(request):
+#     if request.user.is_authenticated:
+#         return redirect('home')  # Don't let logged-in users re-register
+
+#     if request.method == 'POST':
+#         form = UserCreationForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('registration_success')  # or to login page
+#     else:
+#         form = UserCreationForm()
+    
+#     return render(request, 'registration/register.html', {'form': form})
+
+
+def register(request):
+    if request.user.is_authenticated:
+        return redirect('home')  # Don't let logged-in users register again
+
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            # 👇 Choose whether to auto-login or not
+            # login(request, user)
+            return render(request, 'registration/register_success.html')  # ✅ create this template
+    else:
+        form = UserCreationForm()
+    
+    return render(request, 'registration/register.html', {'form': form})
+
+@permission_required('invoicemgmt.view_invoice', raise_exception=True)
+@login_required
 def generate_invoice_pdf(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     template = get_template('invoicemgmt/invoice_pdf.html')
@@ -53,7 +106,7 @@ def generate_invoice_pdf(request, pk):
     response['Content-Disposition'] = f'attachment; filename="Invoice_{invoice.pk}.pdf"'
     return response
 
-
+@login_required
 def link_callback(uri, rel):
     """
     Convert HTML URIs to absolute system paths for xhtml2pdf to access local files.
@@ -67,8 +120,8 @@ def link_callback(uri, rel):
             return path
     return uri  # Fallback, may cause failure if file doesn't exist
 
-
-
+@permission_required('invoicemgmt.view_invoice', raise_exception=True)
+@login_required
 def generate_recurring_invoices(request):
     today = now().date()
     recurring_list = RecurringInvoice.objects.filter(active=True, next_due_date__lte=today)
@@ -96,13 +149,25 @@ def generate_recurring_invoices(request):
 
     return redirect('home')
 
-class InvoiceDeleteView(DeleteView):
+class InvoiceDeleteView(PermissionRequiredMixin, DeleteView):
     model = Invoice
     template_name = 'invoicemgmt/confirm_delete_invoice.html'
     success_url = reverse_lazy('invoice_list')
+    permission_required = 'invoicemgmt.delete_invoice'
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        for item in self.object.invoicelineitem_set.all():
+            item.product.stock += item.quantity
+            item.product.save()
+        return super().delete(request, *args, **kwargs)
 
 
+@login_required
 def home(request):
+    if not request.user.is_staff:
+        messages.warning(request, "Your account is pending approval.")
+        return render(request, 'registration/pending_approval.html') # or a custom 'not_approved' page
     sales_amount = Invoice.objects.filter(status="paid").aggregate(total=Sum('total_amount'))['total'] or 0
     total_invoices = Invoice.objects.count()
     pending_bills = Invoice.objects.filter(status="open").count()
@@ -113,6 +178,7 @@ def home(request):
     recent_invoices = Invoice.objects.order_by('-invoice_date')[:5]
     low_stock_products = Product.objects.filter(stock__lt=5)
 
+  
 
     context = {
         'sales_amount': sales_amount,
@@ -128,6 +194,8 @@ def home(request):
     return render(request, 'invoicemgmt/home.html', context)
 
 
+@permission_required('invoicemgmt.change_product', raise_exception=True)
+@login_required
 def update_product(request, pk):
     product = get_object_or_404(Product, pk=pk)
     if request.method == 'POST':
@@ -140,6 +208,8 @@ def update_product(request, pk):
     return render(request, 'invoicemgmt/product_form.html', {'form': form})
 
 
+@permission_required('invoicemgmt.change_product', raise_exception=True)
+@login_required
 def restock_product(request, pk):
     product = get_object_or_404(Product, pk=pk)
 
@@ -154,13 +224,14 @@ def restock_product(request, pk):
 
     return redirect('product_list')
 
-
+@permission_required('invoicemgmt.delete_product', raise_exception=True)
+@login_required
 def delete_product(request, pk):
     product = get_object_or_404(Product, pk=pk)
     product.delete()
     messages.success(request, f"🗑️ Product '{product.name}' deleted successfully.")
     return redirect('product_list')
-
+@login_required
 def create_receipt(request):
     InvoiceLineItemFormSet = inlineformset_factory(
         Invoice, InvoiceLineItem,
@@ -188,11 +259,15 @@ def create_receipt(request):
         'document_type': 'receipt',
     })
 
-
+@permission_required('invoicemgmt.view_customer', raise_exception=True)
+@login_required
 def customer_list(request):
     customers = Customer.objects.all()
     return render(request, 'invoicemgmt/customer_list.html', {'customers': customers})
 
+
+@permission_required('invoicemgmt.add_customer', raise_exception=True)
+@login_required
 def create_customer(request):
     if request.method == 'POST':
         form = CustomerForm(request.POST)
@@ -204,7 +279,8 @@ def create_customer(request):
         form = CustomerForm()
     return render(request, 'invoicemgmt/create_customer.html', {'form': form})
 
-
+@permission_required('invoicemgmt.delete_customer', raise_exception=True)
+@login_required
 def delete_customer(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     
@@ -215,6 +291,7 @@ def delete_customer(request, pk):
 
     return render(request, 'invoicemgmt/confirm_delete_customer.html', {'customer': customer})
 
+@login_required
 def select_document_type(request):
     if request.method == 'POST':
         doc_type = request.POST.get('document_type')
@@ -224,6 +301,8 @@ def select_document_type(request):
             return redirect('create_receipt')
     return render(request, 'invoicemgmt/select_document_type.html')
 
+@permission_required('invoicemgmt.add_invoice', raise_exception=True)
+@login_required
 def create_invoice(request):
     InvoiceLineItemFormSet = inlineformset_factory(
         Invoice, InvoiceLineItem,
@@ -298,19 +377,22 @@ def create_invoice(request):
         'document_type': 'invoice'
     })
 
-
+@permission_required('invoicemgmt.view_invoice', raise_exception=True)
+@login_required
 def invoice_detail(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     return render(request, 'invoicemgmt/invoice_detail.html', {'invoice': invoice})
 
-
-
+@permission_required('invoicemgmt.change_invoice', raise_exception=True)
+@login_required
 def mark_invoice_paid(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     invoice.status = 'paid'
     invoice.save()
     return redirect('invoice_list')
 
+@permission_required('invoicemgmt.view_customer', raise_exception=True)
+@login_required
 def customer_list(request):
     query = request.GET.get('q')
     if query:
@@ -319,6 +401,8 @@ def customer_list(request):
         customers = Customer.objects.all()
     return render(request, 'invoicemgmt/customer_list.html', {'customers': customers, 'query': query})
 
+@permission_required('invoicemgmt.view_invoice', raise_exception=True)
+@login_required
 def invoice_list(request):
     query = request.GET.get('q')
     if query:
@@ -332,13 +416,14 @@ def invoice_list(request):
     return render(request, 'invoicemgmt/invoice_list.html', {'invoices': invoices, 'query': query})
 
 
-
+@permission_required('invoicemgmt.view_customer', raise_exception=True)
+@login_required
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     return render(request, 'invoicemgmt/customer_detail.html', {'customer': customer})
 
-
-
+@permission_required('invoicemgmt.change_product', raise_exception=True)
+@login_required
 def update_invoice(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     InvoiceLineItemFormSet = inlineformset_factory(
@@ -366,6 +451,8 @@ def update_invoice(request, pk):
     })
 
 
+@permission_required('invoicemgmt.add_product', raise_exception=True)
+@login_required
 def add_product(request):
     if request.method == 'POST':
         form = ProductForm(request.POST)
@@ -376,12 +463,13 @@ def add_product(request):
         form = ProductForm()
     return render(request, 'invoicemgmt/add_products.html', {'form': form})
 
-
-
+@permission_required('invoicemgmt.view_product', raise_exception=True)
+@login_required
 def product_list(request):
     products = Product.objects.all()
     return render(request, 'invoicemgmt/product_list.html', {'products': products})
 
+@login_required
 def delete(self, request, *args, **kwargs):
     self.object = self.get_object()
     for item in self.object.invoicelineitem_set.all():
@@ -389,6 +477,8 @@ def delete(self, request, *args, **kwargs):
         item.product.save()
     return super().delete(request, *args, **kwargs)
 
+@permission_required('invoicemgmt.view_invoice', raise_exception=True)
+@login_required
 def email_invoice(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     template = get_template('invoicemgmt/invoice_pdf.html')

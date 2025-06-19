@@ -91,6 +91,7 @@ class ProductForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'rows': 2}),
             'price': forms.NumberInput(),
             # 'vat_rate': forms.NumberInput(),
-            'quantity_in_stock': forms.NumberInput(),
+            # 'quantity_in_stock': forms.NumberInput(),
+            'stock': forms.NumberInput(),
             'reorder_level': forms.NumberInput(),
         }
