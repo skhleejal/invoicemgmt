@@ -14,25 +14,22 @@
             </ul>
         </div>
     {% endif %}
-    
+
     {% if user.is_authenticated %}
-    <div class="alert alert-success mt-4">
-        Welcome, <strong>{{ user.username }}</strong>! 🎉
-    </div>
+        <div class="alert alert-success mt-4">
+            Welcome, <strong>{{ user.username }}</strong>! 🎉
+        </div>
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Logout</button>
+        </form>
     {% else %}
-    <div class="alert alert-danger mt-4">
-        You are not logged in.
-    </div>
-    {% endif %}
-    {% if user.is_authenticated %}
-    <form method="post" action="{% url 'logout' %}">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Logout</button>
-    </form>
+        <div class="alert alert-danger mt-4">
+            You are not logged in.
+        </div>
     {% endif %}
 
-
-    <div class="container">
+    <div class="container mt-4">
         <div class="row">
             <div class="col-lg-3 col-md-6 mb-3">
                 <div class="small-box bg-success text-white p-3 rounded">
@@ -81,32 +78,54 @@
             </div>
         </div>
 
+        <!-- Charts Row -->
+        <div class="row mt-4">
+            <div class="col-lg-6 mb-4">
+                <canvas id="salesChart" height="200"></canvas>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <canvas id="statusChart" height="200"></canvas>
+            </div>
+        </div>
+
         <div class="row mt-4">
             <div class="col-lg-6">
                 <div class="card">
                     <div class="card-header bg-primary text-white">Recent Invoices</div>
                     <ul class="list-group list-group-flush">
-                      {% for invoice in recent_invoices %}
-                      <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                          <strong>
-                            <a href="{% url 'invoice_detail' invoice.id %}" class="text-decoration-none">
-                              {{ invoice.customer.name }}
-                            </a>
-                          </strong><br>
-                          <small class="text-muted">{{ invoice.invoice_date }}</small><br>
-                          <span class="badge bg-{% if invoice.status == 'paid' %}success{% else %}warning{% endif %}">
-                            {{ invoice.status|title }}
-                          </span>
-                        </div>
-                        <span>{{ invoice.get_currency_symbol }}{{ invoice.total_amount }}</span>
-                      </li>
-                      {% empty %}
-                      <li class="list-group-item">No recent invoices.</li>
-                      {% endfor %}
+                        {% for invoice in recent_invoices %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>
+                                    <a href="{% url 'invoice_detail' invoice.id %}" class="text-decoration-none">
+                                        {{ invoice.customer.name }}
+                                    </a>
+                                </strong><br>
+                                <small class="text-muted">{{ invoice.invoice_date }}</small><br>
+                                <span class="badge bg-{% if invoice.status == 'paid' %}success{% else %}warning{% endif %}">
+                                    {{ invoice.status|title }}
+                                </span>
+                            </div>
+                            <span>{{ invoice.get_currency_symbol }}{{ invoice.total_amount }}</span>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item">No recent invoices.</li>
+                        {% endfor %}
                     </ul>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- External JS -->
+    <script>
+       const chartLabels = JSON.parse('{{ chart_labels|escapejs }}');
+       const chartData = JSON.parse('{{ chart_data|escapejs }}');
+       const statusLabels = JSON.parse('{{ status_labels|escapejs }}');
+       const statusData = JSON.parse('{{ status_data|escapejs }}');
+    </script>
+    <script src="{% static 'js/dashboard_charts.js' %}"></script>
+
 {% endblock %}

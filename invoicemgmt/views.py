@@ -29,6 +29,11 @@ import os
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import HttpResponseForbidden
+import json
+from django.db.models.functions import TruncMonth
+from datetime import datetime, timedelta
+
+from .models import Invoice, Product, Customer
 
 
 
@@ -162,24 +167,48 @@ class InvoiceDeleteView(PermissionRequiredMixin, DeleteView):
             item.product.save()
         return super().delete(request, *args, **kwargs)
 
+# from .models import Invoice, Product, Customer  # Make sure your models are imported
 
 @login_required
 def home(request):
     if not request.user.is_staff:
         messages.warning(request, "Your account is pending approval.")
-        return render(request, 'registration/pending_approval.html') # or a custom 'not_approved' page
+        return render(request, 'registration/pending_approval.html')
+
+    # Basic dashboard stats
     sales_amount = Invoice.objects.filter(status="paid").aggregate(total=Sum('total_amount'))['total'] or 0
     total_invoices = Invoice.objects.count()
     pending_bills = Invoice.objects.filter(status="open").count()
     due_amount = Invoice.objects.filter(status="open").aggregate(total=Sum('total_amount'))['total'] or 0
-    total_products = Product.objects.count() if 'Product' in globals() else 0
+    total_products = Product.objects.count()
     total_customers = Customer.objects.count()
     paid_bills = Invoice.objects.filter(status="paid").count()
     recent_invoices = Invoice.objects.order_by('-invoice_date')[:5]
     low_stock_products = Product.objects.filter(stock__lt=5)
 
-  
+    # --- Chart Data: Last 6 Months Sales ---
+    today = datetime.today()
+    last_6_months = [today.replace(day=1) - timedelta(days=30*i) for i in reversed(range(6))]
+    month_labels = [d.strftime('%b') for d in last_6_months]
 
+    monthly_sales = Invoice.objects.filter(status="paid") \
+        .annotate(month=TruncMonth('invoice_date')) \
+        .values('month') \
+        .annotate(total=Sum('total_amount')) \
+        .order_by('month')
+
+    sales_dict = {entry['month'].strftime('%b'): entry['total'] for entry in monthly_sales}
+    chart_data = [float(sales_dict.get(month, 0)) for month in month_labels]
+
+    # --- Doughnut Chart: Money Breakdown by Status ---
+    paid_total = Invoice.objects.filter(status='paid').aggregate(total=Sum('total_amount'))['total'] or 0
+    unpaid_total = Invoice.objects.filter(status='unpaid').aggregate(total=Sum('total_amount'))['total'] or 0
+    open_total = Invoice.objects.filter(status='open').aggregate(total=Sum('total_amount'))['total'] or 0
+
+    status_labels = ['Paid', 'Unpaid', 'Open']
+    status_data = [float(paid_total), float(unpaid_total), float(open_total)]
+
+    # Final context
     context = {
         'sales_amount': sales_amount,
         'total_invoices': total_invoices,
@@ -188,9 +217,14 @@ def home(request):
         'total_products': total_products,
         'total_customers': total_customers,
         'paid_bills': paid_bills,
-        'recent_invoices':recent_invoices,
-        'low_stock_products': low_stock_products
+        'recent_invoices': recent_invoices,
+        'low_stock_products': low_stock_products,
+        'chart_labels': json.dumps(month_labels),
+        'chart_data': json.dumps(chart_data),
+        'status_labels': json.dumps(status_labels),
+        'status_data': json.dumps(status_data),
     }
+
     return render(request, 'invoicemgmt/home.html', context)
 
 
