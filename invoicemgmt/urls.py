@@ -15,12 +15,14 @@ urlpatterns = [
 
     # Invoice-related URLs
     path('invoices/', views.invoice_list, name='invoice_list'),
-    path('invoices/create/', views.create_invoice, name='create_invoice'),  # ✅ Use this
+    path('invoices/create/', views.create_invoice, name='create_invoice'),  
     path('invoices/<int:pk>/', views.invoice_detail, name='invoice_detail'),
     path('invoices/<int:pk>/mark_paid/', views.mark_invoice_paid, name='mark_invoice_paid'),
     path('invoices/<int:pk>/edit/', views.update_invoice, name='update_invoice'),
     path('invoices/<int:pk>/delete/', InvoiceDeleteView.as_view(), name='delete_invoice'),
     path('invoices/<int:pk>/pdf/', views.generate_invoice_pdf, name='generate_invoice_pdf'),
+    path("import-invoices/", views.import_invoices_from_excel, name="import_invoices"),
+
 
     # Product-related URLs
     path('products/', product_list, name='product_list'),

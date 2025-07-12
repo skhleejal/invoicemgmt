@@ -1,7 +1,15 @@
 from django.db import models
 from django.utils.timezone import now
+from django.db.models import Max
 from num2words import num2words
+from django.db import transaction
+from .utils import number_to_words, COUNTRY_CURRENCY, CURRENCY_SYMBOL
+from django.conf import settings
 
+
+
+
+# ----- Currency and Country Config -----
 COUNTRY_CURRENCY = {
     'United States': 'USD',
     'India': 'INR',
@@ -11,9 +19,7 @@ COUNTRY_CURRENCY = {
     'Italy': 'EUR',
     'Spain': 'EUR',
     'UAE': 'AED',
-    # Add more as needed
 }
-
 
 CURRENCY_SYMBOL = {
     'USD': '$',
@@ -21,22 +27,7 @@ CURRENCY_SYMBOL = {
     'EUR': '€',
     'GBP': '£',
     'AED': 'د.إ',
-    # Add more as needed
 }
-
-
-COUNTRY_CHOICES = [
-    ('United States', 'United States'),
-    ('India', 'India'),
-    ('United Kingdom', 'United Kingdom'),
-    ('Germany', 'Germany'),
-    ('France', 'France'),
-    ('Italy', 'Italy'),
-    ('Spain', 'Spain'),
-    ('UAE', 'UAE'),
-    # Add more as needed
-]
-
 
 COUNTRY_PHONE_CODES = {
     'United States': '+1',
@@ -47,62 +38,64 @@ COUNTRY_PHONE_CODES = {
     'Italy': '+39',
     'Spain': '+34',
     'UAE': '+971',
-    # Add more as needed
 }
 
+COUNTRY_CHOICES = [(c, c) for c in COUNTRY_CURRENCY.keys()]
+
+# ----- Utils -----
 def number_to_words(n, currency='USD'):
     try:
-        # Only use 'currency' if supported
         if currency in ['USD', 'INR', 'EUR', 'GBP']:
             return num2words(n, to='currency', lang='en', currency=currency)
         else:
-            # Fallback: just return the number in words
             return num2words(n, lang='en') + f" {currency}"
     except Exception:
         return str(n)
+
+# ----- Models -----
 
 class Customer(models.Model):
     name = models.CharField(max_length=255)
     po_box = models.CharField(max_length=50, blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
     country = models.CharField(max_length=100, choices=COUNTRY_CHOICES, blank=True, null=True)
-    phone_code = models.CharField(max_length=10, blank=True, null=True) 
+    phone_code = models.CharField(max_length=10, blank=True, null=True)
     phone = models.CharField(max_length=50, blank=True, null=True)
     fax = models.CharField(max_length=50, blank=True, null=True)
     vat_number = models.CharField(max_length=100, blank=True, null=True)
-    email = models.EmailField(blank=True, null=True) 
-    
-    
+    email = models.EmailField(blank=True, null=True)
+
     def save(self, *args, **kwargs):
-        # Always sync phone_code with selected country
         if self.country:
             self.phone_code = COUNTRY_PHONE_CODES.get(self.country, '')
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
-    
+
+
 class Product(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    vat_rate = models.DecimalField(max_digits=5, decimal_places=2, default=5.00)  
+    vat_rate = models.DecimalField(max_digits=5, decimal_places=2, default=5.00)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
     reorder_level = models.IntegerField(default=2)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"{self.name} – {self.description[:30]}"  # show both name and short desc
-    
     def is_low_stock(self):
         return self.stock <= self.reorder_level
+    
+    def __str__(self):
+        desc = self.description[:30] if self.description else "No description"
+        return f"{self.name} – {desc}"
+
 
 class Invoice(models.Model):
-    invoice_number = models.CharField(max_length=100)
+    invoice_number = models.CharField(max_length=100, unique=True, blank=True)
     invoice_date = models.DateField()
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    vat_number = models.CharField(max_length=100,blank=True, null=True)
+    customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
+    vat_number = models.CharField(max_length=100, blank=True, null=True)
     po_number = models.CharField(max_length=100, blank=True, null=True)
     po_date = models.DateField(blank=True, null=True)
     delivery_note = models.CharField(max_length=100, blank=True, null=True)
@@ -114,14 +107,13 @@ class Invoice(models.Model):
     payment_method = models.CharField(max_length=100, blank=True, null=True, default="CDC")
     amount_in_words = models.CharField(max_length=512, blank=True, default="N/A")
     created_at = models.DateTimeField(auto_now_add=True)
-    invoice_type_choice=(
-        ('Receipt','Receipt'),
-        ('Invoice','Invoice'),
-      
-    )
-    invoice_type=models.CharField(max_length=50,default='',blank=True,null=True,choices=invoice_type_choice)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='invoices')
 
-    
+    invoice_type_choices = (
+        ('Receipt', 'Receipt'),
+        ('Invoice', 'Invoice'),
+    )
+    invoice_type = models.CharField(max_length=50, choices=invoice_type_choices, blank=True, null=True, default='')
 
     STATUS_CHOICES = [
         ('open', 'Open'),
@@ -129,33 +121,51 @@ class Invoice(models.Model):
     ]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
 
-    def get_currency_symbol(self):
-        country = self.customer.country if self.customer and self.customer.country else ''
-        currency = COUNTRY_CURRENCY.get(country, 'USD')
-        return CURRENCY_SYMBOL.get(currency, '$')
-    
-
-
     def save(self, *args, **kwargs):
+        # Auto-generate invoice number only if not already set
+        if not self.invoice_number:
+            with transaction.atomic():
+                # Filter numeric-only invoice numbers
+                latest = Invoice.objects.select_for_update().filter(
+                    invoice_number__regex=r'^\d+$'
+                ).aggregate(
+                    max_number=Max('invoice_number')
+                )['max_number']
+
+                self.invoice_number = str(int(latest) + 1) if latest else '1000'
+
+        # Calculate totals only if invoice already exists (has line items)
         taxable = 0
         vat = 0
         if self.pk:
             for item in self.line_items.all():
                 taxable += item.amount
                 vat += item.vat_amount
+
         self.total_taxable = taxable
         self.total_vat = vat
         self.total_amount = taxable + vat
 
-        # Get currency code based on customer's country
-        country = self.customer.country if self.customer and self.customer.country else ''
-        currency = COUNTRY_CURRENCY.get(country, 'USD')
+        # Currency & amount in words
+        country = getattr(self.customer, 'country', None)
+        currency = COUNTRY_CURRENCY.get(country, 'USD') if country else 'USD'
         self.amount_in_words = number_to_words(self.total_amount, currency=currency)
+
         super().save(*args, **kwargs)
 
+    def get_currency_symbol(self):
+        country = getattr(self.customer, 'country', None)
+        currency = COUNTRY_CURRENCY.get(country, 'USD') if country else 'USD'
+        return CURRENCY_SYMBOL.get(currency, '$')
+
     def __str__(self):
-        return f"Invoice #{self.invoice_number} for {self.customer.name}"
-    
+        try:
+            customer_name = self.customer.name if self.customer else "Unknown Customer"
+        except:
+            customer_name = "Unknown Customer"
+        return f"Invoice #{self.invoice_number or 'N/A'} for {customer_name}"    
+
+
 class RecurringInvoice(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -178,13 +188,9 @@ class InvoiceLineItem(models.Model):
     def save(self, *args, **kwargs):
         if self.product and not self.unit_price:
             self.unit_price = self.product.price
-
         self.amount = self.quantity * self.unit_price
         self.vat_amount = (self.vat_rate / 100) * self.amount
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.description[:30]}"
-    
-    # products
-

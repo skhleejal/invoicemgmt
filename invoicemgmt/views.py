@@ -32,7 +32,9 @@ from django.http import HttpResponseForbidden
 import json
 from django.db.models.functions import TruncMonth
 from datetime import datetime, timedelta
-
+import pandas as pd
+from django.core.files.storage import default_storage
+from django.views.decorators.csrf import csrf_exempt
 from .models import Invoice, Product, Customer
 
 
@@ -168,22 +170,29 @@ class InvoiceDeleteView(PermissionRequiredMixin, DeleteView):
         return super().delete(request, *args, **kwargs)
 
 # from .models import Invoice, Product, Customer  # Make sure your models are imported
-
 @login_required
 def home(request):
     if not request.user.is_staff:
         messages.warning(request, "Your account is pending approval.")
         return render(request, 'registration/pending_approval.html')
+    
+    # Role-based filtering
+    if request.user.is_superuser:
+        invoice_qs = Invoice.objects.all()
+        total_customers = Customer.objects.count()
+    else:
+        invoice_qs = Invoice.objects.filter(created_by=request.user)
+        # Only customers served by this user
+        total_customers = Customer.objects.filter(invoice__created_by=request.user).distinct().count()
 
-    # Basic dashboard stats
-    sales_amount = Invoice.objects.filter(status="paid").aggregate(total=Sum('total_amount'))['total'] or 0
-    total_invoices = Invoice.objects.count()
-    pending_bills = Invoice.objects.filter(status="open").count()
-    due_amount = Invoice.objects.filter(status="open").aggregate(total=Sum('total_amount'))['total'] or 0
+    # Use invoice_qs for all stats!
+    sales_amount = invoice_qs.filter(status="paid").aggregate(total=Sum('total_amount'))['total'] or 0
+    total_invoices = invoice_qs.count()
+    pending_bills = invoice_qs.filter(status="open").count()
+    due_amount = invoice_qs.filter(status="open").aggregate(total=Sum('total_amount'))['total'] or 0
+    paid_bills = invoice_qs.filter(status="paid").count()
+    recent_invoices = invoice_qs.order_by('-invoice_date')[:5]
     total_products = Product.objects.count()
-    total_customers = Customer.objects.count()
-    paid_bills = Invoice.objects.filter(status="paid").count()
-    recent_invoices = Invoice.objects.order_by('-invoice_date')[:5]
     low_stock_products = Product.objects.filter(stock__lt=5)
 
     # --- Chart Data: Last 6 Months Sales ---
@@ -191,24 +200,23 @@ def home(request):
     last_6_months = [today.replace(day=1) - timedelta(days=30*i) for i in reversed(range(6))]
     month_labels = [d.strftime('%b') for d in last_6_months]
 
-    monthly_sales = Invoice.objects.filter(status="paid") \
+    monthly_sales = invoice_qs.filter(status="paid") \
         .annotate(month=TruncMonth('invoice_date')) \
         .values('month') \
         .annotate(total=Sum('total_amount')) \
         .order_by('month')
 
-    sales_dict = {entry['month'].strftime('%b'): entry['total'] for entry in monthly_sales}
+    sales_dict = {entry['month'].strftime('%b'): entry['total'] for entry in monthly_sales if entry['month']}
     chart_data = [float(sales_dict.get(month, 0)) for month in month_labels]
 
     # --- Doughnut Chart: Money Breakdown by Status ---
-    paid_total = Invoice.objects.filter(status='paid').aggregate(total=Sum('total_amount'))['total'] or 0
-    unpaid_total = Invoice.objects.filter(status='unpaid').aggregate(total=Sum('total_amount'))['total'] or 0
-    open_total = Invoice.objects.filter(status='open').aggregate(total=Sum('total_amount'))['total'] or 0
+    paid_total = invoice_qs.filter(status='paid').aggregate(total=Sum('total_amount'))['total'] or 0
+    unpaid_total = invoice_qs.filter(status='unpaid').aggregate(total=Sum('total_amount'))['total'] or 0
+    open_total = invoice_qs.filter(status='open').aggregate(total=Sum('total_amount'))['total'] or 0
 
     status_labels = ['Paid', 'Unpaid', 'Open']
     status_data = [float(paid_total), float(unpaid_total), float(open_total)]
 
-    # Final context
     context = {
         'sales_amount': sales_amount,
         'total_invoices': total_invoices,
@@ -226,7 +234,6 @@ def home(request):
     }
 
     return render(request, 'invoicemgmt/home.html', context)
-
 
 @permission_required('invoicemgmt.change_product', raise_exception=True)
 @login_required
@@ -350,11 +357,11 @@ def create_invoice(request):
 
         if form.is_valid() and formset.is_valid():
             invoice = form.save(commit=False)
+            invoice.created_by = request.user  # Assign the invoice to the current user
             formset.instance = invoice
 
             stock_errors = []
 
-            # Step 1: Check stock before saving
             for item_form in formset:
                 product = item_form.cleaned_data.get('product')
                 quantity = item_form.cleaned_data.get('quantity')
@@ -374,31 +381,35 @@ def create_invoice(request):
                     'document_type': 'invoice'
                 })
 
-            # Step 2: Save invoice (temporarily)
-            invoice.save()
+            try:
+                invoice.save()  # 💡 This will now safely calculate amount_in_words
 
-            total_amount = 0
-            line_items = formset.save(commit=False)
+                total_amount = 0
+                line_items = formset.save(commit=False)
 
-            for item_form in line_items:
-                product = item_form.product
-                quantity = item_form.quantity
-                price = product.price
-                item_form.amount = quantity * price  # set amount
-                item_form.invoice = invoice
-                item_form.save()
+                for item_form in line_items:
+                    product = item_form.product
+                    quantity = item_form.quantity
+                    price = product.price
+                    item_form.amount = quantity * price
+                    item_form.invoice = invoice
+                    item_form.save()
 
-                total_amount += item_form.amount
+                    total_amount += item_form.amount
 
-                # Reduce stock
-                product.stock -= quantity
-                product.save()
+                    # Reduce stock
+                    product.stock -= quantity
+                    product.save()
 
-            invoice.total_amount = total_amount
-            invoice.save()
+                invoice.total_amount = total_amount
+                invoice.save()
 
-            messages.success(request, '✅ Invoice saved and stock updated.')
-            return redirect('invoice_list')
+                messages.success(request, '✅ Invoice saved and stock updated.')
+                return redirect('invoice_list')
+
+            except Exception as e:
+                messages.error(request, f"❌ Error saving invoice: {str(e)}")
+
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
@@ -410,6 +421,7 @@ def create_invoice(request):
         'formset': formset,
         'document_type': 'invoice'
     })
+
 
 @permission_required('invoicemgmt.view_invoice', raise_exception=True)
 @login_required
@@ -519,34 +531,75 @@ def email_invoice(request, pk):
 
     invoice_count = Invoice.objects.count()  # Optional, if used in the template
 
-    html = template.render({
-        'invoice': invoice,
-        'now': now(),
-        'invoice_count': invoice_count
-    })
+@csrf_exempt
+@login_required
+@permission_required('invoicemgmt.add_invoice', raise_exception=True)
+def import_invoices_from_excel(request):
+    if request.method == "POST" and request.FILES.get("excel_file"):
+        file = request.FILES["excel_file"]
+        filepath = default_storage.save(file.name, file)
+        df = pd.read_excel(default_storage.path(filepath))
 
-    pdf_file = BytesIO()
-    pisa_status = pisa.CreatePDF(html, dest=pdf_file)
+        for _, row in df.iterrows():
+            try:
+                # --- Extract & Clean Values ---
+                customer_name = str(row.get("Customer Name", "")).strip()
+                customer_country = str(row.get("Country", "")).strip()
+                product_name = str(row.get("Product", "")).strip()
+                quantity = int(row.get("Quantity", 1))
+                unit_price = float(row.get("Unit Price", 0))
+                vat_rate = float(row.get("VAT Rate", 5.0))
+                po_number = str(row.get("PO Number", "")).strip()
+                invoice_date = row.get("Invoice Date")
+                status = str(row.get("Status", "open")).strip().lower()
 
-    if pisa_status.err:
-        messages.error(request, "❌ Failed to generate invoice PDF.")
-        return redirect('invoice_detail', pk=pk)
+                # --- Handle Invoice Number ---
+                invoice_number = row.get("Invoice Number")
+                invoice_number = str(int(invoice_number)).strip() if pd.notna(invoice_number) else None
 
-    pdf_file.seek(0)
-    customer_email = invoice.customer.email
+                # --- Check for Duplicate Invoice Number ---
+                if invoice_number and Invoice.objects.filter(invoice_number=invoice_number).exists():
+                    messages.warning(request, f"⚠️ Skipped duplicate invoice number: {invoice_number}")
+                    continue
 
-    if customer_email:
-        subject = f"Invoice #{invoice.pk} from Sherook Kalba"
-        body = (
-            f"Dear {invoice.customer.name},\n\n"
-            f"Please find attached your invoice #{invoice.pk}.\n\n"
-            "Thank you!"
-        )
-        email = EmailMessage(subject, body, to=[customer_email])
-        email.attach(f"Invoice_{invoice.pk}.pdf", pdf_file.read(), 'application/pdf')
-        email.send()
-        messages.success(request, "✅ Invoice emailed to customer.")
-    else:
-        messages.warning(request, "⚠️ Customer has no email address.")
+                # --- Create/Get Customer ---
+                customer, _ = Customer.objects.get_or_create(
+                    name=customer_name,
+                    defaults={"country": customer_country}
+                )
 
-    return redirect('invoice_detail', pk=pk)
+                # --- Create/Get Product ---
+                product, _ = Product.objects.get_or_create(
+                    name=product_name,
+                    defaults={"price": unit_price, "vat_rate": vat_rate}
+                )
+
+                # --- Create Invoice ---
+                invoice = Invoice.objects.create(
+                    invoice_number=invoice_number,
+                    customer=customer,
+                    invoice_date=invoice_date,
+                    po_number=po_number,
+                    status='paid' if status == 'paid' else 'open',
+                )
+
+                # --- Add Line Item ---
+                InvoiceLineItem.objects.create(
+                    invoice=invoice,
+                    product=product,
+                    quantity=quantity,
+                    unit_price=unit_price,
+                    vat_rate=vat_rate,
+                    description=product_name
+                )
+
+                # --- Final save to recalculate totals & currency-in-words ---
+                invoice.save()
+
+            except Exception as e:
+                messages.error(request, f"❌ Error on row with Invoice #{row.get('Invoice Number', 'N/A')}: {str(e)}")
+
+        messages.success(request, "✅ Invoices imported successfully.")
+        return redirect("invoice_list")
+
+    return render(request, "invoicemgmt/import_invoices.html")
