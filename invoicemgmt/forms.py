@@ -1,6 +1,6 @@
 from django import forms
 from .models import Invoice, InvoiceLineItem, Customer, Product
-
+from .models import Purchase, PurchaseLineItem
 
 class CustomerForm(forms.ModelForm):
     class Meta:
@@ -115,3 +115,21 @@ class ProductForm(forms.ModelForm):
             'stock': 'Available Stock',
             'reorder_level': 'Reorder Threshold',
         }
+
+
+# class ProductPurchaseForm(forms.Form):
+#     supplier_name = forms.CharField(label="Supplier Name", max_length=100)
+#     product_id = forms.ModelChoiceField(queryset=Product.objects.all(), label="Product")
+#     quantity = forms.IntegerField(min_value=1, label="Quantity Purchased")
+#     unit_price = forms.DecimalField(max_digits=10, decimal_places=2, label="Purchase Price per Unit")
+
+
+class PurchaseForm(forms.ModelForm):
+    class Meta:
+        model = Purchase
+        fields = ['supplier_name', 'product', 'quantity', 'unit_price']
+
+class PurchaseLineItemForm(forms.ModelForm):
+    class Meta:
+        model = PurchaseLineItem
+        fields = ['product', 'quantity', 'price']

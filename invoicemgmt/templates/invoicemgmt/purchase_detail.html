@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Purchase #{{ purchase.purchase_number }}</title>
+    <link rel="stylesheet" href="{% static 'css/stylesheet.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h1>Purchase #{{ purchase.purchase_number }}</h1>
+    <p><strong>Date:</strong> {{ purchase.purchase_date }}</p>
+    <p><strong>Vendor:</strong> {{ purchase.vendor.name }}</p>
+    <p><strong>Total Amount:</strong> {{ purchase.total_amount }}</p>
+    <p><strong>Amount in Words:</strong> {{ purchase.amount_in_words }}</p>
+    <p><strong>Total Purchases in System:</strong> {{ purchase_count }}</p>
+
+    <h2 class="mt-4">Line Items</h2>
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Unit Price</th>
+            <th>VAT Amount</th>
+            <th>Total Amount (Including VAT)</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in purchase.line_items.all %}
+            <tr>
+                <td>{{ item.description }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.unit_price }}</td>
+                <td>{{ item.vat_amount }}</td>
+                <td>
+                    {% if item.total_with_vat %}
+                        {{ item.total_with_vat }}
+                    {% else %}
+                        {{ item.unit_price|floatformat:2|add:item.vat_amount|floatformat:2 }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="5">No line items found.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Total VAT: {{ purchase.total_vat }}</h3>
+    <h3>Grand Total (Including VAT): {{ purchase.total_amount }}</h3>
+
+    <form method="post" action="{% url 'email_purchase' purchase.pk %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">
+            📧 Email Purchase Summary
+        </button>
+    </form>
+
+    <a href="{% url 'purchase_list' %}" class="btn btn-secondary mt-3">Back to Purchases</a>
+</div>
+</body>
+</html>

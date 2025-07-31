@@ -5,7 +5,8 @@ from num2words import num2words
 from django.db import transaction
 from .utils import number_to_words, COUNTRY_CURRENCY, CURRENCY_SYMBOL
 from django.conf import settings
-
+from django.contrib.auth.models import User
+from decimal import Decimal
 
 
 
@@ -54,6 +55,15 @@ def number_to_words(n, currency='USD'):
 
 # ----- Models -----
 
+
+# class Shop(models.Model):
+#     name = models.CharField(max_length=100)
+#     address = models.TextField(blank=True, null=True)
+#     # Add other fields as needed
+
+#     def __str__(self):
+#         return self.name
+
 class Customer(models.Model):
     name = models.CharField(max_length=255)
     po_box = models.CharField(max_length=50, blank=True, null=True)
@@ -89,6 +99,7 @@ class Product(models.Model):
     def __str__(self):
         desc = self.description[:30] if self.description else "No description"
         return f"{self.name} – {desc}"
+
 
 
 class Invoice(models.Model):
@@ -194,3 +205,35 @@ class InvoiceLineItem(models.Model):
 
     def __str__(self):
         return f"{self.description[:30]}"
+    
+
+
+class Purchase(models.Model):
+    supplier_name = models.CharField(max_length=255)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    date = models.DateField(auto_now_add=True)
+    purchased_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        self.total_amount = self.quantity * self.unit_price
+        self.vat_amount = self.total_amount * Decimal('0.05')  # Example VAT 5%
+        self.total_amount += self.vat_amount
+        super().save(*args, **kwargs)
+        
+
+
+class PurchaseLineItem(models.Model):
+    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, related_name='line_items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)  # or unit_price
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def save(self, *args, **kwargs):
+        self.amount = self.quantity * self.price
+        super().save(*args, **kwargs)

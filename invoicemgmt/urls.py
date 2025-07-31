@@ -30,9 +30,20 @@ urlpatterns = [
     path('products/<int:pk>/edit/', views.update_product, name='product_update'),
     path('products/<int:pk>/restock/', views.restock_product, name='restock_product'),
     path('products/<int:pk>/delete/', views.delete_product, name='product_delete'),
+    # path('products/purchase/', views.purchase_product, name='purchase_product'),
+    path('purchases/create/', views.purchase_form, name='create_purchase'),
+    path('purchases/<int:pk>/summary/', views.purchase_summary, name='purchase_summary'),
+    path('purchases/', views.purchase_list, name='purchase_list'),
+    path('purchases/create/', views.purchase_form, name='purchase_form'),
+    path('purchases/<int:pk>/', views.purchase_detail, name='purchase_detail'),
+    path('purchases/<int:pk>/delete/', views.purchase_delete, name='delete_purchase'),
+    path('purchases/<int:pk>/update/', views.purchase_update, name='update_purchase'),
+    path('purchases/<int:pk>/pdf/', views.purchase_pdf, name='purchase_pdf'),
+]
 
 
-    # Other
+# Other
+urlpatterns += [
     path('create_document/', views.select_document_type, name='select_document_type'),
     path('create_receipt/', views.create_receipt, name='create_receipt'),
     path('generate-recurring-invoices/', views.generate_recurring_invoices, name='generate_recurring_invoices'),
@@ -42,9 +53,4 @@ urlpatterns = [
         template_name='registration/register_success.html'), name='registration_success'),
     path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
-
-    
-    
-
-
 ]

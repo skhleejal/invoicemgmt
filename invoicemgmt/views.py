@@ -14,7 +14,7 @@ from django.shortcuts import redirect
 from .models import RecurringInvoice, Invoice, InvoiceLineItem
 from datetime import date
 from django.utils.timezone import now
-from django.template.loader import get_template
+from django.template.loader import get_template, render_to_string
 from django.utils.timezone import now
 from xhtml2pdf import pisa
 from django.contrib.staticfiles import finders
@@ -36,6 +36,12 @@ import pandas as pd
 from django.core.files.storage import default_storage
 from django.views.decorators.csrf import csrf_exempt
 from .models import Invoice, Product, Customer
+from .models import Purchase
+from .forms import PurchaseForm
+from django.db.models import Q
+
+from .models import Purchase,PurchaseLineItem
+from .forms import PurchaseForm, PurchaseLineItemForm
 
 
 
@@ -603,3 +609,179 @@ def import_invoices_from_excel(request):
         return redirect("invoice_list")
 
     return render(request, "invoicemgmt/import_invoices.html")
+
+
+@login_required
+def purchase_form(request):
+    PurchaseLineItemFormSet = inlineformset_factory(
+        Purchase, PurchaseLineItem,
+        form=PurchaseLineItemForm,
+        extra=1, can_delete=True
+    )
+
+    if request.method == 'POST':
+        form = PurchaseForm(request.POST)
+        formset = PurchaseLineItemFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            purchase = form.save(commit=False)
+            purchase.purchased_by = request.user
+            purchase.save()
+            formset.instance = purchase
+            line_items = formset.save(commit=False)
+
+            for item in line_items:
+                item.product.stock += item.quantity
+                item.product.save()
+                item.save()
+
+            formset.save_m2m()
+            messages.success(request, 'Purchase created and stock updated!')
+            return redirect('purchase_list')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = PurchaseForm()
+        formset = PurchaseLineItemFormSet()
+
+    return render(request, 'invoicemgmt/purchase_form.html', {'form': form, 'formset': formset})
+
+def purchase_summary(request, pk):
+    purchase = get_object_or_404(Purchase, pk=pk)
+    amount_in_words = num2words(purchase.total_amount, to='currency', lang='en', currency='AED')
+
+    if request.GET.get('format') == 'pdf':
+        html_string = render(request, 'purchases/purchase_summary.html', {
+            'purchase': purchase,
+            'amount_in_words': amount_in_words,
+        }).content.decode('utf-8')
+
+        with tempfile.NamedTemporaryFile(delete=True, suffix=".pdf") as output:
+            HTML(string=html_string).write_pdf(target=output.name)
+            output.seek(0)
+            response = HttpResponse(output.read(), content_type='application/pdf')
+            response['Content-Disposition'] = f'filename=purchase_{purchase.id}.pdf'
+            return response
+
+    return render(request, 'purchases/purchase_summary.html', {
+        'purchase': purchase,
+        'amount_in_words': amount_in_words,
+    })
+
+@login_required
+def purchase_pdf(request, pk):
+    purchase = get_object_or_404(Purchase, pk=pk)
+    html_string = render_to_string('invoicemgmt/purchase_pdf.html', {'purchase': purchase})
+    html = HTML(string=html_string)
+    pdf_file = html.write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename=purchase_{purchase.pk}.pdf'
+    return response
+
+def purchase_detail(request, pk):
+    purchase = get_object_or_404(Purchase, pk=pk)
+    purchase_count = Purchase.objects.count()
+    return render(request, 'purchase_detail.html', {
+        'purchase': purchase,
+        'purchase_count': purchase_count,
+    })
+
+@login_required
+def purchase_list(request):
+    query = request.GET.get("q", "")
+    purchases = Purchase.objects.all()
+
+    if query:
+        purchases = purchases.filter(
+            Q(purchase_number__icontains=query) |
+            Q(supplier__name__icontains=query)
+        )
+
+    return render(request, "invoicemgmt/purchase_list.html", {
+        "purchases": purchases,
+        "query": query,
+    })
+
+@permission_required('invoicemgmt.add_purchase', raise_exception=True)
+@login_required
+def purchase_create(request):
+    PurchaseLineItemFormSet = inlineformset_factory(
+        Purchase, PurchaseLineItem,
+        form=PurchaseLineItemForm,
+        extra=1, can_delete=True
+    )
+
+    if request.method == 'POST':
+        form = PurchaseForm(request.POST)
+        formset = PurchaseLineItemFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            purchase = form.save(commit=False)
+            purchase.created_by = request.user
+            formset.instance = purchase
+
+            try:
+                purchase.save()
+                total_amount = 0
+                line_items = formset.save(commit=False)
+
+                for item in line_items:
+                    product = item.product
+                    quantity = item.quantity
+                    price = item.price
+
+                    item.amount = quantity * price
+                    item.purchase = purchase
+                    item.save()
+
+                    total_amount += item.amount
+
+                    # ✅ Increase stock
+                    product.stock += quantity
+                    product.save()
+
+                purchase.total_amount = total_amount
+                purchase.save()
+
+                messages.success(request, '✅ Purchase recorded and stock updated.')
+                return redirect('purchase_list')
+
+            except Exception as e:
+                messages.error(request, f"❌ Error saving purchase: {str(e)}")
+
+        else:
+            messages.error(request, 'Please correct the errors below.')
+
+    else:
+        form = PurchaseForm()
+        formset = PurchaseLineItemFormSet()
+
+    return render(request, 'invoicemgmt/purchase_form.html', {
+        'form': form,
+        'formset': formset,
+        'document_type': 'purchase'
+    })
+
+from django.shortcuts import get_object_or_404, redirect
+
+@login_required
+def purchase_delete(request, pk):
+    purchase = get_object_or_404(Purchase, pk=pk)
+    purchase.delete()
+    return redirect('purchase_list')
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required, permission_required
+
+@permission_required('invoicemgmt.change_purchase', raise_exception=True)
+@login_required
+def purchase_update(request, pk):
+    purchase = get_object_or_404(Purchase, pk=pk)
+    if request.method == 'POST':
+        form = PurchaseForm(request.POST, instance=purchase)
+        if form.is_valid():
+            form.save()
+            return redirect('purchase_list')
+    else:
+        form = PurchaseForm(instance=purchase)
+    return render(request, 'invoicemgmt/purchase_form.html', {'form': form, 'purchase': purchase})

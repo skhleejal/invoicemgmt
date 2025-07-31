@@ -1,0 +1,42 @@
+<!-- filepath: c:\Users\ASUS TUF\Desktop\management-main\management-main\invoicemgmt\templates\invoicemgmt\purchase_pdf.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Purchase PDF</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #333; padding: 8px; }
+    </style>
+</head>
+<body>
+    <h2>Purchase #{{ purchase.pk }}</h2>
+    <p><strong>Date:</strong> {{ purchase.date }}</p>
+    <p><strong>Supplier:</strong> {{ purchase.supplier_name }}</p>
+    <p><strong>Total Amount:</strong> {{ purchase.total_amount }}</p>
+    <h3>Line Items</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>VAT Amount</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in purchase.purchaselineitem_set.all %}
+            <tr>
+                <td>{{ item.product }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.unit_price }}</td>
+                <td>{{ item.vat_amount }}</td>
+                <td>{{ item.total_with_vat }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
