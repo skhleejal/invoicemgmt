@@ -231,9 +231,27 @@ class PurchaseLineItem(models.Model):
     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, related_name='line_items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)  # or unit_price
+    price = models.DecimalField(max_digits=10, decimal_places=2)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
-    def save(self, *args, **kwargs):
-        self.amount = self.quantity * self.price
-        super().save(*args, **kwargs)
+
+class Quotation(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    date = models.DateField(auto_now_add=True)
+    reference = models.CharField(max_length=50, unique=True)
+    notes = models.TextField(blank=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # Add other fields as needed
+
+    def __str__(self):
+        return f"Quotation {self.reference} for {self.customer.name}"
+
+class QuotationLineItem(models.Model):
+    quotation = models.ForeignKey(Quotation, on_delete=models.CASCADE, related_name='line_items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def __str__(self):
+        return f"{self.product.name} x {self.quantity}"

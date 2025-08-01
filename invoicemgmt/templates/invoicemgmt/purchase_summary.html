@@ -28,13 +28,15 @@
             </tr>
         </thead>
         <tbody>
+            {% for item in purchase.line_items.all %}
             <tr>
-                <td>{{ purchase.product.name }}</td>
-                <td>{{ purchase.quantity }}</td>
-                <td>{{ purchase.unit_price }}</td>
-                <td>{{ purchase.vat_amount }}</td>
-                <td>{{ purchase.total_amount }}</td>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price }}</td>
+                <td>{{ item.vat_amount }}</td>
+                <td>{{ item.amount }}</td>
             </tr>
+            {% endfor %}
         </tbody>
     </table>
 

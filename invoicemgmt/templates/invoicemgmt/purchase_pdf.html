@@ -27,7 +27,7 @@
             </tr>
         </thead>
         <tbody>
-        {% for item in purchase.purchaselineitem_set.all %}
+        {% for item in purchase.line_items.all %}
             <tr>
                 <td>{{ item.product }}</td>
                 <td>{{ item.quantity }}</td>

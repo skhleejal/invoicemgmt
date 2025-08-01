@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.forms import inlineformset_factory
-from .models import Customer, Invoice, InvoiceLineItem,Product
-from .forms import InvoiceForm, InvoiceLineItemForm, CustomerForm,ProductForm
+from .models import Customer, Invoice, InvoiceLineItem,Product, Quotation, QuotationLineItem
+from .forms import InvoiceForm, InvoiceLineItemForm, CustomerForm,ProductForm, QuotationForm, QuotationLineItemForm
 from django.db.models import Sum
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse
@@ -14,12 +14,9 @@ from django.shortcuts import redirect
 from .models import RecurringInvoice, Invoice, InvoiceLineItem
 from datetime import date
 from django.utils.timezone import now
-from django.template.loader import get_template, render_to_string
+from django.template.loader import get_template
 from django.utils.timezone import now
 from xhtml2pdf import pisa
-from django.contrib.staticfiles import finders
-from django.http import HttpResponse
-from django.core.mail import EmailMessage
 from io import BytesIO
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -28,7 +25,7 @@ from django.contrib.auth import login
 import os
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.http import HttpResponseForbidden
+from django.http import HttpResponse
 import json
 from django.db.models.functions import TruncMonth
 from datetime import datetime, timedelta
@@ -42,6 +39,9 @@ from django.db.models import Q
 
 from .models import Purchase,PurchaseLineItem
 from .forms import PurchaseForm, PurchaseLineItemForm
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
+from django.conf import settings
 
 
 
@@ -611,41 +611,6 @@ def import_invoices_from_excel(request):
     return render(request, "invoicemgmt/import_invoices.html")
 
 
-@login_required
-def purchase_form(request):
-    PurchaseLineItemFormSet = inlineformset_factory(
-        Purchase, PurchaseLineItem,
-        form=PurchaseLineItemForm,
-        extra=1, can_delete=True
-    )
-
-    if request.method == 'POST':
-        form = PurchaseForm(request.POST)
-        formset = PurchaseLineItemFormSet(request.POST)
-
-        if form.is_valid() and formset.is_valid():
-            purchase = form.save(commit=False)
-            purchase.purchased_by = request.user
-            purchase.save()
-            formset.instance = purchase
-            line_items = formset.save(commit=False)
-
-            for item in line_items:
-                item.product.stock += item.quantity
-                item.product.save()
-                item.save()
-
-            formset.save_m2m()
-            messages.success(request, 'Purchase created and stock updated!')
-            return redirect('purchase_list')
-        else:
-            messages.error(request, 'Please correct the errors below.')
-    else:
-        form = PurchaseForm()
-        formset = PurchaseLineItemFormSet()
-
-    return render(request, 'invoicemgmt/purchase_form.html', {'form': form, 'formset': formset})
-
 def purchase_summary(request, pk):
     purchase = get_object_or_404(Purchase, pk=pk)
     amount_in_words = num2words(purchase.total_amount, to='currency', lang='en', currency='AED')
@@ -668,6 +633,7 @@ def purchase_summary(request, pk):
         'amount_in_words': amount_in_words,
     })
 
+    
 @login_required
 def purchase_pdf(request, pk):
     purchase = get_object_or_404(Purchase, pk=pk)
@@ -675,32 +641,45 @@ def purchase_pdf(request, pk):
     html = HTML(string=html_string)
     pdf_file = html.write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename=purchase_{purchase.pk}.pdf'
+    response['Content-Disposition'] = f'filename=purchase_{purchase.purchase_number}.pdf'
     return response
-
-def purchase_detail(request, pk):
-    purchase = get_object_or_404(Purchase, pk=pk)
-    purchase_count = Purchase.objects.count()
-    return render(request, 'purchase_detail.html', {
-        'purchase': purchase,
-        'purchase_count': purchase_count,
-    })
 
 @login_required
 def purchase_list(request):
     query = request.GET.get("q", "")
     purchases = Purchase.objects.all()
-
     if query:
         purchases = purchases.filter(
             Q(purchase_number__icontains=query) |
-            Q(supplier__name__icontains=query)
+            Q(supplier_name__icontains=query)
         )
-
     return render(request, "invoicemgmt/purchase_list.html", {
         "purchases": purchases,
         "query": query,
     })
+
+@login_required
+def purchase_detail(request, pk):
+    purchase = get_object_or_404(Purchase, pk=pk)
+    purchase_count = Purchase.objects.count()
+    return render(request, 'invoicemgmt/purchase_detail.html', {
+        'purchase': purchase,
+        'purchase_count': purchase_count,
+    })
+
+@login_required
+def purchase_pdf(request, pk):
+    purchase = get_object_or_404(Purchase, pk=pk)
+    template = get_template('invoicemgmt/purchase_pdf.html')
+    html = template.render({'purchase': purchase})
+    pdf_file = BytesIO()
+    pisa_status = pisa.CreatePDF(html, dest=pdf_file)
+    if pisa_status.err:
+        return HttpResponse('PDF generation failed', status=500)
+    pdf_file.seek(0)
+    response = HttpResponse(pdf_file.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Purchase_{purchase.pk}.pdf"'
+    return response
 
 @permission_required('invoicemgmt.add_purchase', raise_exception=True)
 @login_required
@@ -710,78 +689,154 @@ def purchase_create(request):
         form=PurchaseLineItemForm,
         extra=1, can_delete=True
     )
-
     if request.method == 'POST':
         form = PurchaseForm(request.POST)
         formset = PurchaseLineItemFormSet(request.POST)
-
         if form.is_valid() and formset.is_valid():
             purchase = form.save(commit=False)
             purchase.created_by = request.user
             formset.instance = purchase
-
             try:
                 purchase.save()
                 total_amount = 0
-                line_items = formset.save(commit=False)
-
-                for item in line_items:
-                    product = item.product
-                    quantity = item.quantity
-                    price = item.price
-
-                    item.amount = quantity * price
+                # Use cleaned_data to avoid NoneType errors
+                for form_item in formset:
+                    cleaned = form_item.cleaned_data
+                    print("CLEANED DATA:", cleaned)  # Debug: see what's in each form
+                    # Skip forms with empty cleaned_data or marked for deletion
+                    if not cleaned or cleaned.get('DELETE', False):
+                        continue
+                    product = cleaned.get('product')
+                    quantity = cleaned.get('quantity')
+                    price = cleaned.get('price')
+                    # Skip if any are missing or empty
+                    if not product or quantity is None or price is None or quantity == '' or price == '':
+                        print("SKIPPING FORM:", cleaned)
+                        continue
+                    try:
+                        amount = float(quantity) * float(price)
+                    except (TypeError, ValueError) as e:
+                        print("SKIPPING INVALID FORM:", cleaned, e)
+                        continue  # Skip if not valid numbers
+                    item = form_item.save(commit=False)
+                    item.amount = amount
                     item.purchase = purchase
                     item.save()
-
-                    total_amount += item.amount
-
-                    # ✅ Increase stock
+                    total_amount += amount
+                    # Increase stock
                     product.stock += quantity
                     product.save()
-
+                # Handle deleted items (optional, if you want to decrease stock)
+                for obj in formset.deleted_objects:
+                    obj.product.stock -= obj.quantity
+                    obj.product.save()
+                    obj.delete()
                 purchase.total_amount = total_amount
                 purchase.save()
-
                 messages.success(request, '✅ Purchase recorded and stock updated.')
                 return redirect('purchase_list')
-
             except Exception as e:
                 messages.error(request, f"❌ Error saving purchase: {str(e)}")
-
         else:
             messages.error(request, 'Please correct the errors below.')
-
     else:
         form = PurchaseForm()
         formset = PurchaseLineItemFormSet()
-
     return render(request, 'invoicemgmt/purchase_form.html', {
         'form': form,
         'formset': formset,
         'document_type': 'purchase'
     })
 
-from django.shortcuts import get_object_or_404, redirect
-
 @login_required
 def purchase_delete(request, pk):
     purchase = get_object_or_404(Purchase, pk=pk)
-    purchase.delete()
-    return redirect('purchase_list')
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required, permission_required
+    if request.method == "POST":
+        purchase.delete()
+        messages.success(request, "Purchase deleted successfully.")
+        return redirect('purchase_list')
+    return render(request, 'invoicemgmt/confirm_delete_purchase.html', {'purchase': purchase})
 
 @permission_required('invoicemgmt.change_purchase', raise_exception=True)
 @login_required
 def purchase_update(request, pk):
     purchase = get_object_or_404(Purchase, pk=pk)
+    PurchaseLineItemFormSet = inlineformset_factory(
+        Purchase, PurchaseLineItem,
+        form=PurchaseLineItemForm,
+        extra=0, can_delete=True
+    )
     if request.method == 'POST':
         form = PurchaseForm(request.POST, instance=purchase)
-        if form.is_valid():
+        formset = PurchaseLineItemFormSet(request.POST, instance=purchase)
+        if form.is_valid() and formset.is_valid():
+            # Reverse stock for old line items
+            for old_item in purchase.line_items.all():
+                old_item.product.stock -= old_item.quantity
+                old_item.product.save()
             form.save()
-            return redirect('purchase_list')
+            formset.save()
+            # Add stock for new line items
+            for new_item in purchase.line_items.all():
+                new_item.product.stock += new_item.quantity
+                new_item.product.save()
+            messages.success(request, "Purchase updated successfully.")
+            return redirect('purchase_detail', pk=purchase.pk)
+        else:
+            messages.error(request, "Please correct the errors below.")
     else:
         form = PurchaseForm(instance=purchase)
-    return render(request, 'invoicemgmt/purchase_form.html', {'form': form, 'purchase': purchase})
+        formset = PurchaseLineItemFormSet(instance=purchase)
+    return render(request, 'invoicemgmt/purchase_form.html', {
+        'form': form,
+        'formset': formset,
+        'purchase': purchase,
+        'document_type': 'purchase'
+    })
+
+from django.forms import inlineformset_factory
+
+@login_required
+def quotation_list(request):
+    quotations = Quotation.objects.all()
+    return render(request, 'invoicemgmt/quotation_list.html', {'quotations': quotations})
+
+@login_required
+def create_quotation(request):
+    QuotationLineItemFormSet = inlineformset_factory(
+        Quotation, QuotationLineItem,
+        form=QuotationLineItemForm,
+        extra=1, can_delete=True
+    )
+    if request.method == 'POST':
+        form = QuotationForm(request.POST)
+        formset = QuotationLineItemFormSet(request.POST)
+        if form.is_valid() and formset.is_valid():
+            quotation = form.save()
+            formset.instance = quotation
+            total_amount = 0
+            for item in formset.save(commit=False):
+                item.amount = item.quantity * item.price
+                item.save()
+                total_amount += item.amount
+            quotation.total_amount = total_amount
+            quotation.save()
+            messages.success(request, "Quotation created!")
+            return redirect('quotation_list')
+    else:
+        form = QuotationForm()
+        formset = QuotationLineItemFormSet()
+    return render(request, 'invoicemgmt/quotation_form.html', {'form': form, 'formset': formset})
+
+@login_required
+def send_quotation_email(request, pk):
+    quotation = get_object_or_404(Quotation, pk=pk)
+    # You need to have a customer email field, e.g. quotation.customer.email
+    to_email = quotation.customer.email
+    subject = f"Quotation #{quotation.pk} from Your Company"
+    message = render_to_string('invoicemgmt/email_quotation.html', {'quotation': quotation})
+    email = EmailMessage(subject, message, settings.DEFAULT_FROM_EMAIL, [to_email])
+    email.content_subtype = "html"
+    email.send()
+    messages.success(request, "Quotation sent to client!")
+    return redirect('quotation_list')

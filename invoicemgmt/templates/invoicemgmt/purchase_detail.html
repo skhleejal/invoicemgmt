@@ -23,28 +23,20 @@
             <th>Product</th>
             <th>Quantity</th>
             <th>Unit Price</th>
-            <th>VAT Amount</th>
-            <th>Total Amount (Including VAT)</th>
+            <th>Total</th>
         </tr>
         </thead>
         <tbody>
         {% for item in purchase.line_items.all %}
             <tr>
-                <td>{{ item.description }}</td>
+                <td>{{ item.product }}</td>
                 <td>{{ item.quantity }}</td>
-                <td>{{ item.unit_price }}</td>
-                <td>{{ item.vat_amount }}</td>
-                <td>
-                    {% if item.total_with_vat %}
-                        {{ item.total_with_vat }}
-                    {% else %}
-                        {{ item.unit_price|floatformat:2|add:item.vat_amount|floatformat:2 }}
-                    {% endif %}
-                </td>
+                <td>{{ item.price }}</td>
+                <td>{{ item.amount }}</td>
             </tr>
         {% empty %}
             <tr>
-                <td colspan="5">No line items found.</td>
+                <td colspan="4">No line items found.</td>
             </tr>
         {% endfor %}
         </tbody>
@@ -53,12 +45,7 @@
     <h3>Total VAT: {{ purchase.total_vat }}</h3>
     <h3>Grand Total (Including VAT): {{ purchase.total_amount }}</h3>
 
-    <form method="post" action="{% url 'email_purchase' purchase.pk %}" style="display: inline;">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-primary">
-            📧 Email Purchase Summary
-        </button>
-    </form>
+
 
     <a href="{% url 'purchase_list' %}" class="btn btn-secondary mt-3">Back to Purchases</a>
 </div>

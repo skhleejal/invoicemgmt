@@ -1,6 +1,7 @@
 from django import forms
 from .models import Invoice, InvoiceLineItem, Customer, Product
 from .models import Purchase, PurchaseLineItem
+from .models import Quotation, QuotationLineItem
 
 class CustomerForm(forms.ModelForm):
     class Meta:
@@ -127,9 +128,24 @@ class ProductForm(forms.ModelForm):
 class PurchaseForm(forms.ModelForm):
     class Meta:
         model = Purchase
-        fields = ['supplier_name', 'product', 'quantity', 'unit_price']
+        fields = ['supplier_name']  # Add other Purchase fields if needed
 
 class PurchaseLineItemForm(forms.ModelForm):
     class Meta:
         model = PurchaseLineItem
+        fields = ['product', 'quantity', 'price']
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['product'].required = True
+        self.fields['quantity'].required = True
+        self.fields['price'].required = True
+
+class QuotationForm(forms.ModelForm):
+    class Meta:
+        model = Quotation
+        fields = ['customer', 'reference', 'notes']
+
+class QuotationLineItemForm(forms.ModelForm):
+    class Meta:
+        model = QuotationLineItem
         fields = ['product', 'quantity', 'price']

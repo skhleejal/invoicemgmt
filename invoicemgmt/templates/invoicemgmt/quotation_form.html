@@ -1,10 +1,9 @@
 {% extends "base.html" %}
-{% load static %}
 {% load crispy_forms_tags %}
 
 {% block content %}
 <div class="container mt-5 mb-5 p-4 shadow rounded bg-white" style="max-width: 800px;">
-    <h2 class="mb-4 text-center">Create Purchase</h2>
+    <h2 class="mb-4 text-center">Create Quotation</h2>
 
     {% if messages %}
         <div class="mb-3">
@@ -15,17 +14,6 @@
                 </div>
             {% endfor %}
         </div>
-    {% endif %}
-
-    {% if form.errors %}
-      <div class="alert alert-danger">
-        {{ form.errors }}
-      </div>
-    {% endif %}
-    {% if formset.errors %}
-      <div class="alert alert-danger">
-        {{ formset.errors }}
-      </div>
     {% endif %}
 
     <form method="post">
@@ -43,8 +31,8 @@
             </div>
         {% endfor %}
         <div class="text-center mt-4">
-            <button type="submit" class="btn btn-success px-4 py-2">Save Purchase</button>
+            <button type="submit" class="btn btn-success px-4 py-2">Save Quotation</button>
         </div>
     </form>
 </div>
-{% endblock %} 
+{% endblock %}
