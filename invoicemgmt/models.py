@@ -210,20 +210,11 @@ class InvoiceLineItem(models.Model):
 
 class Purchase(models.Model):
     supplier_name = models.CharField(max_length=255)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     date = models.DateField(auto_now_add=True)
     purchased_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    def save(self, *args, **kwargs):
-        self.total_amount = self.quantity * self.unit_price
-        self.vat_amount = self.total_amount * Decimal('0.05')  # Example VAT 5%
-        self.total_amount += self.vat_amount
-        super().save(*args, **kwargs)
         
 
 

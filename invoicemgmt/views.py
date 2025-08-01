@@ -699,38 +699,39 @@ def purchase_create(request):
             try:
                 purchase.save()
                 total_amount = 0
-                # Use cleaned_data to avoid NoneType errors
+
+                # --- Process and save valid line items ---
                 for form_item in formset:
                     cleaned = form_item.cleaned_data
-                    print("CLEANED DATA:", cleaned)  # Debug: see what's in each form
-                    # Skip forms with empty cleaned_data or marked for deletion
                     if not cleaned or cleaned.get('DELETE', False):
                         continue
                     product = cleaned.get('product')
                     quantity = cleaned.get('quantity')
                     price = cleaned.get('price')
-                    # Skip if any are missing or empty
                     if not product or quantity is None or price is None or quantity == '' or price == '':
-                        print("SKIPPING FORM:", cleaned)
                         continue
                     try:
                         amount = float(quantity) * float(price)
-                    except (TypeError, ValueError) as e:
-                        print("SKIPPING INVALID FORM:", cleaned, e)
-                        continue  # Skip if not valid numbers
+                    except (TypeError, ValueError):
+                        continue
                     item = form_item.save(commit=False)
                     item.amount = amount
                     item.purchase = purchase
                     item.save()
                     total_amount += amount
-                    # Increase stock
                     product.stock += quantity
                     product.save()
-                # Handle deleted items (optional, if you want to decrease stock)
-                for obj in formset.deleted_objects:
-                    obj.product.stock -= obj.quantity
-                    obj.product.save()
-                    obj.delete()
+
+                # Now call formset.save() to handle deletions
+                formset.save()
+
+                # Now you can access deleted_objects
+                if hasattr(formset, 'deleted_objects'):
+                    for obj in formset.deleted_objects:
+                        obj.product.stock -= obj.quantity
+                        obj.product.save()
+                        obj.delete()
+
                 purchase.total_amount = total_amount
                 purchase.save()
                 messages.success(request, '✅ Purchase recorded and stock updated.')
