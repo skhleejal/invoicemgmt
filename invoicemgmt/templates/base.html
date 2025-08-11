@@ -13,7 +13,8 @@
 
     <!-- Optional: Icon support (Ionicons v2) -->
     <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
-
+    <!-- Add this in your base.html head section if not already present -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         body {
             overflow-x: hidden;
@@ -72,6 +73,9 @@
         <a href="{% url 'create_purchase' %}">🛒 Create Purchase</a>
         <a href="{% url 'create_invoice' %}">➕ Create Invoice</a>
         <a class="nav-link" href="{% url 'quotation_list' %}">Quotations</a>
+        <a class="nav-link" href="{% url 'ai_support' %}">
+            <i class="fas fa-robot"></i> AI Support
+        </a>
 
         <a href="/admin/">⚙️ Admin</a>
     </div>

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white d-flex align-items-center">
+                    <i class="fas fa-robot me-2"></i>
+                    <h4 class="mb-0">AI Support Assistant</h4>
+                </div>
+                <div class="card-body chat-container" style="height: 400px; overflow-y: auto;">
+                    <!-- Welcome Message -->
+                    {% if not query %}
+                        <div class="ai-message">
+                            <p>👋 Hello! I'm your AI support assistant. How can I help you today?</p>
+                            <p>You can ask me about:</p>
+                            <ul class="list-unstyled">
+                                {% for feature, info in features.items %}
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>{{ info.title }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <!-- Response -->
+                    {% if response %}
+                        <div class="ai-message">
+                            <h5 class="text-primary">{{ response.title }}</h5>
+                            <p>{{ response.description }}</p>
+                            <ul class="list-unstyled">
+                                {% for capability in response.capabilities %}
+                                    <li><i class="fas fa-check text-success me-2"></i>{{ capability }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Search Form -->
+                <div class="card-footer">
+                    <form method="GET" class="mb-0">
+                        <div class="input-group">
+                            <input type="text" 
+                                   name="q" 
+                                   class="form-control" 
+                                   placeholder="Ask about a feature (e.g., 'invoicing', 'inventory', etc.)"
+                                   value="{{ query|default:'' }}"
+                                   autocomplete="off">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-paper-plane"></i> Ask
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-container {
+    background: #f8f9fa;
+}
+.ai-message {
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.user-message {
+    background: #e3f2fd;
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 15px;
+    margin-left: 20%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

@@ -39,6 +39,8 @@ urlpatterns = [
     path('purchases/<int:pk>/delete/', views.purchase_delete, name='delete_purchase'),
     path('purchases/<int:pk>/update/', views.purchase_update, name='update_purchase'),
     path('purchases/<int:pk>/pdf/', views.purchase_pdf, name='purchase_pdf'),
+    path('ai-support/', views.ai_support, name='ai_support'),
+
 ]
 
 

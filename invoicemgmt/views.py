@@ -457,14 +457,19 @@ def customer_list(request):
 @login_required
 def invoice_list(request):
     query = request.GET.get('q')
-    if query:
-        invoices = Invoice.objects.filter(
-            customer__name__icontains=query
-        ) | Invoice.objects.filter(
-            invoice_number__icontains=query
-        )
-    else:
+    # Boss sees all, staff see only their own
+    if request.user.is_superuser:  # Only superuser sees all
         invoices = Invoice.objects.all()
+    else:
+        # Regular staff see only their invoices
+        invoices = Invoice.objects.filter(created_by=request.user)
+    
+    # Apply search filter if query exists
+    if query:
+        invoices = invoices.filter(
+            Q(customer__name__icontains=query) |
+            Q(invoice_number__icontains=query)
+        )
     return render(request, 'invoicemgmt/invoice_list.html', {'invoices': invoices, 'query': query})
 
 
@@ -756,7 +761,7 @@ def purchase_delete(request, pk):
         purchase.delete()
         messages.success(request, "Purchase deleted successfully.")
         return redirect('purchase_list')
-    return render(request, 'invoicemgmt/confirm_delete_purchase.html', {'purchase': purchase})
+    return render(reuest, 'invoicemgmt/confirm_delete_purchase.html', {'purchase': purchase})
 
 @permission_required('invoicemgmt.change_purchase', raise_exception=True)
 @login_required
@@ -841,3 +846,88 @@ def send_quotation_email(request, pk):
     email.send()
     messages.success(request, "Quotation sent to client!")
     return redirect('quotation_list')
+
+@login_required
+def ai_support(request):
+    # Define features and their explanations
+    features = {
+        "invoicing": {
+            "title": "Invoicing System",
+            "description": "Create, manage and track invoices. Features include:",
+            "capabilities": [
+                "Create new invoices with multiple line items",
+                "Track payment status (paid, unpaid, open)",
+                "Generate PDF invoices",
+                "Email invoices to customers",
+                "View invoice history"
+            ]
+        },
+        "inventory": {
+            "title": "Inventory Management",
+            "description": "Track and manage your product inventory. Features include:",
+            "capabilities": [
+                "Add and manage products",
+                "Track stock levels",
+                "Get low stock alerts",
+                "Update product prices",
+                "View product history"
+            ]
+        },
+        "customers": {
+            "title": "Customer Management",
+            "description": "Manage your customer database. Features include:",
+            "capabilities": [
+                "Add new customers",
+                "Track customer purchase history",
+                "Manage customer contact information",
+                "View customer statements",
+                "Customer-specific pricing"
+            ]
+        },
+        "purchases": {
+            "title": "Purchase Management",
+            "description": "Track purchases and suppliers. Features include:",
+            "capabilities": [
+                "Create purchase orders",
+                "Track supplier deliveries",
+                "Manage supplier information",
+                "Track purchase history",
+                "Automatic stock updates"
+            ]
+        },
+        "quotations": {
+            "title": "Quotation System",
+            "description": "Create and manage quotations. Features include:",
+            "capabilities": [
+                "Create professional quotations",
+                "Convert quotations to invoices",
+                "Email quotations to customers",
+                "Track quotation status",
+                "Quotation history"
+            ]
+        }
+    }
+
+    # Handle user query
+    query = request.GET.get('q', '').lower()
+    response = None
+
+    if query:
+        # Search through features
+        for feature, info in features.items():
+            if query in feature.lower() or query in info['description'].lower():
+                response = info
+                break
+        
+        if not response:
+            response = {
+                "title": "Need Help?",
+                "description": "I couldn't find an exact match. Here are our main features:",
+                "capabilities": [f"- {feature.title()}" for feature in features.keys()]
+            }
+
+    return render(request, 'invoicemgmt/ai_support.html', {
+        'features': features,
+        'response': response,
+        'query': query
+    })
