@@ -103,13 +103,13 @@ def generate_invoice_pdf(request, pk):
     pdf_file.seek(0)  # Go back to the beginning of the PDF file
 
     # Send email with PDF as attachment
-    # customer_email = invoice.customer.email  # make sure this field exists
-    # if customer_email:
-    #     subject = f"Invoice #{invoice.pk} from Sherook Kalba"
-    #     body = f"Dear {invoice.customer.name},\n\nPlease find attached your invoice #{invoice.pk}.\n\nThank you!"
-    #     email = EmailMessage(subject, body, to=[customer_email])
-    #     email.attach(f"Invoice_{invoice.pk}.pdf", pdf_file.read(), 'application/pdf')
-        # email.send()
+    customer_email = invoice.customer.email  # make sure this field exists
+    if customer_email:
+        subject = f"Invoice #{invoice.pk} from Sherook Kalba"
+        body = f"Dear {invoice.customer.name},\n\nPlease find attached your invoice #{invoice.pk}.\n\nThank you!"
+        email = EmailMessage(subject, body, to=[customer_email])
+        email.attach(f"Invoice_{invoice.pk}.pdf", pdf_file.read(), 'application/pdf')
+        email.send()
 
     # Optional: return PDF as browser download
     response = HttpResponse(pdf_file.getvalue(), content_type='application/pdf')
