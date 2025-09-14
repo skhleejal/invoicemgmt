@@ -22,6 +22,7 @@ urlpatterns = [
     path('invoices/<int:pk>/delete/', InvoiceDeleteView.as_view(), name='delete_invoice'),
     path('invoices/<int:pk>/pdf/', views.generate_invoice_pdf, name='generate_invoice_pdf'),
     path("import-invoices/", views.import_invoices_from_excel, name="import_invoices"),
+    path('invoices/export/', views.export_invoices_to_excel, name='export_invoices_to_excel'),
 
 
     # Product-related URLs

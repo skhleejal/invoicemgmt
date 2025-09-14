@@ -931,3 +931,36 @@ def ai_support(request):
         'response': response,
         'query': query
     })
+
+import pandas as pd
+from django.http import HttpResponse
+
+@permission_required('invoicemgmt.view_invoice', raise_exception=True)
+@login_required
+def export_invoices_to_excel(request):
+    # Boss sees all, staff see only their own
+    if request.user.is_superuser:
+        invoices = Invoice.objects.all()
+    else:
+        invoices = Invoice.objects.filter(created_by=request.user)
+
+    data = []
+    for invoice in invoices:
+        for invoice in invoices:
+            for item in invoice.line_items.all():  # Use the related_name
+                data.append({
+                    "Invoice Number": invoice.invoice_number,
+                    "Customer": invoice.customer.name,
+                    "Date": invoice.invoice_date.strftime('%Y-%m-%d') if invoice.invoice_date else "",
+                    "Product": item.product.name if item.product else item.description,
+                    "Quantity": item.quantity,
+                    "Unit Price": item.unit_price,
+                    "Amount": item.amount,
+                    "Status": invoice.status,
+                    })
+
+    df = pd.DataFrame(data)
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="invoices.xlsx"'
+    df.to_excel(response, index=False)
+    return response
