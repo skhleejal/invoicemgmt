@@ -21,7 +21,17 @@
         {{ formset.management_form }}
         {% for form in formset %}
             <div class="mb-3 p-3 border rounded bg-light">
+                {% if form.product.errors %}
+                    <div class="text-danger mb-2">
+                        {{ form.product.errors }}
+                    </div>
+                {% endif %}
                 {{ form|crispy }}
+                {% if form.instance.pk %}
+                    <div class="form-check mt-2">
+                        {{ form.DELETE }} <label class="form-check-label">Delete</label>
+                    </div>
+                {% endif %}
             </div>
         {% endfor %}
         <div class="text-center">
@@ -66,6 +76,11 @@
         {{ formset.management_form }}
         {% for form in formset %}
             <div class="mb-3 p-3 border rounded bg-light">
+                {% if form.product.errors %}
+                    <div class="text-danger mb-2">
+                        {{ form.product.errors }}
+                    </div>
+                {% endif %}
                 {{ form|crispy }}
                 {% if form.instance.pk %}
                     <div class="form-check mt-2">

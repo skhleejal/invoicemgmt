@@ -96,6 +96,7 @@ class InvoiceLineItemForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['product'].queryset = Product.objects.all()
+        self.fields['product'].required = True
         self.fields['product'].empty_label = "Select a product"
 
 

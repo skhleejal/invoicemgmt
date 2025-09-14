@@ -7,6 +7,7 @@ from .utils import number_to_words, COUNTRY_CURRENCY, CURRENCY_SYMBOL
 from django.conf import settings
 from django.contrib.auth.models import User
 from decimal import Decimal
+import datetime
 
 
 
@@ -189,7 +190,7 @@ class RecurringInvoice(models.Model):
 class InvoiceLineItem(models.Model):
     invoice = models.ForeignKey(Invoice, related_name='line_items', on_delete=models.CASCADE)
     description = models.TextField()
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=False, blank=False)
     quantity = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     amount = models.DecimalField(max_digits=20, decimal_places=2, default=0.00)
@@ -213,7 +214,7 @@ class Purchase(models.Model):
     vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     date = models.DateField(auto_now_add=True)
-    purchased_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    purchased_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
         
 
