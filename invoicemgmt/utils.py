@@ -59,7 +59,7 @@ def currency_name_from_code(code):
         "BHD": "Dinars",
     }.get(code, "Dollars")
 
-def send_mailjet_email(subject, body, to_email, attachments=None, from_email="your_verified_sender@mail.com", from_name="Your Shop Name"):
+def send_mailjet_email(subject, body, to_email, attachments=None, from_email="rejiojoel4@outlook.com", from_name="Your Shop Name"):
     mailjet = Client(auth=(settings.MAILJET_API_KEY, settings.MAILJET_API_SECRET), version='v3.1')
     message = {
         "From": {"Email": from_email, "Name": from_name},
