@@ -582,6 +582,9 @@ def email_invoice(request, pk):
         attachments=attachment
     )
 
+    print("Mailjet status:", status)
+    print("Mailjet response:", response)
+
     if status == 200:
         messages.success(request, "Invoice emailed to customer!")
     else:
