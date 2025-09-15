@@ -109,7 +109,7 @@ def generate_invoice_pdf(request, pk):
         body = f"Dear {invoice.customer.name},\n\nPlease find attached your invoice #{invoice.pk}.\n\nThank you!"
         email = EmailMessage(subject, body, to=[customer_email])
         email.attach(f"Invoice_{invoice.pk}.pdf", pdf_file.read(), 'application/pdf')
-        email.send()
+        # email.send()
 
     # Optional: return PDF as browser download
     response = HttpResponse(pdf_file.getvalue(), content_type='application/pdf')
@@ -574,7 +574,7 @@ def email_invoice(request, pk):
     email.attach(f"Invoice_{invoice.pk}.pdf", pdf_file.read(), "application/pdf")
 
     try:
-        email.send()
+        # email.send()
         messages.success(request, "Invoice emailed to customer!")
     except Exception as e:
         messages.error(request, f"Error sending email: {e}")
