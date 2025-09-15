@@ -1,4 +1,7 @@
 from decimal import Decimal
+from mailjet_rest import Client
+from django.conf import settings
+import base64
 
 COUNTRY_CURRENCY = {
     "United Arab Emirates": "AED",
@@ -55,3 +58,18 @@ def currency_name_from_code(code):
         "OMR": "Rials",
         "BHD": "Dinars",
     }.get(code, "Dollars")
+
+def send_mailjet_email(subject, body, to_email, attachments=None, from_email="your_verified_sender@mail.com", from_name="Your Shop Name"):
+    mailjet = Client(auth=(settings.MAILJET_API_KEY, settings.MAILJET_API_SECRET), version='v3.1')
+    message = {
+        "From": {"Email": from_email, "Name": from_name},
+        "To": [{"Email": to_email, "Name": to_email.split('@')[0]}],
+        "Subject": subject,
+        "TextPart": body,
+        "HTMLPart": body,
+    }
+    if attachments:
+        message["Attachments"] = attachments
+    data = {"Messages": [message]}
+    result = mailjet.send.create(data=data)
+    return result.status_code, result.json()

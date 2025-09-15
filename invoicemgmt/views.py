@@ -41,6 +41,8 @@ from .models import Purchase,PurchaseLineItem
 from .forms import PurchaseForm, PurchaseLineItemForm
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
+from .utils import send_mailjet_email
+import base64
 
 # def register(request):
 #     if request.method == 'POST':
@@ -93,25 +95,30 @@ def generate_invoice_pdf(request, pk):
     html = template.render({'invoice': invoice, 'now': now()})
 
     # Generate PDF in memory
-    from io import BytesIO
     pdf_file = BytesIO()
     pisa_status = pisa.CreatePDF(html, dest=pdf_file)
 
     if pisa_status.err:
         return HttpResponse('PDF generation failed', status=500)
 
-    pdf_file.seek(0)  # Go back to the beginning of the PDF file
+    pdf_file.seek(0)
 
-    # Send email with PDF as attachment
-    customer_email = invoice.customer.email  # make sure this field exists
+    customer_email = invoice.customer.email
     if customer_email:
-        subject = f"Invoice #{invoice.pk} from Sherook Kalba"
-        body = f"Dear {invoice.customer.name},\n\nPlease find attached your invoice #{invoice.pk}.\n\nThank you!"
-        email = EmailMessage(subject, body, to=[customer_email])
-        email.attach(f"Invoice_{invoice.pk}.pdf", pdf_file.read(), 'application/pdf')
-        # email.send()
+        email_body = f"Dear {invoice.customer.name},\n\nPlease find attached your invoice #{invoice.pk}.\n\nThank you!"
+        pdf_content = pdf_file.read()
+        attachment = [{
+            "ContentType": "application/pdf",
+            "Filename": f"Invoice_{invoice.pk}.pdf",
+            "Base64Content": base64.b64encode(pdf_content).decode('utf-8')
+        }]
+        status, response = send_mailjet_email(
+            subject=f"Invoice #{invoice.pk} from Sherook Kalba",
+            body=email_body,
+            to_email=customer_email,
+            attachments=attachment
+        )
 
-    # Optional: return PDF as browser download
     response = HttpResponse(pdf_file.getvalue(), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="Invoice_{invoice.pk}.pdf"'
     return response
@@ -531,18 +538,15 @@ def delete(self, request, *args, **kwargs):
         item.product.save()
     return super().delete(request, *args, **kwargs)
 
-
 @permission_required('invoicemgmt.view_invoice', raise_exception=True)
 @login_required
 def email_invoice(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
 
-    # Only allow the invoice creator or a superuser to send the email
     if not (request.user.is_superuser or invoice.created_by == request.user):
         raise PermissionDenied("You do not have permission to email this invoice.")
 
-    customer_email = invoice.customer.email  # Make sure this field exists
-
+    customer_email = invoice.customer.email
     if not customer_email:
         messages.error(request, "Customer does not have an email address.")
         return redirect('invoice_detail', pk=invoice.pk)
@@ -558,29 +562,32 @@ def email_invoice(request, pk):
         messages.error(request, "Error generating PDF.")
         return redirect('invoice_detail', pk=invoice.pk)
 
-    # Render the email body (can be a simple message or HTML)
+    # Render the email body
     email_body = render_to_string('invoicemgmt/email_invoice.html', {'invoice': invoice})
 
-    # Create the email
-    email = EmailMessage(
+    # Prepare PDF attachment for Mailjet
+    import base64
+    pdf_content = pdf_file.read()
+    attachment = [{
+        "ContentType": "application/pdf",
+        "Filename": f"Invoice_{invoice.pk}.pdf",
+        "Base64Content": base64.b64encode(pdf_content).decode('utf-8')
+    }]
+
+    # Send with Mailjet and PDF attachment
+    status, response = send_mailjet_email(
         subject=f"Invoice #{invoice.pk} from Sherook Kalba",
         body=email_body,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[customer_email],
+        to_email=customer_email,
+        attachments=attachment
     )
-    email.content_subtype = "html"  # Send as HTML email
 
-    # Attach the PDF
-    email.attach(f"Invoice_{invoice.pk}.pdf", pdf_file.read(), "application/pdf")
-
-    try:
-        # email.send()
+    if status == 200:
         messages.success(request, "Invoice emailed to customer!")
-    except Exception as e:
-        messages.error(request, f"Error sending email: {e}")
+    else:
+        messages.error(request, f"Error sending email: {response}")
 
     return redirect('invoice_detail', pk=invoice.pk)
-
 @csrf_exempt
 @login_required
 @permission_required('invoicemgmt.add_invoice', raise_exception=True)
@@ -876,14 +883,21 @@ def create_quotation(request):
 @login_required
 def send_quotation_email(request, pk):
     quotation = get_object_or_404(Quotation, pk=pk)
-    # You need to have a customer email field, e.g. quotation.customer.email
     to_email = quotation.customer.email
     subject = f"Quotation #{quotation.pk} from Your Company"
     message = render_to_string('invoicemgmt/email_quotation.html', {'quotation': quotation})
-    email = EmailMessage(subject, message, settings.DEFAULT_FROM_EMAIL, [to_email])
-    email.content_subtype = "html"
-    # email.send()
-    messages.success(request, "Quotation sent to client!")
+
+    status, response = send_mailjet_email(
+        subject=subject,
+        body=message,
+        to_email=to_email
+    )
+
+    if status == 200:
+        messages.success(request, "Quotation sent to client!")
+    else:
+        messages.error(request, f"Error sending email: {response}")
+
     return redirect('quotation_list')
 
 @login_required
@@ -1010,13 +1024,14 @@ from django.core.mail import EmailMessage
 @login_required
 def test_email(request):
     try:
-        email = EmailMessage(
-            'Test Subject',
-            'Test body',
-            'your_gmail@gmail.com',  # Replace with your actual Gmail
-            ['your_other_email@gmail.com']  # Replace with a real recipient
+        status, response = send_mailjet_email(
+            subject='Test Subject',
+            body='Test body',
+            to_email='your_other_email@gmail.com'  # Replace with a real recipient
         )
-        # email.send()
-        return HttpResponse("Email sent!")
+        if status == 200:
+            return HttpResponse("Email sent!")
+        else:
+            return HttpResponse(f"EMAIL ERROR: {response}")
     except Exception as e:
         return HttpResponse(f"EMAIL ERROR: {e}")
