@@ -752,6 +752,7 @@ def purchase_create(request):
             purchase.save()
             formset.instance = purchase
             formset.save()
+            purchase.save()  # <-- Add this line to update totals!
             # Update stock for each product
             for item in purchase.line_items.all():
                 item.product.stock += item.quantity

@@ -216,7 +216,7 @@ class Purchase(models.Model):
     date = models.DateField(auto_now_add=True)
     purchased_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    purchase_number = models.CharField(max_length=100, unique=True, blank=True)  # <-- Add this
+    purchase_number = models.CharField(max_length=100, unique=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.purchase_number:
@@ -227,6 +227,15 @@ class Purchase(models.Model):
                     max_number=Max('purchase_number')
                 )['max_number']
                 self.purchase_number = str(int(latest) + 1) if latest else '1000'
+        # Calculate totals if purchase already exists (has line items)
+        total = 0
+        vat = 0
+        if self.pk:
+            for item in self.line_items.all():
+                total += item.amount
+                vat += item.vat_amount
+        self.total_amount = total + vat
+        self.vat_amount = vat
         super().save(*args, **kwargs)
 
 
