@@ -65,8 +65,8 @@
                 <td class="right">{{ item.price }}</td>
                 <td class="right">{{ item.amount }}</td>
                 <td class="right">{{ item.amount }}</td>
-                <td class="center">{% if item.vat_rate %}{{ item.vat_rate }}{% else %}-{% endif %}</td>
-                <td class="right">{% if item.vat_amount %}{{ item.vat_amount }}{% else %}-{% endif %}</td>
+                <td class="center">{{ item.vat_rate }}%</td>
+                <td class="right">{{ item.vat_amount }}</td>
             </tr>
             {% endfor %}
             <tr>

@@ -231,11 +231,17 @@ class Purchase(models.Model):
 
 
 class PurchaseLineItem(models.Model):
-    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, related_name='line_items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=5.00)  # Add this
+    vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # Add this
+
+    def save(self, *args, **kwargs):
+        self.amount = self.quantity * self.price
+        self.vat_amount = self.amount * (self.vat_rate / 100)
+        super().save(*args, **kwargs)
 
 
 class Quotation(models.Model):
