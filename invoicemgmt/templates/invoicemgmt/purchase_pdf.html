@@ -64,9 +64,9 @@
                 <td class="center">{{ item.quantity }}</td>
                 <td class="right">{{ item.price }}</td>
                 <td class="right">{{ item.amount }}</td>
-                <td class="right">{{ item.amount }}</td> <!-- Only the taxable amount -->
-                <td class="center">{{ item.vat_rate }}%</td>
-                <td class="right">{{ item.vat_amount }}</td>
+                <td class="right">{{ item.amount }}</td> <!-- TAXABLE: Only amount -->
+                <td class="center">{{ item.vat_rate }}%</td> <!-- VAT RATE: Only rate -->
+                <td class="right">{{ item.vat_amount }}</td> <!-- VAT AMT: Only amount -->
             </tr>
             {% endfor %}
             <tr>
