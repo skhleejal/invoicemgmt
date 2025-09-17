@@ -3,6 +3,10 @@ from mailjet_rest import Client
 from django.conf import settings
 import base64
 
+api_key = settings.MAILJET_API_KEY  # Set these in your settings.py
+api_secret = settings.MAILJET_API_SECRET
+mailjet = Client(auth=(api_key, api_secret), version='v3.1')
+
 COUNTRY_CURRENCY = {
     "United Arab Emirates": "AED",
     "India": "INR",
