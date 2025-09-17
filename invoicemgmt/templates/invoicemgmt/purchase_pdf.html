@@ -43,24 +43,24 @@
         </tr>
     </table>
 
-    <table>
+    <table style="width:100%; table-layout: fixed;">
         <thead>
             <tr>
-                <th style="width: 6%;">SL</th>
-                <th style="width: 22%;">PRODUCT</th>
-                <th style="width: 8%;">QTY</th>
-                <th style="width: 12%;">UNIT</th>
-                <th style="width: 12%;">AMOUNT</th>
-                <th style="width: 13%;">TAXABLE</th>
-                <th style="width: 12%;">VAT %</th>
-                <th style="width: 15%;">VAT AMT</th>
+                <th style="width:5%;">SL</th>
+                <th style="width:25%;">PRODUCT</th>
+                <th style="width:8%;">QTY</th>
+                <th style="width:12%;">UNIT</th>
+                <th style="width:12%;">AMOUNT</th>
+                <th style="width:13%;">TAXABLE</th>
+                <th style="width:10%;">VAT RATE</th>
+                <th style="width:15%;">VAT AMT</th>
             </tr>
         </thead>
         <tbody>
             {% for item in purchase.line_items.all %}
             <tr>
                 <td class="center">{{ forloop.counter }}</td>
-                <td>{% if item.product %}<strong>{{ item.product.name }}</strong>{% endif %} {{ item.description }}</td>
+                <td>{{ item.product }}</td>
                 <td class="center">{{ item.quantity }}</td>
                 <td class="right">{{ item.price }}</td>
                 <td class="right">{{ item.amount }}</td>
@@ -74,7 +74,7 @@
                 <td class="right bold">{{ purchase.total_amount }}</td>
                 <td class="right bold">{{ purchase.total_amount }}</td>
                 <td class="center bold"></td>
-                <td class="right bold">{{ purchase.total_vat }}</td>
+                <td class="right bold">{{ purchase.vat_amount }}</td>
             </tr>
         </tbody>
     </table>
