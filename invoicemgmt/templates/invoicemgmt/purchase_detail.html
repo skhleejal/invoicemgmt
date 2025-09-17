@@ -10,10 +10,12 @@
 <body>
 <div class="container mt-5">
     <h1>Purchase #{{ purchase.purchase_number }}</h1>
-    <p><strong>Date:</strong> {{ purchase.purchase_date }}</p>
-    <p><strong>Vendor:</strong> {{ purchase.vendor.name }}</p>
+    <p><strong>Date:</strong> {{ purchase.date }}</p>
+    <p><strong>Supplier:</strong> {{ purchase.supplier_name }}</p>
     <p><strong>Total Amount:</strong> {{ purchase.total_amount }}</p>
-    <p><strong>Amount in Words:</strong> {{ purchase.amount_in_words }}</p>
+    {% if purchase.amount_in_words %}
+        <p><strong>Amount in Words:</strong> {{ purchase.amount_in_words }}</p>
+    {% endif %}
     <p><strong>Total Purchases in System:</strong> {{ purchase_count }}</p>
 
     <h2 class="mt-4">Line Items</h2>
@@ -24,6 +26,8 @@
             <th>Quantity</th>
             <th>Unit Price</th>
             <th>Total</th>
+            <th>VAT Rate</th>
+            <th>VAT Amount</th>
         </tr>
         </thead>
         <tbody>
@@ -33,19 +37,19 @@
                 <td>{{ item.quantity }}</td>
                 <td>{{ item.price }}</td>
                 <td>{{ item.amount }}</td>
+                <td>{{ item.vat_rate }}%</td>
+                <td>{{ item.vat_amount }}</td>
             </tr>
         {% empty %}
             <tr>
-                <td colspan="4">No line items found.</td>
+                <td colspan="6">No line items found.</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 
-    <h3>Total VAT: {{ purchase.total_vat }}</h3>
+    <h3>Total VAT: {{ purchase.vat_amount }}</h3>
     <h3>Grand Total (Including VAT): {{ purchase.total_amount }}</h3>
-
-
 
     <a href="{% url 'purchase_list' %}" class="btn btn-secondary mt-3">Back to Purchases</a>
 </div>

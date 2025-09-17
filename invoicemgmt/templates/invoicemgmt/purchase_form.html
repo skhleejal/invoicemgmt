@@ -17,9 +17,9 @@
         </div>
     {% endif %}
 
-    {% if form.errors %}
+    {% if purchase_form.errors %}
       <div class="alert alert-danger">
-        {{ form.errors }}
+        {{ purchase_form.errors }}
       </div>
     {% endif %}
     {% if formset.errors %}
@@ -30,7 +30,13 @@
 
     <form method="post">
         {% csrf_token %}
-        {{ purchase_form.as_p }}
+        <div class="mb-3">
+            <label for="id_supplier_name" class="form-label">Supplier Name*</label>
+            {{ purchase_form.supplier_name }}
+            {% if purchase_form.supplier_name.errors %}
+                <div class="text-danger">{{ purchase_form.supplier_name.errors }}</div>
+            {% endif %}
+        </div>
         {{ formset.management_form }}
         {% for form in formset %}
             <div class="line-item mb-3 p-3 border rounded bg-light">
