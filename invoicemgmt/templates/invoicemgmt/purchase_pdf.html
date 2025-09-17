@@ -1,9 +1,9 @@
-<!DOCTYPE html>c:\Users\ASUS TUF\Desktop\management-main\management-main\invoicemgmt\templates\invoicemgmt\purchase_pdf.html -->
-<html>YPE html>
+<!DOCTYPE html>
+<html>
 <head>
     <meta charset="UTF-8">
     <title>Purchase PDF</title>
-    <style>Purchase PDF</title>
+    <style type="text/css">
         body { font-family: Arial, sans-serif; font-size: 12px; }
         .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; }
         .company-details { font-size: 14px; font-weight: bold; }
@@ -11,32 +11,84 @@
         th, td { border: 1px solid #000; padding: 6px; }
         th { background-color: #f0f0f0; }
         .no-border td { border: none; }
-        .bold { font-weight: bold; }/h2>
-        .right { text-align: right; }hase.date }}</p>
-        .center { text-align: center; }rchase.supplier_name }}</p>
-        .footer { margin-top: 30px; font-size: 10px; }l_amount }}</p>
+        .bold { font-weight: bold; }
+        .right { text-align: right; }
+        .center { text-align: center; }
+        .footer { margin-top: 30px; font-size: 10px; }
         .signature { float: right; margin-top: 50px; }
     </style>
-</head> <thead>
-<body>      <tr>
-    <div class="header">uct</th>
+</head>
+<body>
+    <div class="header">
         <div class="company-details">
             SHEROOK KALBA TR. L.L.C<br>
             P.O. Box 66118, Sharjah - U.A.E. | Tel: +971 6 5672150 | Fax: +971 6 5672151<br>
             Email: skalbatr@gmail.com | Web: www.sherookkalba.com
-        </div>tr>
-    </div>thead>
-        <tbody>
-    <h2 class="center">PURCHASE RECEIPT</h2>ll %}
-            <tr>
-    <table class="no-border">roduct }}</td>
-        <tr>    <td>{{ item.quantity }}</td>
-            <td width="50%">unit_price }}</td>
+        </div>
+    </div>
+
+    <h2 class="center">PURCHASE RECEIPT</h2>
+
+    <table class="no-border">
+        <tr>
+            <td width="50%">
                 <strong>SUPPLIER:</strong><br>
-                {{ purchase.supplier_name }}<br>d>
+                {{ purchase.supplier_name }}<br>
                 <!-- Add more supplier details if available -->
-            </td> %}
+            </td>
             <td>
                 <strong>DATE:</strong> {{ purchase.date }}<br>
-                <strong>PURCHASE NO.:</strong> {{ purchase.pk }}<br>
-            </td>        </tr>    </table>    <table>        <thead>            <tr>                <th style="width: 5%;">SL</th>                <th style="width: 25%;">PRODUCT / DESCRIPTION</th>                <th style="width: 8%;">QTY</th>                <th style="width: 12%;">UNIT PRICE</th>                <th style="width: 12%;">AMOUNT</th>                <th style="width: 13%;">TAXABLE VALUE</th>                <th style="width: 10%;">VAT RATE</th>                <th style="width: 15%;">VAT AMOUNT</th>            </tr>        </thead>        <tbody>            {% for item in purchase.line_items.all %}            <tr>                <td class="center">{{ forloop.counter }}</td>                <td>                    {% if item.product %}<strong>{{ item.product.name }}</strong><br>{% endif %}                    {{ item.description }}                </td>                <td class="center">{{ item.quantity }}</td>                <td class="right">{{ item.price }}</td>                <td class="right">{{ item.amount }}</td>                <td class="right">{{ item.amount }}</td>                <td class="center">{{ item.vat_rate }}%</td>                <td class="right">{{ item.vat_amount }}</td>            </tr>            {% endfor %}            <tr>                <td colspan="4" class="right bold">TOTAL</td>                <td class="right bold">{{ purchase.total_amount }}</td>                <td class="right bold">{{ purchase.total_amount }}</td>                <td class="center bold"> </td>                <td class="right bold">{{ purchase.total_vat }}</td>            </tr>        </tbody>    </table>    <div class="footer">        <p>Thank you for your business!</p>    </div>    <div class="signature">        For Sherook Kalba Tr. L.L.C<br><br><br>        _______________________    </div></body></html>
+                <strong>PURCHASE NO.:</strong> {{ purchase.purchase_number }}<br>
+            </td>
+        </tr>
+    </table>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 5%;">SL</th>
+                <th style="width: 25%;">PRODUCT / DESCRIPTION</th>
+                <th style="width: 8%;">QTY</th>
+                <th style="width: 12%;">UNIT PRICE</th>
+                <th style="width: 12%;">AMOUNT</th>
+                <th style="width: 13%;">TAXABLE VALUE</th>
+                <th style="width: 10%;">VAT RATE</th>
+                <th style="width: 15%;">VAT AMOUNT</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in purchase.line_items.all %}
+            <tr>
+                <td class="center">{{ forloop.counter }}</td>
+                <td>
+                    {% if item.product %}<strong>{{ item.product.name }}</strong><br>{% endif %}
+                    {{ item.description }}
+                </td>
+                <td class="center">{{ item.quantity }}</td>
+                <td class="right">{{ item.price }}</td>
+                <td class="right">{{ item.amount }}</td>
+                <td class="right">{{ item.amount }}</td>
+                <td class="center">{{ item.vat_rate }}%</td>
+                <td class="right">{{ item.vat_amount }}</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td colspan="4" class="right bold">TOTAL</td>
+                <td class="right bold">{{ purchase.total_amount }}</td>
+                <td class="right bold">{{ purchase.total_amount }}</td>
+                <td class="center bold"> </td>
+                <td class="right bold">{{ purchase.total_vat }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Thank you for your business!</p>
+    </div>
+
+    <div class="signature">
+        For Sherook Kalba Tr. L.L.C<br><br><br>
+        _______________________
+    </div>
+</body>
+</html>
