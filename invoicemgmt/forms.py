@@ -130,6 +130,12 @@ class PurchaseForm(forms.ModelForm):
     class Meta:
         model = Purchase
         fields = ['supplier_name']  # Add other Purchase fields if needed
+        widgets = {
+            'supplier_name': forms.TextInput(attrs={'placeholder': 'Enter supplier name', 'class': 'form-control'}),
+        }
+        labels = {
+            'supplier_name': 'Supplier Name',
+        }
 
 class PurchaseLineItemForm(forms.ModelForm):
     class Meta:
