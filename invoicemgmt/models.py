@@ -231,6 +231,7 @@ class Purchase(models.Model):
 
 
 class PurchaseLineItem(models.Model):
+    purchase = models.ForeignKey('Purchase', related_name='line_items', on_delete=models.CASCADE)  # <-- Add this
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
