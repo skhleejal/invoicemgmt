@@ -216,7 +216,18 @@ class Purchase(models.Model):
     date = models.DateField(auto_now_add=True)
     purchased_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-        
+    purchase_number = models.CharField(max_length=100, unique=True, blank=True)  # <-- Add this
+
+    def save(self, *args, **kwargs):
+        if not self.purchase_number:
+            with transaction.atomic():
+                latest = Purchase.objects.select_for_update().filter(
+                    purchase_number__regex=r'^\d+$'
+                ).aggregate(
+                    max_number=Max('purchase_number')
+                )['max_number']
+                self.purchase_number = str(int(latest) + 1) if latest else '1000'
+        super().save(*args, **kwargs)
 
 
 class PurchaseLineItem(models.Model):

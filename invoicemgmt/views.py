@@ -358,7 +358,7 @@ def create_invoice(request):
     InvoiceLineItemFormSet = inlineformset_factory(
         Invoice, InvoiceLineItem,
         form=InvoiceLineItemForm,
-        extra=1, can_delete=True
+        extra=3, can_delete=True
     )
 
     if request.method == 'POST':
@@ -893,7 +893,7 @@ def send_quotation_email(request, pk):
     message = render_to_string(
         'invoicemgmt/email_quotation.html',
         {
-            'quotation': quotation,
+            # 'quotation': quotation,
             'shop_name': shop_name,
             'line_items': quotation.line_items.all(),
             'customer': quotation.customer,
