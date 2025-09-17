@@ -46,29 +46,26 @@
     <table>
         <thead>
             <tr>
-                <th style="width: 5%;">SL</th>
-                <th style="width: 25%;">PRODUCT / DESCRIPTION</th>
+                <th style="width: 6%;">SL</th>
+                <th style="width: 22%;">PRODUCT</th>
                 <th style="width: 8%;">QTY</th>
-                <th style="width: 12%;">UNIT PRICE</th>
+                <th style="width: 12%;">UNIT</th>
                 <th style="width: 12%;">AMOUNT</th>
-                <th style="width: 13%;">TAXABLE VALUE</th>
-                <th style="width: 14%;">VAT RATE</th>
-                <th style="width: 18%;">VAT AMOUNT</th>
+                <th style="width: 13%;">TAXABLE</th>
+                <th style="width: 12%;">VAT %</th>
+                <th style="width: 15%;">VAT AMT</th>
             </tr>
         </thead>
         <tbody>
             {% for item in purchase.line_items.all %}
             <tr>
                 <td class="center">{{ forloop.counter }}</td>
-                <td>
-                    {% if item.product %}<strong>{{ item.product.name }}</strong><br>{% endif %}
-                    {{ item.description }}
-                </td>
+                <td>{% if item.product %}<strong>{{ item.product.name }}</strong>{% endif %} {{ item.description }}</td>
                 <td class="center">{{ item.quantity }}</td>
                 <td class="right">{{ item.price }}</td>
                 <td class="right">{{ item.amount }}</td>
                 <td class="right">{{ item.amount }}</td>
-                <td class="center">{% if item.vat_rate %}{{ item.vat_rate }}%{% else %}-{% endif %}</td>
+                <td class="center">{% if item.vat_rate %}{{ item.vat_rate }}{% else %}-{% endif %}</td>
                 <td class="right">{% if item.vat_amount %}{{ item.vat_amount }}{% else %}-{% endif %}</td>
             </tr>
             {% endfor %}
