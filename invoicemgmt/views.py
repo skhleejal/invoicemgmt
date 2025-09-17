@@ -887,8 +887,18 @@ def create_quotation(request):
 def send_quotation_email(request, pk):
     quotation = get_object_or_404(Quotation, pk=pk)
     to_email = quotation.customer.email
-    subject = f"Quotation #{quotation.pk} from Your Company"
-    message = render_to_string('invoicemgmt/email_quotation.html', {'quotation': quotation})
+    shop_name = "SHEROOK KALBA"  # Change to your actual shop name
+
+    subject = f"Quotation from {shop_name}"  # No quotation number
+    message = render_to_string(
+        'invoicemgmt/email_quotation.html',
+        {
+            'quotation': quotation,
+            'shop_name': shop_name,
+            'line_items': quotation.line_items.all(),
+            'customer': quotation.customer,
+        }
+    )
 
     status, response = send_mailjet_email(
         subject=subject,

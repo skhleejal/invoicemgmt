@@ -3,6 +3,27 @@
 <ul>
     <li>Date: {{ quotation.date }}</li>
     <li>Total Amount: {{ quotation.total_amount }}</li>
-    <!-- Add more details as needed -->
 </ul>
+
+<table style="width:100%; border-collapse:collapse;">
+    <thead>
+        <tr style="background:#f5f5f5;">
+            <th style="padding:8px; border:1px solid #ddd;">Product</th>
+            <th style="padding:8px; border:1px solid #ddd;">Quantity</th>
+            <th style="padding:8px; border:1px solid #ddd;">Price</th>
+            <th style="padding:8px; border:1px solid #ddd;">Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in line_items %}
+        <tr>
+            <td style="padding:8px; border:1px solid #ddd;">{{ item.product.name }}</td>
+            <td style="padding:8px; border:1px solid #ddd;">{{ item.quantity }}</td>
+            <td style="padding:8px; border:1px solid #ddd;">{{ item.price }}</td>
+            <td style="padding:8px; border:1px solid #ddd;">{{ item.amount }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
 <p>Thank you!</p>
