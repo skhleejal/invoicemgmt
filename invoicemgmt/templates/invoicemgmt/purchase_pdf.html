@@ -8,7 +8,7 @@
         .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; }
         .company-details { font-size: 14px; font-weight: bold; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #000; padding: 6px; }
+        th, td { border: 1px solid #000; padding: 6px; font-size: 11px; }
         th { background-color: #f0f0f0; }
         .no-border td { border: none; }
         .bold { font-weight: bold; }
@@ -52,7 +52,7 @@
                 <th style="width: 12%;">UNIT PRICE</th>
                 <th style="width: 12%;">AMOUNT</th>
                 <th style="width: 13%;">TAXABLE VALUE</th>
-                <th style="width: 10%;">VAT RATE</th>
+                <th style="width: 14%;">VAT RATE</th>
                 <th style="width: 18%;">VAT AMOUNT</th>
             </tr>
         </thead>
@@ -68,15 +68,15 @@
                 <td class="right">{{ item.price }}</td>
                 <td class="right">{{ item.amount }}</td>
                 <td class="right">{{ item.amount }}</td>
-                <td class="center">{{ item.vat_rate }}%</td>
-                <td class="right">{{ item.vat_amount }}</td>
+                <td class="center">{% if item.vat_rate %}{{ item.vat_rate }}%{% else %}-{% endif %}</td>
+                <td class="right">{% if item.vat_amount %}{{ item.vat_amount }}{% else %}-{% endif %}</td>
             </tr>
             {% endfor %}
             <tr>
                 <td colspan="4" class="right bold">TOTAL</td>
                 <td class="right bold">{{ purchase.total_amount }}</td>
                 <td class="right bold">{{ purchase.total_amount }}</td>
-                <td class="center bold"> </td>
+                <td class="center bold"></td>
                 <td class="right bold">{{ purchase.total_vat }}</td>
             </tr>
         </tbody>
