@@ -30,16 +30,15 @@
 
     <form method="post">
         {% csrf_token %}
-        {{ form|crispy }}
+        {{ purchase_form.as_p }}
         {{ formset.management_form }}
-        {% for f in formset %}
-            <div class="mb-3 p-3 border rounded bg-light">
-                {{ f|crispy }}
-                {% if f.instance.pk %}
-                    <div class="form-check mt-2">
-                        {{ f.DELETE }} <label class="form-check-label">Delete</label>
-                    </div>
-                {% endif %}
+        {% for form in formset %}
+            <div class="line-item mb-3 p-3 border rounded bg-light">
+                {{ form.product }}
+                {{ form.quantity }}
+                {{ form.price }}
+                {{ form.vat_rate }}
+                {{ form.DELETE }}
             </div>
         {% endfor %}
         <div class="text-center mt-4">
@@ -47,4 +46,4 @@
         </div>
     </form>
 </div>
-{% endblock %} 
+{% endblock %}
