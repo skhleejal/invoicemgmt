@@ -134,7 +134,26 @@ class PurchaseForm(forms.ModelForm):
 class PurchaseLineItemForm(forms.ModelForm):
     class Meta:
         model = PurchaseLineItem
-        fields = ['product', 'quantity', 'price']
+        fields = ['product', 'quantity', 'price', 'vat_rate']
+        widgets = {
+            'product': forms.Select(attrs={'class': 'form-select'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control'}),
+            'vat_rate': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'product': 'Product',
+            'quantity': 'Quantity',
+            'price': 'Unit Price',
+            'vat_rate': 'VAT Rate (%)',
+        }
+        help_texts = {
+            'product': 'Select a product.',
+            'quantity': 'Quantity of the product.',
+            'price': 'Rate per unit.',
+            'vat_rate': 'VAT percentage (e.g., 5).',
+        }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['product'].required = True

@@ -34,10 +34,7 @@
         {{ formset.management_form }}
         {% for form in formset %}
             <div class="line-item mb-3 p-3 border rounded bg-light">
-                {{ form.product }}
-                {{ form.quantity }}
-                {{ form.price }}
-                {{ form.vat_rate }}
+                {{ form|crispy }}
                 {{ form.DELETE }}
             </div>
         {% endfor %}
