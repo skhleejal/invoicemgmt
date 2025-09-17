@@ -744,61 +744,27 @@ def purchase_create(request):
         extra=1, can_delete=True
     )
     if request.method == 'POST':
-        form = PurchaseForm(request.POST)
+        purchase_form = PurchaseForm(request.POST)
         formset = PurchaseLineItemFormSet(request.POST)
-        if form.is_valid() and formset.is_valid():
-            purchase = form.save(commit=False)
+        if purchase_form.is_valid() and formset.is_valid():
+            purchase = purchase_form.save(commit=False)
             purchase.created_by = request.user
+            purchase.save()
             formset.instance = purchase
-            try:
-                purchase.save()
-                total_amount = 0
-
-                # --- Process and save valid line items ---
-                for form_item in formset:
-                    cleaned = form_item.cleaned_data
-                    if not cleaned or cleaned.get('DELETE', False):
-                        continue
-                    product = cleaned.get('product')
-                    quantity = cleaned.get('quantity')
-                    price = cleaned.get('price')
-                    if not product or quantity is None or price is None or quantity == '' or price == '':
-                        continue
-                    try:
-                        amount = float(quantity) * float(price)
-                    except (TypeError, ValueError):
-                        continue
-                    item = form_item.save(commit=False)
-                    item.amount = amount
-                    item.purchase = purchase
-                    item.save()
-                    total_amount += amount
-                    product.stock += quantity
-                    product.save()
-
-                # Now call formset.save() to handle deletions
-                formset.save()
-
-                # Now you can access deleted_objects
-                if hasattr(formset, 'deleted_objects'):
-                    for obj in formset.deleted_objects:
-                        obj.product.stock -= obj.quantity
-                        obj.product.save()
-                        obj.delete()
-
-                purchase.total_amount = total_amount
-                purchase.save()
-                messages.success(request, '✅ Purchase recorded and stock updated.')
-                return redirect('purchase_list')
-            except Exception as e:
-                messages.error(request, f"❌ Error saving purchase: {str(e)}")
+            formset.save()
+            # Update stock for each product
+            for item in purchase.line_items.all():
+                item.product.stock += item.quantity
+                item.product.save()
+            messages.success(request, '✅ Purchase recorded and stock updated.')
+            return redirect('purchase_list')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
-        form = PurchaseForm()
+        purchase_form = PurchaseForm()
         formset = PurchaseLineItemFormSet()
     return render(request, 'invoicemgmt/purchase_form.html', {
-        'form': form,
+        'purchase_form': purchase_form,
         'formset': formset,
         'document_type': 'purchase'
     })
