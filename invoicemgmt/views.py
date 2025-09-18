@@ -979,18 +979,17 @@ def export_invoices_to_excel(request):
 
     data = []
     for invoice in invoices:
-        for invoice in invoices:
-            for item in invoice.line_items.all():  # Use the related_name
-                data.append({
-                    "Invoice Number": invoice.invoice_number,
-                    "Customer": invoice.customer.name,
-                    "Date": invoice.invoice_date.strftime('%Y-%m-%d') if invoice.invoice_date else "",
-                    "Product": item.product.name if item.product else item.description,
-                    "Quantity": item.quantity,
-                    "Unit Price": item.unit_price,
-                    "Amount": item.amount,
-                    "Status": invoice.status,
-                    })
+        for item in invoice.line_items.all():  # Use the related_name
+            data.append({
+                "Invoice Number": invoice.invoice_number,
+                "Customer": invoice.customer.name,
+                "Date": invoice.invoice_date.strftime('%Y-%m-%d') if invoice.invoice_date else "",
+                "Product": item.product.name if item.product else item.description,
+                "Quantity": item.quantity,
+                "Unit Price": item.unit_price,
+                "Amount": item.amount,
+                "Status": invoice.status,
+            })
 
     df = pd.DataFrame(data)
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')

@@ -68,7 +68,7 @@ def send_mailjet_email(subject, body, to_email, attachments=None):
     from_email = "rejiojoel4@outlook.com"  # Your Mailjet sender email
 
     # Mailjet expects From as "Name <email>"
-    mailjet_from = f"{from_name} <{from_email}>"
+    # mailjet_from = f"{from_name} <{from_email}>"
 
     data = {
         "Messages": [
