@@ -777,7 +777,7 @@ def purchase_delete(request, pk):
         purchase.delete()
         messages.success(request, "Purchase deleted successfully.")
         return redirect('purchase_list')
-    return render(reuest, 'invoicemgmt/confirm_delete_purchase.html', {'purchase': purchase})
+    return render(request, 'invoicemgmt/confirm_delete_purchase.html', {'purchase': purchase})
 
 @permission_required('invoicemgmt.change_purchase', raise_exception=True)
 @login_required

@@ -65,7 +65,7 @@ def currency_name_from_code(code):
 
 def send_mailjet_email(subject, body, to_email, attachments=None):
     from_name = "SHEROOK KALBA"  # Your shop name
-    from_email = "your_verified_sender@example.com"  # Your Mailjet sender email
+    from_email = "rejiojoel4@outlook.com"  # Your Mailjet sender email
 
     # Mailjet expects From as "Name <email>"
     mailjet_from = f"{from_name} <{from_email}>"

@@ -95,7 +95,7 @@ WSGI_APPLICATION = 'djangoproject.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+# https://docs.djangoproject.com/en/4.2/ref8/settings/#databases
 
 # DATABASES = {
 #     'default': {
@@ -107,7 +107,7 @@ WSGI_APPLICATION = 'djangoproject.wsgi.application'
 # }
 DATABASES = {
     'default': dj_database_url.parse(
-        "postgresql://postgres:jOCrfPuhaahYYlYUKzdiKUeEnkEVSdLt@trolley.proxy.rlwy.net:45086/railway"
+        "postgresql://postgres:WzJrcxLBalHKErKUEzJIaWwACHwGjMCe@metro.proxy.rlwy.net:42259/railway"
     )
 }
 
