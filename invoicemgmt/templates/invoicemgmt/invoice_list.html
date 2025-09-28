@@ -21,8 +21,9 @@
     {% endif %}
 
     <h1 class="mb-4">Invoice List</h1>
-    <form method="get" class="mb-3">
+    <form method="get" class="mb-3" id="invoice-filter-form">
         <input type="text" name="q" placeholder="Search by customer or invoice number..." value="{{ query|default:'' }}" class="form-control" style="width: 300px; display: inline-block;">
+        <input type="date" name="date" id="date-picker" class="form-control" style="width: 180px; display: inline-block; margin-left: 10px;" value="{{ request.GET.date|default:'' }}">
         <button type="submit" class="btn btn-primary">Search</button>
     </form>
     <div class="container">
@@ -35,9 +36,17 @@
         </a>
     </div>
 
-    <a href="{% url 'export_invoices_to_excel' %}" class="btn btn-success mb-3">
+    <button id="export-excel-btn" class="btn btn-success mb-3">
         <i class="fas fa-file-excel"></i> Export to Excel
-    </a>
+    </button>
+    <script>
+    document.getElementById('export-excel-btn').onclick = function(e) {
+        e.preventDefault();
+        const form = document.getElementById('invoice-filter-form');
+        const params = new URLSearchParams(new FormData(form)).toString();
+        window.location.href = "{% url 'export_invoices_to_excel' %}?" + params;
+    };
+    </script>
 
     {% if invoices %}
         <table class="table table-bordered table-striped">

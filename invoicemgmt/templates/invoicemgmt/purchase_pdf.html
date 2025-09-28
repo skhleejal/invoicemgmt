@@ -43,44 +43,46 @@
         </tr>
     </table>
 
-    <table>
+    <table style="width:1400px;">
         <thead>
             <tr>
-                <th style="width:5%;">SL</th>
-                <th style="width:20%;">PRODUCT</th>
-                <th style="width:5%;">QTY</th>
-                <th style="width:10%;">UNIT</th>
-                <th style="width:12%;">AMOUNT</th>
-                <th style="width:10%;">TAXABLE</th>
-                <th style="width:10%;">VAT RATE</th>
-                <th style="width:15%;">VAT AMT</th>
+                <th style="width:40px;">SL</th>
+                <th style="width:180px;">PRODUCT</th>
+                <th style="width:60px;">QTY</th>
+                <th style="width:80px;">UNIT</th>
+                <th style="width:80px;">VAT%</th>
+                <th style="width:120px;">AMOUNT</th>
+                <th style="width:120px;">TAXABLE</th>
+                <th style="width:100px;">VAT</th>
             </tr>
         </thead>
         <tbody>
             {% for item in purchase.line_items.all %}
             <tr>
                 <td class="center">{{ forloop.counter }}</td>
-                <td>{{ item.product.name }}</td>
+                <td class="center">{{ item.product.name }}</td>
                 <td class="center">{{ item.quantity }}</td>
                 <td class="right">{{ item.price }}</td>
-                <td class="right">{{ item.amount }}</td>
-                <td class="right">{{ item.amount }}</td> <!-- TAXABLE: Only amount -->
                 <td class="center">{{ item.vat_rate }}%</td> <!-- VAT RATE: Only rate -->
+                <td class="right">{{ item.amount }}</td> <!-- VAT AMT: Only amount -->
+                <td class="right">{{ item.amount }}</td> <!-- TAXABLE: Only amount -->
                 <td class="right">{{ item.vat_amount }}</td> <!-- VAT AMT: Only amount -->
             </tr>
             {% endfor %}
             <tr>
-                <td colspan="4" class="right bold">TOTAL</td>
+                <td colspan="5" class="right bold">TOTAL</td>
                 <td class="right bold">{{ purchase.total_amount }}</td>
                 <td class="right bold">{{ purchase.total_amount }}</td>
-                <td class="center bold"></td>
                 <td class="right bold">{{ purchase.vat_amount }}</td>
             </tr>
         </tbody>
     </table>
 
+
     <div class="footer">
         <p>Thank you for your business!</p>
+        <strong>TOTAL AMOUNT AED (IN WORDS):</strong><br>
+        {{ amount_in_words }}
     </div>
 
     <div class="signature">
