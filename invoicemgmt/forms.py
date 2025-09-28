@@ -1,7 +1,8 @@
 from django import forms
-from .models import Invoice, InvoiceLineItem, Customer, Product
+from .models import DeliveryNoteLineItem, Invoice, InvoiceLineItem, Customer, Product
 from .models import Purchase, PurchaseLineItem
-from .models import Quotation, QuotationLineItem
+from .models import Quotation, QuotationLineItem,DeliveryNote
+
 
 class CustomerForm(forms.ModelForm):
     class Meta:
@@ -169,9 +170,57 @@ class PurchaseLineItemForm(forms.ModelForm):
 class QuotationForm(forms.ModelForm):
     class Meta:
         model = Quotation
-        fields = ['customer', 'reference', 'notes']
+        fields = [
+            'quote_number', 'date', 'customer', 'ship_to_name', 'ship_to_address',
+            'total_amount',  'terms', 'company_name'
+        ]
 
 class QuotationLineItemForm(forms.ModelForm):
     class Meta:
         model = QuotationLineItem
-        fields = ['product', 'quantity', 'price']
+        fields = ['product', 'quantity', 'price',  'vat_rate']
+        widgets = {
+            'product': forms.Select(attrs={'class': 'form-select'}),
+            # 'unit_price': forms.NumberInput(),
+            'price': forms.NumberInput(),
+            'vat_rate': forms.NumberInput(),
+        }
+        labels = {
+            'product': 'Product',
+            'quantity': 'Quantity',
+            # 'unit_price': 'Unit Price',
+            'price': 'Price',
+            'vat_rate': 'VAT Rate (%)',
+        }
+        help_texts = {
+            'product': 'Select a product to autofill details.',
+            'quantity': 'Quantity of the product.',
+            # 'unit_price': 'Rate per unit.',
+            'price': 'Total price for the quantity.',
+            'vat_rate': 'VAT percentage.',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['product'].queryset = Product.objects.all()
+        self.fields['product'].required = True
+        self.fields['product'].empty_label = "Select a product"
+
+
+class DeliveryNoteForm(forms.ModelForm):
+    class Meta:
+        model = DeliveryNote
+        fields = [
+            'company_name', 'company_address', 'company_email', 'company_phone',
+            'delivery_to_name', 'delivery_to_address', 'date', 'due_date',
+            'terms', 'signature', 'signature_date'
+        ]
+
+
+DeliveryNoteLineItemFormSet = forms.inlineformset_factory(
+    DeliveryNote,
+    DeliveryNoteLineItem,
+    fields=['product', 'description', 'quantity', 'complete'],
+    extra=1,
+    can_delete=True
+)

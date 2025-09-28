@@ -59,4 +59,11 @@ urlpatterns += [
     path('quotations/', views.quotation_list, name='quotation_list'),
     path('quotations/create/', views.create_quotation, name='create_quotation'),
     path('quotations/<int:pk>/send_email/', views.send_quotation_email, name='send_quotation_email'),
+    path('quotations/<int:pk>/', views.quotation_detail, name='quotation_detail'),
+    path('quotations/<int:pk>/edit/', views.edit_quotation, name='edit_quotation'),
+     path('delivery-notes/', views.delivery_note_list, name='delivery_note_list'),
+    path('delivery-notes/create/', views.create_delivery_note, name='create_delivery_note'),
+    path('delivery-notes/<int:pk>/', views.delivery_note_detail, name='delivery_note_detail'),
+    path('delivery-notes/<int:pk>/pdf/', views.delivery_note_pdf, name='delivery_note_pdf'),
+    path('delivery-notes/<int:pk>/pdf/', views.delivery_note_pdf, name='delivery_note_pdf'),
 ]

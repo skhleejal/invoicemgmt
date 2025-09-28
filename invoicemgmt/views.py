@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.forms import inlineformset_factory
-from .models import Customer, Invoice, InvoiceLineItem,Product, Quotation, QuotationLineItem
-from .forms import InvoiceForm, InvoiceLineItemForm, CustomerForm,ProductForm, QuotationForm, QuotationLineItemForm
+from .models import Customer, DeliveryNote, Invoice, InvoiceLineItem,Product, Quotation, QuotationLineItem
+from .forms import DeliveryNoteForm, InvoiceForm, InvoiceLineItemForm, CustomerForm,ProductForm, QuotationForm, QuotationLineItemForm
 from django.db.models import Sum
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse
@@ -42,7 +42,9 @@ from .forms import PurchaseForm, PurchaseLineItemForm
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from .utils import send_mailjet_email
-import base64
+
+
+shop_name = "SHEROOK KALBA"
 
 # def register(request):
 #     if request.method == 'POST':
@@ -723,9 +725,11 @@ def purchase_detail(request, pk):
 
 @login_required
 def purchase_pdf(request, pk):
+    from num2words import num2words
     purchase = get_object_or_404(Purchase, pk=pk)
+    amount_in_words = num2words(purchase.total_amount, lang='en') + ' AED' if hasattr(purchase, 'total_amount') else ''
     template = get_template('invoicemgmt/purchase_pdf.html')
-    html = template.render({'purchase': purchase})
+    html = template.render({'purchase': purchase, 'amount_in_words': amount_in_words})
     pdf_file = BytesIO()
     pisa_status = pisa.CreatePDF(html, dest=pdf_file)
     if pisa_status.err:
@@ -777,7 +781,7 @@ def purchase_delete(request, pk):
         purchase.delete()
         messages.success(request, "Purchase deleted successfully.")
         return redirect('purchase_list')
-    return render(request, 'invoicemgmt/confirm_delete_purchase.html', {'purchase': purchase})
+    return render(reuest, 'invoicemgmt/confirm_delete_purchase.html', {'purchase': purchase})
 
 @permission_required('invoicemgmt.change_purchase', raise_exception=True)
 @login_required
@@ -853,31 +857,26 @@ def create_quotation(request):
 @login_required
 def send_quotation_email(request, pk):
     quotation = get_object_or_404(Quotation, pk=pk)
-    to_email = quotation.customer.email
-    shop_name = "SHEROOK KALBA"  # Change to your actual shop name
+    # Render PDF
+    html = render_to_string('invoicemgmt/quotation_pdf.html', {'quotation': quotation})
+    pdf_file = BytesIO()
+    pisa.CreatePDF(html, dest=pdf_file)
+    pdf_file.seek(0)
 
-    subject = f"Quotation from {shop_name}"  # No quotation number
-    message = render_to_string(
-        'invoicemgmt/email_quotation.html',
-        {
-            # 'quotation': quotation,
-            'shop_name': shop_name,
-            'line_items': quotation.line_items.all(),
-            'customer': quotation.customer,
-        }
+    # Render email body from template
+    email_body = render_to_string('invoicemgmt/quotation_email.html', {'quotation': quotation})
+
+    email = EmailMessage(
+        subject=f"Quotation from {quotation.company_name}",
+        body=email_body,
+        to=[quotation.customer.email]
     )
-
-    status, response = send_mailjet_email(
-        subject=subject,
-        body=message,
-        to_email=to_email
-    )
-
-    if status == 200:
-        messages.success(request, "Quotation sent to client!")
-    else:
-        messages.error(request, f"Error sending email: {response}")
-
+    email.content_subtype = "html"  # Send as HTML email
+    email.attach('quotation.pdf', pdf_file.read(), 'application/pdf')
+    email.send()
+    quotation.email_sent = True
+    quotation.save()
+    messages.success(request, "Quotation sent to client!")
     return redirect('quotation_list')
 
 @login_required
@@ -971,15 +970,22 @@ from django.http import HttpResponse
 @permission_required('invoicemgmt.view_invoice', raise_exception=True)
 @login_required
 def export_invoices_to_excel(request):
-    # Boss sees all, staff see only their own
+    # Match invoice_list filtering
+    query = request.GET.get('q')
     if request.user.is_superuser:
         invoices = Invoice.objects.all()
     else:
         invoices = Invoice.objects.filter(created_by=request.user)
 
+    if query:
+        invoices = invoices.filter(
+            Q(customer__name__icontains=query) |
+            Q(invoice_number__icontains=query)
+        )
+
     data = []
     for invoice in invoices:
-        for item in invoice.line_items.all():  # Use the related_name
+        for item in invoice.line_items.all():
             data.append({
                 "Invoice Number": invoice.invoice_number,
                 "Customer": invoice.customer.name,
@@ -1014,3 +1020,94 @@ def test_email(request):
             return HttpResponse(f"EMAIL ERROR: {response}")
     except Exception as e:
         return HttpResponse(f"EMAIL ERROR: {e}")
+
+@login_required
+def quotation_detail(request, pk):
+    quotation = get_object_or_404(Quotation, pk=pk)
+    line_items = quotation.line_items.all()
+    subtotal = sum(item.amount for item in line_items)
+    sales_tax = sum(item.vat_amount for item in line_items)
+    total = subtotal + sales_tax
+    return render(request, 'invoicemgmt/quotation_detail.html', {
+        'quotation': quotation,
+        'subtotal': subtotal,
+        'sales_tax': sales_tax,
+        'total': total,
+    })
+
+@login_required
+def edit_quotation(request, pk):
+    quotation = get_object_or_404(Quotation, pk=pk)
+    if request.method == 'POST':
+        form = QuotationForm(request.POST, instance=quotation)
+        if form.is_valid():
+            form.save()
+            return redirect('quotation_detail', pk=quotation.pk)
+    else:
+        form = QuotationForm(instance=quotation)
+    return render(request, 'invoicemgmt/quotation_form.html', {'form': form, 'quotation': quotation})
+
+@login_required
+def create_delivery_note(request):
+    if request.method == 'POST':
+        form = DeliveryNoteForm(request.POST)
+        formset = DeliveryNoteLineItemFormSet(request.POST)
+        if form.is_valid() and formset.is_valid():
+            note = form.save()
+            formset.instance = note
+            formset.save()
+            return redirect('delivery_note_detail', pk=note.pk)
+    else:
+        form = DeliveryNoteForm()
+        formset = DeliveryNoteLineItemFormSet()
+    return render(request, 'invoicemgmt/delivery_note_form.html', {'form': form, 'formset': formset})
+
+
+from .models import DeliveryNote
+from .forms import DeliveryNoteForm,DeliveryNoteLineItemFormSet
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404, redirect
+
+@login_required
+def delivery_note_list(request):
+    notes = DeliveryNote.objects.all()
+    return render(request, 'invoicemgmt/delivery_note_list.html', {'notes': notes})
+
+@login_required
+def create_delivery_note(request):
+    if request.method == 'POST':
+        form = DeliveryNoteForm(request.POST)
+        formset = DeliveryNoteLineItemFormSet(request.POST)
+        if form.is_valid() and formset.is_valid():
+            note = form.save()
+            formset.instance = note
+            formset.save()
+            return redirect('delivery_note_detail', pk=note.pk)
+    else:
+        form = DeliveryNoteForm()
+        formset = DeliveryNoteLineItemFormSet()
+    return render(request, 'invoicemgmt/delivery_note_form.html', {'form': form, 'formset': formset})
+
+@login_required
+def delivery_note_detail(request, pk):
+    note = get_object_or_404(DeliveryNote, pk=pk)
+    return render(request, 'invoicemgmt/delivery_note.html', {'note': note})
+
+
+from django.http import HttpResponse
+from django.template.loader import get_template
+
+
+@login_required
+def delivery_note_pdf(request, pk):
+    note = get_object_or_404(DeliveryNote, pk=pk)
+    template = get_template('invoicemgmt/delivery_note_pdf.html')
+    html = template.render({'note': note})
+    pdf_file = BytesIO()
+    pisa_status = pisa.CreatePDF(html, dest=pdf_file)
+    if pisa_status.err:
+        return HttpResponse('PDF generation failed', status=500)
+    pdf_file.seek(0)
+    response = HttpResponse(pdf_file.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="delivery_note_{note.pk}.pdf"'
+    return response
