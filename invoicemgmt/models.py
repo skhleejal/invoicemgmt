@@ -85,21 +85,21 @@ class Customer(models.Model):
         return self.name
 
 
-class Product(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
-    vat_rate = models.DecimalField(max_digits=5, decimal_places=2, default=5.00)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    stock = models.IntegerField(default=0)
-    reorder_level = models.IntegerField(default=2)
-    created_at = models.DateTimeField(auto_now_add=True)
+# class Product(models.Model):
+#     name = models.CharField(max_length=255)
+#     description = models.TextField(blank=True, null=True)
+#     vat_rate = models.DecimalField(max_digits=5, decimal_places=2, default=5.00)
+#     price = models.DecimalField(max_digits=10, decimal_places=2)
+#     stock = models.IntegerField(default=0)
+#     reorder_level = models.IntegerField(default=2)
+#     created_at = models.DateTimeField(auto_now_add=True)
 
-    def is_low_stock(self):
-        return self.stock <= self.reorder_level
+#     def is_low_stock(self):
+#         return self.stock <= self.reorder_level
     
-    def __str__(self):
-        desc = self.description[:30] if self.description else "No description"
-        return f"{self.name} – {desc}"
+#     def __str__(self):
+#         desc = self.description[:30] if self.description else "No description"
+#         return f"{self.name} – {desc}"
 
 
 
@@ -144,7 +144,7 @@ class Invoice(models.Model):
                     max_number=Max('invoice_number')
                 )['max_number']
 
-                self.invoice_number = str(int(latest) + 1) if latest else '1000'
+                self.invoice_number = str(int(latest) + 1) if latest else '1025'
 
         # Calculate totals only if invoice already exists (has line items)
         taxable = 0
@@ -178,19 +178,20 @@ class Invoice(models.Model):
         return f"Invoice #{self.invoice_number or 'N/A'} for {customer_name}"    
 
 
-class RecurringInvoice(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    interval = models.CharField(max_length=10, choices=[('monthly', 'Monthly'), ('weekly', 'Weekly')])
-    next_due_date = models.DateField()
-    active = models.BooleanField(default=True)
+# class RecurringInvoice(models.Model):
+#     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+#     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+#     amount = models.DecimalField(max_digits=10, decimal_places=2)
+#     interval = models.CharField(max_length=10, choices=[('monthly', 'Monthly'), ('weekly', 'Weekly')])
+#     next_due_date = models.DateField()
+#     active = models.BooleanField(default=True)
 
 
 class InvoiceLineItem(models.Model):
     invoice = models.ForeignKey(Invoice, related_name='line_items', on_delete=models.CASCADE)
     description = models.TextField()
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=False, blank=False)
+    # product = models.ForeignKey(Product, on_delete=models.CASCADE, null=False, blank=False)
+    product = models.CharField(max_length=255)
     quantity = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     amount = models.DecimalField(max_digits=20, decimal_places=2, default=0.00)
@@ -198,8 +199,8 @@ class InvoiceLineItem(models.Model):
     vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def save(self, *args, **kwargs):
-        if self.product and not self.unit_price:
-            self.unit_price = self.product.price
+        # if self.product and not self.unit_price:
+        #     self.unit_price = self.product.price
         self.amount = self.quantity * self.unit_price
         self.vat_amount = (self.vat_rate / 100) * self.amount
         super().save(*args, **kwargs)
@@ -241,7 +242,7 @@ class Purchase(models.Model):
 
 class PurchaseLineItem(models.Model):
     purchase = models.ForeignKey('Purchase', related_name='line_items', on_delete=models.CASCADE)  # <-- Add this
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.CharField(max_length=255)
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -254,61 +255,61 @@ class PurchaseLineItem(models.Model):
         super().save(*args, **kwargs)
 
 
-class Quotation(models.Model):
-    quote_number = models.CharField(max_length=50)
-    date = models.DateField()
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    ship_to_name = models.CharField(max_length=100, blank=True)
-    ship_to_address = models.CharField(max_length=255, blank=True)
-    # subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    tax = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    terms = models.TextField(blank=True)
-    company_name = models.CharField(max_length=100, blank=True)
-    email_sent = models.BooleanField(default=False)  # <-- Track email status
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+# class Quotation(models.Model):
+#     quote_number = models.CharField(max_length=50)
+#     date = models.DateField()
+#     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+#     ship_to_name = models.CharField(max_length=100, blank=True)
+#     ship_to_address = models.CharField(max_length=255, blank=True)
+#     # subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+#     tax = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+#     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+#     terms = models.TextField(blank=True)
+#     company_name = models.CharField(max_length=100, blank=True)
+#     email_sent = models.BooleanField(default=False)  # <-- Track email status
+#     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
-    def __str__(self):
-        return f"Quotation {self.quote_number} for {self.customer.name}"
+#     def __str__(self):
+#         return f"Quotation {self.quote_number} for {self.customer.name}"
 
-class QuotationLineItem(models.Model):
-    quotation = models.ForeignKey(Quotation, on_delete=models.CASCADE, related_name='line_items')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
-    price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=5.00)
-    vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+# class QuotationLineItem(models.Model):
+#     quotation = models.ForeignKey(Quotation, on_delete=models.CASCADE, related_name='line_items')
+#     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+#     quantity = models.PositiveIntegerField()
+#     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+#     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+#     vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=5.00)
+#     vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
-    def save(self, *args, **kwargs):
-        self.amount = self.quantity * self.price
-        vat_rate_decimal = Decimal(str(self.vat_rate)) / Decimal('100')
-        self.vat_amount = self.amount * vat_rate_decimal
-        super().save(*args, **kwargs)
+#     def save(self, *args, **kwargs):
+#         self.amount = self.quantity * self.price
+#         vat_rate_decimal = Decimal(str(self.vat_rate)) / Decimal('100')
+#         self.vat_amount = self.amount * vat_rate_decimal
+#         super().save(*args, **kwargs)
 
 
-class DeliveryNote(models.Model):
-    company_name = models.CharField(max_length=255)
-    company_address = models.TextField()
-    company_email = models.EmailField()
-    company_phone = models.CharField(max_length=50)
-    delivery_to_name = models.CharField(max_length=255)
-    delivery_to_address = models.TextField()
-    date = models.DateField()
-    due_date = models.DateField(blank=True, null=True)
-    # You can use a related model for line items if needed
-    terms = models.TextField(blank=True, null=True)
-    signature = models.CharField(max_length=255, blank=True, null=True)
-    signature_date = models.DateField(blank=True, null=True)
+# class DeliveryNote(models.Model):
+#     company_name = models.CharField(max_length=255)
+#     company_address = models.TextField()
+#     company_email = models.EmailField()
+#     company_phone = models.CharField(max_length=50)
+#     delivery_to_name = models.CharField(max_length=255)
+#     delivery_to_address = models.TextField()
+#     date = models.DateField()
+#     due_date = models.DateField(blank=True, null=True)
+#     # You can use a related model for line items if needed
+#     terms = models.TextField(blank=True, null=True)
+#     signature = models.CharField(max_length=255, blank=True, null=True)
+#     signature_date = models.DateField(blank=True, null=True)
 
-    def __str__(self):
-        return f"Delivery Note to {self.delivery_to_name} on {self.date}"
+#     def __str__(self):
+#         return f"Delivery Note to {self.delivery_to_name} on {self.date}"
     
 
 
-class DeliveryNoteLineItem(models.Model):
-    delivery_note = models.ForeignKey(DeliveryNote, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    description = models.CharField(max_length=255, blank=True)
-    quantity = models.PositiveIntegerField()
-    complete = models.BooleanField(default=False)
+# class DeliveryNoteLineItem(models.Model):
+#     delivery_note = models.ForeignKey(DeliveryNote, on_delete=models.CASCADE, related_name='items')
+#     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+#     description = models.CharField(max_length=255, blank=True)
+#     quantity = models.PositiveIntegerField()
+#     complete = models.BooleanField(default=False)

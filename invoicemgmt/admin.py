@@ -1,10 +1,10 @@
 from django.contrib import admin
-from .models import Invoice, Customer, InvoiceLineItem,Product
+from .models import Invoice, Customer, InvoiceLineItem
 
 admin.site.register(Invoice)
 admin.site.register(Customer)
 admin.site.register(InvoiceLineItem)
-admin.site.register(Product)
+# admin.site.register(Product)
 # from django.contrib import admin
 # from .models import Customer, Invoice, InvoiceLineItem
 
