@@ -184,9 +184,9 @@ class InvoiceDeleteView(PermissionRequiredMixin, DeleteView):
 # from .models import Invoice, Product, Customer  # Make sure your models are imported
 @login_required
 def home(request):
-    if not request.user.is_staff:
-        messages.warning(request, "Your account is pending approval.")
-        return render(request, 'registration/pending_approval.html')
+    # if not request.user.is_staff:
+    #     messages.warning(request, "Your account is pending approval.")
+    #     return render(request, 'registration/pending_approval.html')
     
     # Role-based filtering
     if request.user.is_superuser:
