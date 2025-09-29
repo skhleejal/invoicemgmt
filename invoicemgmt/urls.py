@@ -51,9 +51,9 @@ urlpatterns += [
     path('create_receipt/', views.create_receipt, name='create_receipt'),
     # path('generate-recurring-invoices/', views.generate_recurring_invoices, name='generate_recurring_invoices'),
     # path('invoice/<int:pk>/email/', views.email_invoice, name='email_invoice'),
-    path('accounts/register/', register, name='register'),
-    path('accounts/register/success/', TemplateView.as_view(
-        template_name='registration/register_success.html'), name='registration_success'),
+    # path('accounts/register/', register, name='register'),
+    # path('accounts/register/success/', TemplateView.as_view(
+    #     template_name='registration/register_success.html'), name='registration_success'),
     path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     # path('quotations/', views.quotation_list, name='quotation_list'),
