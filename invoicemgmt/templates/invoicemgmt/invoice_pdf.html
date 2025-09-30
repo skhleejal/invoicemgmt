@@ -5,20 +5,36 @@
     <meta charset="UTF-8">
     <title>Invoice PDF</title>
     <style>
-        /* 1. RE-APPLIED: 5cm top margin on the body element for letterhead space */
+        /* 1. Define the top margin for the entire page when printing/PDFing */
+        @page {
+            margin-top: 5cm; /* Pushes the entire document content down by 5 cm */
+            margin-left: 1cm;
+            margin-right: 1cm;
+            margin-bottom: 1cm;
+        }
+        
+        /* 2. Remove any conflicting margin from the body element */
         body { 
             font-family: Arial, sans-serif; 
             font-size: 12px;
-            margin: 0; 
+            margin: 0; /* Ensures body starts at the edge of the @page margin */
             padding: 0;
-            margin-top: 5cm; /* Pushes content down 5cm for letterhead */
+            /* **Crucially, the margin-top is now handled by @page, not the body.** */
         }
 
         .header { 
             text-align: center; 
+            border-bottom: 2px solid #000; 
+            padding-bottom: 10px; 
         }
         .header img { 
-            display: none; /* Hides the logo element */
+            max-width: 100%; 
+            height: auto; 
+            max-height: 150px; 
+        }
+        .company-details { 
+            font-size: 14px; 
+            font-weight: bold; 
         }
 
         table { 
@@ -29,31 +45,11 @@
         th, td { 
             border: 1px solid #000; 
             padding: 6px; 
-            vertical-align: top; 
         }
         th { 
             background-color: #f0f0f0; 
-            text-align: center;
         }
 
-        /* 2. Style to force the table body to take up vertical space */
-        .item-table-body tr:last-child td {
-             /* Set a minimum height on the last row's cells to push the TOTAL line down. 
-                Adjust this value (e.g., 180px, 220px, etc.) until it looks right. */
-            min-height: 180px; 
-        }
-        .item-table-body tr td {
-            /* This ensures the lines for the empty space are present */
-            border-bottom: none;
-            border-top: none;
-        }
-        /* Style to ensure the last visible line (TOTAL row) is solid */
-        .item-table-body tr:last-child {
-            border-top: 1px solid black;
-        }
-
-
-        /* 3. General styles */
         .no-border td { 
             border: none; 
         }
@@ -66,28 +62,18 @@
         .center { 
             text-align: center; 
         }
-        /* 4. RE-APPLIED SIGNATURE STYLES */
-        .footer-signatures {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 50px;
-            padding: 0 10px;
-        }
-        .signature-box {
-            width: 45%; 
-            text-align: left;
-        }
-        .signature-box.receiver {
-            text-align: right;
-        }
-        .signature-line {
-            margin-top: 30px;
-            border-top: 1px solid black;
-        }
-        .footer-text { 
+        .footer { 
             margin-top: 30px; 
-            font-size: 10px;
-            text-align: center;
+            font-size: 10px; 
+        }
+
+        .signature { 
+            float: right; 
+            margin-top: 50px; 
+        }
+        .stamp { 
+            float: left; 
+            margin-top: 50px; 
         }
     </style>
 </head>
@@ -139,17 +125,13 @@
                 <th style="width: 15%;">VAT AMOUNT</th>
             </tr>
         </thead>
-        <tbody class="item-table-body">
+        <tbody>
             {% for item in invoice.line_items.all %}
             <tr>
                 <td class="center">{{ forloop.counter }}</td>
                 <td>
-                    <strong>BUSINESS CARD</strong><br>
-                    "College Of Pharmacy"<br>
-                    PROF:SHEREF KHALIFA<br>
-                    PROF:BAZIGHA ABDUL RASOOL<br>
-                    PROF:BASIL HAMEED AMARNEH<br>
-                    (Each 100 Card)
+                    {% if item.product %}<strong>{{ item.product }}</strong><br>{% endif %}
+                    {{ item.description }}
                 </td>
                 <td class="center">{{ item.quantity }}</td>
                 <td class="right">{{ item.unit_price }}</td>
@@ -159,23 +141,12 @@
                 <td class="right">{{ item.vat_amount }}</td>
             </tr>
             {% endfor %}
-
             <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td colspan="4" class="right bold" style="border-top: 1px solid black;">TOTAL</td>
-                <td class="right bold" style="border-top: 1px solid black;">{{ invoice.total_amount }}</td>
-                <td class="right bold" style="border-top: 1px solid black;">{{ invoice.total_taxable }}</td>
-                <td class="center bold" style="border-top: 1px solid black;"> </td>
-                <td class="right bold" style="border-top: 1px solid black;">{{ invoice.total_vat }}</td>
+                <td colspan="4" class="right bold">TOTAL</td>
+                <td class="right bold">{{ invoice.total_amount }}</td>
+                <td class="right bold">{{ invoice.total_taxable }}</td>
+                <td class="center bold"> </td>
+                <td class="right bold">{{ invoice.total_vat }}</td>
             </tr>
         </tbody>
     </table>
@@ -187,23 +158,15 @@
         </tr>
     </table>
 
-    <div class="footer-text">
+    <div class="footer">
+        
         <p>Payment Method: {{ invoice.payment_method }}</p>
         <p>Thank you for your business!</p>
     </div>
 
-    <div class="footer-signatures">
-        
-        <div class="signature-box sender">
-             For High Speed Graphics
-             <div class="signature-line"></div>
-        </div>
-        
-        <div class="signature-box receiver">
-             Receiver Signature
-             <div class="signature-line"></div>
-        </div>
-
+    <div class="signature">
+        For High Speed Graphics<br><br><br>
+        _______________________
     </div>
 
 </body>
