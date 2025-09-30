@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>Invoice PDF</title>
     <style>
-        /* Re-introduced the 5cm top margin on the body element for letterhead space */
+        /* 1. Re-introduced the 5cm top margin on the body element for letterhead space */
         body { 
             font-family: Arial, sans-serif; 
             font-size: 12px;
@@ -19,10 +19,6 @@
         }
         .header img { 
             display: none; /* Hides the logo element */
-        }
-        .company-details { 
-            font-size: 14px; 
-            font-weight: bold; 
         }
 
         table { 
@@ -38,18 +34,24 @@
             background-color: #f0f0f0; 
         }
 
-        /* ---------------------------------------------------- */
-        /* KEY CHANGE for table height: Apply a large height to the description column */
-        .empty-row-td {
-            height: 150px; /* Adjust this value (e.g., 100px to 200px) until the table extends far enough down */
-            border-bottom: none !important; /* Remove bottom line from empty space */
-            border-top: none !important; /* Remove top line from empty space */
+        /* Styles for the Item Details Table */
+        .table-items th {
+            text-align: center;
         }
-        .empty-row-td-desc {
-            height: 150px; 
-            text-align: left !important;
+        .table-items td {
+            vertical-align: top;
         }
-        /* ---------------------------------------------------- */
+
+        /* Styles for the Filler Table (to extend lines down) */
+        .table-filler {
+            border-top: none; /* Remove duplicate line between tables */
+            margin-top: 0;
+        }
+        .table-filler td {
+            border-top: none; 
+            border-bottom: none;
+            height: 100px; /* **ADJUST THIS HEIGHT** to fill space until the bottom of the page */
+        }
 
         .no-border td { 
             border: none; 
@@ -64,14 +66,14 @@
             text-align: center; 
         }
         .footer-signatures {
-            overflow: auto; /* Contains the floating elements */
+            overflow: auto; 
             margin-top: 50px;
         }
         .signature-box {
-            width: 48%; /* Adjust widths to fit side-by-side */
+            width: 48%; 
             padding: 1%;
             box-sizing: border-box;
-            float: left; /* Float signature boxes left and right */
+            float: left; 
         }
         .receiver {
              float: right;
@@ -85,14 +87,11 @@
             margin-top: 30px;
             border-top: 1px solid black;
         }
-
-        /* Footer for Thank you/Payment text */
         .footer-text { 
             margin-top: 30px; 
             font-size: 10px;
             text-align: center;
         }
-
     </style>
 </head>
 <body>
@@ -130,7 +129,7 @@
         </tr>
     </table>
 
-    <table>
+    <table class="table-items">
         <thead>
             <tr>
                 <th style="width: 5%;">SL</th>
@@ -161,21 +160,19 @@
             {% endfor %}
 
             <tr>
-                <td class="empty-row-td"></td>
-                <td class="empty-row-td-desc"></td>
-                <td class="empty-row-td"></td>
-                <td class="empty-row-td"></td>
-                <td class="empty-row-td"></td>
-                <td class="empty-row-td"></td>
-                <td class="empty-row-td"></td>
-                <td class="empty-row-td"></td>
-            </tr>
-            <tr>
                 <td colspan="4" class="right bold">TOTAL</td>
                 <td class="right bold">{{ invoice.total_amount }}</td>
                 <td class="right bold">{{ invoice.total_taxable }}</td>
                 <td class="center bold"> </td>
                 <td class="right bold">{{ invoice.total_vat }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="table-filler">
+        <tbody>
+            <tr>
+                <td colspan="8" style="border: 1px solid black;"></td> 
             </tr>
         </tbody>
     </table>
@@ -205,5 +202,6 @@
         </div>
 
     </div>
-    </body>
+
+</body>
 </html>
