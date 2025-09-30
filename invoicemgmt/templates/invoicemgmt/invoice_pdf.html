@@ -38,24 +38,24 @@
                 <strong>BILL TO:</strong><br>
                 {{ invoice.customer.name }}<br>
                 {{ invoice.customer.address }}<br>
-                Tel: {{ invoice.customer.phone }} | Fax: {{ invoice.customer.fax }}<br>
-                VAT NO: {{ invoice.customer.vat_no }}
+                Tel: {{ invoice.customer.phone|default:"" }} | Fax: {{ invoice.customer.fax|default:"" }}<br>
+                VAT NO: {{ invoice.customer.vat_no|default:"" }}
             </td>
             <td>
                 <strong>DATE:</strong> {{ invoice.invoice_date }}<br>
                 <strong>INVOICE NO.:</strong> {{ invoice.invoice_number }}<br>
-                <strong>VAT NO.:</strong> {{ invoice.vat_number }}
+                <strong>VAT NO.:</strong> {{ invoice.vat_number|default:"" }}
             </td>
         </tr>
     </table>
 
-    <table>
+    <table class="no-border">
         <tr>
-            <td><strong>P.O. NUMBER</strong><br>{{ invoice.po_number }}</td>
-            <td><strong>P.O. DATE</strong><br>{{ invoice.po_date }}</td>
-            <td><strong>DELIVERY NOTE</strong><br>{{ invoice.delivery_note }}</td>
-            <td><strong>D.O. DATE</strong><br>{{ invoice.do_date }}</td>
-            <td><strong>SHIP TO</strong><br>{{ invoice.ship_to }}</td>
+            <td><strong>P.O. NUMBER</strong><br>{{ invoice.po_number|default:"None" }}</td>
+            <td><strong>P.O. DATE</strong><br>{{ invoice.po_date|default:"None" }}</td>
+            <td><strong>DELIVERY NOTE</strong><br>{{ invoice.delivery_note|default:"None" }}</td>
+            <td><strong>D.O. DATE</strong><br>{{ invoice.do_date|default:"None" }}</td>
+            <td><strong>SHIP TO</strong><br>{{ invoice.ship_to|default:"None" }}</td>
         </tr>
     </table>
 
@@ -66,12 +66,10 @@
                 <th style="width: 25%;">PRODUCT / DESCRIPTION</th>
                 <th style="width: 8%;">QTY</th>
                 <th style="width: 12%;">U/PRICE</th>
-                <!-- <th style="width: 12%;">AMOUNT</th> -->
                 <th style="width: 13%;">TAXABLE AMOUNT</th>
                 <th style="width: 10%;">VAT RATE</th>
                 <th style="width: 15%;">VAT AMOUNT</th>
-                <th style="width: 12%;">TOTAL AMOUNT</th>
-
+                <th style="width: 12%;">TOTAL AED</th>
             </tr>
         </thead>
         <tbody>
@@ -79,38 +77,36 @@
             <tr>
                 <td class="center">{{ forloop.counter }}</td>
                 <td>
-                    {% if item.product %}<strong>{{ item.product }}</strong><br>{% endif %}
-                    {{ item.description }}
+                    <strong>{{ item.product }}</strong><br>
+                    <small>{{ item.description|default:"" }}</small>
                 </td>
                 <td class="center">{{ item.quantity }}</td>
                 <td class="right">{{ item.unit_price }}</td>
                 <td class="right">{{ item.amount }}</td>
-                <!-- <td class="right">{{ item.amount }}</td> -->
                 <td class="center">{{ item.vat_rate }}%</td>
                 <td class="right">{{ item.vat_amount }}</td>
-                <td><strong>{{ item.amount|add:item.vat_amount }}</strong></td>
+                <td class="right"><strong>{{ item.amount|add:item.vat_amount }}</strong></td>
             </tr>
             {% endfor %}
             <tr>
                 <td colspan="4" class="right"><strong>TOTAL</strong></td>
-                <td><strong>{{ invoice.total_taxable }}</strong></td>
+                <td class="right"><strong>{{ invoice.subtotal }}</strong></td>
                 <td></td>
-                <td><strong>{{ invoice.total_vat }}</strong></td>
-                <td><strong>{{ invoice.total_amount }}</strong></td>
+                <td class="right"><strong>{{ invoice.vat_amount }}</strong></td>
+                <td class="right"><strong>{{ invoice.total_amount }}</strong></td>
             </tr>
         </tbody>
     </table>
 
-    <table>
+    <table class="no-border">
         <tr>
-            <td style="width: 75%;"><strong>TOTAL AMOUNT AED (IN WORDS):</strong><br>{{ invoice.amount_in_words }}</td>
-            <td class="center bold" style="font-size: 16px;">{{ invoice.total_amount_with_vat }}</td>
+            <td style="width: 75%;"><strong>TOTAL AMOUNT AED (IN WORDS):</strong><br>{{ invoice.amount_in_words|default:"" }}</td>
+            <td class="center bold" style="font-size: 16px;">{{ invoice.total_amount }}</td>
         </tr>
     </table>
 
     <div class="footer">
-        <!-- <p>Make all cheques payable to “Sherook Kal Tr. LLC”</p> -->
-        <p>Payment Method: {{ invoice.payment_method }}</p>
+        <p>Payment Method: {{ invoice.payment_method|default:"Cash" }}</p>
         <p>Thank you for your business!</p>
     </div>
 
@@ -118,7 +114,6 @@
         For High Speed Graphics <br><br><br>
         _______________________
     </div>
-
 
 </body>
 </html>
