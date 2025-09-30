@@ -129,8 +129,7 @@
                 <th style="width: 25%;">PRODUCT / DESCRIPTION</th>
                 <th style="width: 8%;">QTY</th>
                 <th style="width: 12%;">U/PRICE</th>
-                <th style="width: 12%;">AMOUNT</th>
-                <th style="width: 13%;">TAXABLE VALUE</th>
+                <th style="width: 15%;">TAXABLE VALUE</th>
                 <th style="width: 10%;">VAT RATE</th>
                 <th style="width: 15%;">VAT AMOUNT</th>
             </tr>
@@ -140,23 +139,31 @@
             <tr>
                 <td class="center">{{ forloop.counter }}</td>
                 <td>
-                    {% if item.product %}<strong>{{ item.product }}</strong><br>{% endif %}
-                    {{ item.description }}
+                    {% if item.is_discount %}
+                        <strong>Special Discount</strong><br>{{ item.description }}
+                    {% else %}
+                        {% if item.product %}<strong>{{ item.product }}</strong><br>{% endif %}
+                        {{ item.description }}
+                    {% endif %}
                 </td>
                 <td class="center">{{ item.quantity }}</td>
                 <td class="right">{{ item.unit_price }}</td>
-                <td class="right">{{ item.amount }}</td>
-                <td class="right">{{ item.amount }}</td>
+                <td class="right">{{ item.taxable_value }}</td>
                 <td class="center">{{ item.vat_rate }}%</td>
                 <td class="right">{{ item.vat_amount }}</td>
             </tr>
             {% endfor %}
             <tr>
-                <td colspan="4" class="right bold">TOTAL</td>
-                <td class="right bold">{{ invoice.total_amount }}</td>
+                <td colspan="5" class="right bold">TOTAL TAXABLE</td>
                 <td class="right bold">{{ invoice.total_taxable }}</td>
-                <td class="center bold"> </td>
+            </tr>
+            <tr>
+                <td colspan="5" class="right bold">TOTAL VAT</td>
                 <td class="right bold">{{ invoice.total_vat }}</td>
+            </tr>
+            <tr>
+                <td colspan="5" class="right bold">TOTAL AMOUNT</td>
+                <td class="right bold">{{ invoice.total_amount }}</td>
             </tr>
         </tbody>
     </table>

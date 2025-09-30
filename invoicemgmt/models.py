@@ -121,6 +121,7 @@ class Invoice(models.Model):
     amount_in_words = models.CharField(max_length=512, blank=True, default="N/A")
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='invoices')
+    # special_discount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)  # Optional field
 
     invoice_type_choices = (
         ('Receipt', 'Receipt'),
@@ -133,6 +134,17 @@ class Invoice(models.Model):
         ('paid', 'Paid'),
     ]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
+    
+    def calculate_total(self):
+        taxable = sum(item.taxable_value for item in self.line_items.all())
+        vat = sum(item.vat_amount for item in self.line_items.all())
+        total = taxable + vat - (self.special_discount or 0)
+
+        self.total_taxable = taxable
+        self.total_vat = vat
+        self.total_amount = total
+        self.save()  # Save the updated values
+        return total
 
     def save(self, *args, **kwargs):
         # Auto-generate invoice number only if not already set
@@ -153,12 +165,12 @@ class Invoice(models.Model):
                 self.invoice_number = str(next_number)  # Add this missing line!
 
         # Calculate totals only if invoice already exists (has line items)
-        taxable = 0
-        vat = 0
+        taxable = Decimal(0)
+        vat = Decimal(0)
         if self.pk:
             for item in self.line_items.all():
-                taxable += item.amount
-                vat += item.vat_amount
+                taxable += Decimal(item.amount)
+                vat += Decimal(item.vat_amount)
 
         self.total_taxable = taxable
         self.total_vat = vat
@@ -183,6 +195,10 @@ class Invoice(models.Model):
             customer_name = "Unknown Customer"
         return f"Invoice #{self.invoice_number or 'N/A'} for {customer_name}"    
 
+    def clean(self):
+        if self.invoice_number and not self.invoice_number.isdigit():
+            raise ValidationError("Invoice number must be numeric.")
+
 
 # class RecurringInvoice(models.Model):
 #     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
@@ -196,22 +212,37 @@ class Invoice(models.Model):
 class InvoiceLineItem(models.Model):
     invoice = models.ForeignKey(Invoice, related_name='line_items', on_delete=models.CASCADE)
     description = models.TextField()
-    product = models.CharField(max_length=255)  # Product name as a string
+    product = models.CharField(max_length=255, blank=True, null=True)  # Product name as a string
     quantity = models.PositiveIntegerField(default=1)
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2)  # Unit price must be explicitly provided
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # Unit price must be explicitly provided
     amount = models.DecimalField(max_digits=20, decimal_places=2, default=0.00)
-    vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=5.00)
+    vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=0.00)  # No VAT for discounts
     vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    taxable_value = models.DecimalField(max_digits=20, decimal_places=2, default=0.00)
+    is_discount = models.BooleanField(default=False)  # Flag to identify discounts
 
     def save(self, *args, **kwargs):
-        # Calculate totals based on quantity and unit price
-        self.amount = self.quantity * self.unit_price
-        self.vat_amount = (self.vat_rate / 100) * self.amount
+        if self.is_discount:
+            self.amount = -abs(self.unit_price)  # Ensure discount is negative
+            self.taxable_value = self.amount
+            self.vat_amount = 0  # No VAT for discounts
+        else:
+            self.amount = self.quantity * self.unit_price
+            self.vat_amount = (self.vat_rate / 100) * self.amount
+            self.taxable_value = self.amount
         super().save(*args, **kwargs)
+        
 
     def __str__(self):
         return f"{self.description[:30]}"
     
+    def clean(self):
+        if self.quantity < 0:
+            raise ValidationError("Quantity cannot be negative.")
+        if self.unit_price < 0:
+            raise ValidationError("Unit price cannot be negative.")
+        if self.vat_rate < 0:
+            raise ValidationError("VAT rate cannot be negative.")
 
 
 class Purchase(models.Model):

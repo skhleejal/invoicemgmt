@@ -57,6 +57,8 @@ class InvoiceForm(forms.ModelForm):
             'total_vat': forms.NumberInput(attrs={'readonly': 'readonly', 'class': 'form-control'}),
             'total_amount': forms.NumberInput(attrs={'readonly': 'readonly', 'class': 'form-control'}),
             'amount_in_words': forms.TextInput(attrs={'readonly': 'readonly', 'class': 'form-control'}),
+            # 'special_discount': forms.NumberInput(attrs={'placeholder': 'Enter discount amount'}),
+
         }
         labels = {
             'customer': 'Customer*',
@@ -91,13 +93,11 @@ class InvoiceForm(forms.ModelForm):
 class InvoiceLineItemForm(forms.ModelForm):
     class Meta:
         model = InvoiceLineItem
-        fields = ['product', 'description', 'quantity', 'unit_price', 'vat_rate']
+        fields = ['description', 'product', 'quantity', 'unit_price', 'vat_rate', 'is_discount']
         widgets = {
-            'product': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Product name'}),
-            'description': forms.Textarea(attrs={'rows': 2, 'class': 'form-control', 'placeholder': 'Description'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
-            'unit_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'vat_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'value': '5.00'}),
+            'description': forms.TextInput(attrs={'placeholder': 'Enter description'}),
+            'unit_price': forms.NumberInput(attrs={'placeholder': 'Enter amount'}),
+            'is_discount': forms.CheckboxInput(),
         }
         labels = {
             'product': 'Product*',
