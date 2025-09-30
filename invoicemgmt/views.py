@@ -357,34 +357,81 @@ def select_document_type(request):
 @permission_required('invoicemgmt.add_invoice', raise_exception=True)
 @login_required
 def create_invoice(request):
+    InvoiceLineItemFormSet = inlineformset_factory(
+        Invoice, InvoiceLineItem,
+        form=InvoiceLineItemForm,
+        extra=3, can_delete=True
+    )
+
     if request.method == 'POST':
-        # Create invoice form and line item formset
-        invoice_form = InvoiceForm(request.POST)
-        line_item_formset = InvoiceLineItemFormSet(request.POST)
+        form = InvoiceForm(request.POST)
+        formset = InvoiceLineItemFormSet(request.POST)
 
-        if invoice_form.is_valid() and line_item_formset.is_valid():
-            # Save the invoice
-            invoice = invoice_form.save()
+        if form.is_valid() and formset.is_valid():
+            invoice = form.save(commit=False)
+            invoice.created_by = request.user  # Assign the invoice to the current user
+            formset.instance = invoice
 
-            # Save the line items
-            line_item_formset.instance = invoice
-            line_item_formset.save()
+            # stock_errors = []
 
-            return redirect('invoice_list')
+            # for item_form in formset:
+            #     product = item_form.cleaned_data.get('product')
+            #     quantity = item_form.cleaned_data.get('quantity')
+
+                # if product and quantity:
+                #     if product.stock < quantity:
+                #         stock_errors.append(
+                #             f"⚠ Not enough stock for {product.name} (Available: {product.stock}, Requested: {quantity})"
+                #         )
+
+            # if stock_errors:
+            #     for err in stock_errors:
+            #         messages.error(request, err)
+            #     return render(request, 'invoicemgmt/create_invoice.html', {
+            #         'form': form,
+            #         'formset': formset,
+            #         'document_type': 'invoice'
+            #     })
+
+            try:
+                invoice.save()  # 💡 This will now safely calculate amount_in_words
+
+                total_amount = 0
+                line_items = formset.save(commit=False)
+
+                for item_form in line_items:
+                    product = item_form.product
+                    quantity = item_form.quantity
+                    price = product.price
+                    item_form.amount = quantity * price
+                    item_form.invoice = invoice
+                    item_form.save()
+
+                    total_amount += item_form.amount
+
+                    # Reduce stock
+                    # product.stock -= quantity
+                    # product.save()
+
+                invoice.total_amount = total_amount
+                invoice.save()
+
+                # messages.success(request, '✅ Invoice saved and stock updated.')
+                # return redirect('invoice_list')
+
+            except Exception as e:
+                messages.error(request, f"❌ Error saving invoice: {str(e)}")
+
         else:
-            # If forms are invalid, render the form with errors
-            return render(request, 'invoicemgmt/invoice_form.html', {
-                'invoice_form': invoice_form,
-                'line_item_formset': line_item_formset,
-            })
+            messages.error(request, 'Please correct the errors below.')
     else:
-        # Render empty forms for GET request
-        invoice_form = InvoiceForm()
-        line_item_formset = InvoiceLineItemFormSet()
+        form = InvoiceForm()
+        formset = InvoiceLineItemFormSet()
 
-    return render(request, 'invoicemgmt/invoice_form.html', {
-        'invoice_form': invoice_form,
-        'line_item_formset': line_item_formset,
+    return render(request, 'invoicemgmt/create_invoice.html', {
+        'form': form,
+        'formset': formset,
+        'document_type': 'invoice'
     })
 
 
@@ -1054,29 +1101,10 @@ def test_email(request):
 #     template = get_template('invoicemgmt/delivery_note_pdf.html')
 #     html = template.render({'note': note})
 #     pdf_file = BytesIO()
-#     pisa.CreatePDF(html, dest=pdf_file)
+#     pisa_status = pisa.CreatePDF(html, dest=pdf_file)
 #     if pisa_status.err:
 #         return HttpResponse('PDF generation failed', status=500)
 #     pdf_file.seek(0)
 #     response = HttpResponse(pdf_file.getvalue(), content_type='application/pdf')
 #     response['Content-Disposition'] = f'attachment; filename="delivery_note_{note.pk}.pdf"'
 #     return response
-
-from django.forms import inlineformset_factory
-from .models import Invoice, InvoiceLineItem
-
-# Define the formset for InvoiceLineItem
-InvoiceLineItemFormSet = inlineformset_factory(
-    Invoice,  # Parent model
-    InvoiceLineItem,  # Child model
-    fields=['product', 'description', 'quantity', 'unit_price', 'vat_rate'],  # Fields to include
-    extra=1,  # Number of empty forms to display
-    can_delete=True,  # Allow deletion of line items
-    widgets={
-        'product': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Product name'}),
-        'description': forms.Textarea(attrs={'rows': 2, 'class': 'form-control', 'placeholder': 'Description'}),
-        'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
-        'unit_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-        'vat_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'value': '5.00'}),
-    }
-)
