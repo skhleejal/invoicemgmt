@@ -32,55 +32,64 @@
             <td width="50%">
                 <strong>SUPPLIER:</strong><br>
                 {{ purchase.supplier_name }}<br>
-                <!-- Add more supplier details if available -->
             </td>
-            <td>
+            <td width="50%" style="text-align: right;">
                 <strong>DATE:</strong> {{ purchase.date }}<br>
                 <strong>PURCHASE NO.:</strong> {{ purchase.purchase_number }}<br>
             </td>
         </tr>
     </table>
 
-    <table style="width:1400px;">
+    <!-- Add P.O. fields section -->
+    <table class="no-border">
+        <tr>
+            <td width="20%"><strong>P.O. NUMBER</strong><br>{{ purchase.po_number|default:"None" }}</td>
+            <td width="20%"><strong>P.O. DATE</strong><br>{{ purchase.po_date|default:"None" }}</td>
+            <td width="20%"><strong>DELIVERY NOTE</strong><br>{{ purchase.delivery_note|default:"None" }}</td>
+            <td width="20%"><strong>D.O. DATE</strong><br>{{ purchase.do_date|default:"None" }}</td>
+            <td width="20%"><strong>SHIP TO</strong><br>{{ purchase.ship_to|default:"None" }}</td>
+        </tr>
+    </table>
+
+    <table>
         <thead>
             <tr>
-                <th style="width:40px;">SL</th>
-                <th style="width:180px;">PRODUCT</th>
-                <th style="width:60px;">QTY</th>
-                <th style="width:80px;">UNIT</th>
-                <th style="width:80px;">VAT%</th>
-                <th style="width:120px;">AMOUNT</th>
-                <th style="width:120px;">TAXABLE</th>
-                <th style="width:100px;">VAT</th>
+                <th width="5%">SL</th>
+                <th width="30%">PRODUCT</th>
+                <th width="8%">QTY</th>
+                <th width="12%">UNIT PRICE</th>
+                <th width="8%">VAT%</th>
+                <th width="12%">TAXABLE AMOUNT</th>
+                <th width="12%">VAT AMOUNT</th>
+                <th width="13%">TOTAL AED</th>
             </tr>
         </thead>
         <tbody>
             {% for item in purchase.line_items.all %}
             <tr>
                 <td class="center">{{ forloop.counter }}</td>
-                <td class="center">{{ item.product.name }}</td>
+                <td>{{ item.product }}</td>
                 <td class="center">{{ item.quantity }}</td>
                 <td class="right">{{ item.price }}</td>
-                <td class="center">{{ item.vat_rate }}%</td> <!-- VAT RATE: Only rate -->
-                <td class="right">{{ item.amount }}</td> <!-- VAT AMT: Only amount -->
-                <td class="right">{{ item.amount }}</td> <!-- TAXABLE: Only amount -->
-                <td class="right">{{ item.vat_amount }}</td> <!-- VAT AMT: Only amount -->
+                <td class="center">{{ item.vat_rate }}%</td>
+                <td class="right">{{ item.amount }}</td>
+                <td class="right">{{ item.vat_amount }}</td>
+                <td class="right">{{ item.amount|add:item.vat_amount }}</td>
             </tr>
             {% endfor %}
             <tr>
                 <td colspan="5" class="right bold">TOTAL</td>
-                <td class="right bold">{{ purchase.total_amount }}</td>
-                <td class="right bold">{{ purchase.total_amount }}</td>
-                <td class="right bold">{{ purchase.vat_amount }}</td>
+                <td class="right bold">{{ purchase.total_amount|floatformat:2 }}</td>
+                <td class="right bold">{{ purchase.vat_amount|floatformat:2 }}</td>
+                <td class="right bold">{{ purchase.total_amount|add:purchase.vat_amount|floatformat:2 }}</td>
             </tr>
         </tbody>
     </table>
 
-
     <div class="footer">
-        <p>Thank you for your business!</p>
         <strong>TOTAL AMOUNT AED (IN WORDS):</strong><br>
         {{ amount_in_words }}
+        <p>Thank you for your business!</p>
     </div>
 
     <div class="signature">

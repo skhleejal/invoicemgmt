@@ -130,12 +130,22 @@ class InvoiceLineItemForm(forms.ModelForm):
 class PurchaseForm(forms.ModelForm):
     class Meta:
         model = Purchase
-        fields = ['supplier_name']  # Add other Purchase fields if needed
+        fields = ['supplier_name', 'po_number', 'po_date', 'delivery_note', 'do_date', 'ship_to']
         widgets = {
             'supplier_name': forms.TextInput(attrs={'placeholder': 'Enter supplier name', 'class': 'form-control'}),
+            'po_number': forms.TextInput(attrs={'placeholder': 'P.O. Number', 'class': 'form-control'}),
+            'po_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'delivery_note': forms.TextInput(attrs={'placeholder': 'Delivery Note', 'class': 'form-control'}),
+            'do_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'ship_to': forms.TextInput(attrs={'placeholder': 'Ship To Address', 'class': 'form-control'}),
         }
         labels = {
             'supplier_name': 'Supplier Name',
+            'po_number': 'P.O. Number',
+            'po_date': 'P.O. Date',
+            'delivery_note': 'Delivery Note',
+            'do_date': 'D.O. Date',
+            'ship_to': 'Ship To',
         }
 
 class PurchaseLineItemForm(forms.ModelForm):

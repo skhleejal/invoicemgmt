@@ -219,6 +219,12 @@ class Purchase(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     purchase_number = models.CharField(max_length=100, unique=True, blank=True)
 
+    po_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="P.O. Number")
+    po_date = models.DateField(blank=True, null=True, verbose_name="P.O. Date")
+    delivery_note = models.CharField(max_length=100, blank=True, null=True, verbose_name="Delivery Note")
+    do_date = models.DateField(blank=True, null=True, verbose_name="D.O. Date")
+    ship_to = models.CharField(max_length=255, blank=True, null=True, verbose_name="Ship To")
+
     def save(self, *args, **kwargs):
         if not self.purchase_number:
             with transaction.atomic():

@@ -66,10 +66,12 @@
                 <th style="width: 25%;">PRODUCT / DESCRIPTION</th>
                 <th style="width: 8%;">QTY</th>
                 <th style="width: 12%;">U/PRICE</th>
-                <th style="width: 12%;">AMOUNT</th>
-                <th style="width: 13%;">TAXABLE VALUE</th>
+                <!-- <th style="width: 12%;">AMOUNT</th> -->
+                <th style="width: 13%;">TAXABLE AMOUNT</th>
                 <th style="width: 10%;">VAT RATE</th>
                 <th style="width: 15%;">VAT AMOUNT</th>
+                <th style="width: 12%;">TOTAL AMOUNT</th>
+
             </tr>
         </thead>
         <tbody>
@@ -83,17 +85,18 @@
                 <td class="center">{{ item.quantity }}</td>
                 <td class="right">{{ item.unit_price }}</td>
                 <td class="right">{{ item.amount }}</td>
-                <td class="right">{{ item.amount }}</td>
+                <!-- <td class="right">{{ item.amount }}</td> -->
                 <td class="center">{{ item.vat_rate }}%</td>
                 <td class="right">{{ item.vat_amount }}</td>
+                <td><strong>{{ item.amount|add:item.vat_amount }}</strong></td>
             </tr>
             {% endfor %}
             <tr>
-                <td colspan="4" class="right bold">TOTAL</td>
-                <td class="right bold">{{ invoice.total_amount }}</td>
-                <td class="right bold">{{ invoice.total_amount }}</td>
-                <td class="center bold"> </td>
-                <td class="right bold">{{ invoice.total_vat }}</td>
+                <td colspan="4" class="right"><strong>TOTAL</strong></td>
+                <td><strong>{{ invoice.total_taxable }}</strong></td>
+                <td></td>
+                <td><strong>{{ invoice.total_vat }}</strong></td>
+                <td><strong>{{ invoice.total_amount }}</strong></td>
             </tr>
         </tbody>
     </table>
@@ -106,7 +109,7 @@
     </table>
 
     <div class="footer">
-        <p>Make all cheques payable to “Sherook Kalba Tr. LLC”</p>
+        <!-- <p>Make all cheques payable to “Sherook Kal Tr. LLC”</p> -->
         <p>Payment Method: {{ invoice.payment_method }}</p>
         <p>Thank you for your business!</p>
     </div>
