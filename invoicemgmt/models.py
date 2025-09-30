@@ -147,9 +147,7 @@ class Invoice(models.Model):
                 if latest:
                     next_number = int(latest) + 1
                 else:
-                    next_number = 1025  # Your desired starting number
-                
-            self.invoice_number = str(next_number)
+                    next_number = 1026
 
         # Calculate totals only if invoice already exists (has line items)
         taxable = 0
@@ -223,12 +221,6 @@ class Purchase(models.Model):
     purchased_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     purchase_number = models.CharField(max_length=100, unique=True, blank=True)
-
-    po_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="P.O. Number")
-    po_date = models.DateField(blank=True, null=True, verbose_name="P.O. Date")
-    delivery_note = models.CharField(max_length=100, blank=True, null=True, verbose_name="Delivery Note")
-    do_date = models.DateField(blank=True, null=True, verbose_name="D.O. Date")
-    ship_to = models.CharField(max_length=255, blank=True, null=True, verbose_name="Ship To")
 
     def save(self, *args, **kwargs):
         if not self.purchase_number:

@@ -30,6 +30,14 @@
         <img src="{% static 'img/WhatsApp Image 2025-09-29 at 5.48.43 AM.jpeg' %}" alt="Company Logo" style="max-width: 100%; height: auto;">
     </div>
 
+    <div class="header">
+        <div class="company-details">
+            SHEROOK KALBA TR. L.L.C<br>
+            P.O. Box 66118, Sharjah - U.A.E. | Tel: +971 6 5672150 | Fax: +971 6 5672151<br>
+            Email: skalbatr@gmail.com | Web: www.sherookkalba.com
+        </div>
+    </div>
+
     <h2 class="center">TAX INVOICE</h2>
 
     <table class="no-border">
@@ -43,7 +51,7 @@
             </td>
             <td>
                 <strong>DATE:</strong> {{ invoice.invoice_date }}<br>
-                <strong>INVOICE NO.:</strong> {{ invoice.invoice_number }}<br>
+                <strong>INVOICE NO.:</strong> {{ invoice.id }}<br>
                 <strong>VAT NO.:</strong> {{ invoice.vat_number }}
             </td>
         </tr>
@@ -77,7 +85,7 @@
             <tr>
                 <td class="center">{{ forloop.counter }}</td>
                 <td>
-                    <strong>{{ item.product }}</strong><br>
+                    {% if item.product %}<strong>{{ item.product.name }}</strong><br>{% endif %}
                     {{ item.description }}
                 </td>
                 <td class="center">{{ item.quantity }}</td>
@@ -101,11 +109,12 @@
     <table>
         <tr>
             <td style="width: 75%;"><strong>TOTAL AMOUNT AED (IN WORDS):</strong><br>{{ invoice.amount_in_words }}</td>
-            <td class="center bold" style="font-size: 16px;">{{ invoice.total_amount }}</td>
+            <td class="center bold" style="font-size: 16px;">{{ invoice.total_amount_with_vat }}</td>
         </tr>
     </table>
 
     <div class="footer">
+        <!-- <p>Make all cheques payable to “Sherook Kalba Tr. LLC”</p> -->
         <p>Payment Method: {{ invoice.payment_method }}</p>
         <p>Thank you for your business!</p>
     </div>
@@ -114,6 +123,7 @@
         For High Speed Graphics<br><br><br>
         _______________________
     </div>
+
 
 </body>
 </html>
