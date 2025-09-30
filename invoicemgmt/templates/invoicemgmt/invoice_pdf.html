@@ -131,8 +131,8 @@
                 <th style="width: 12%;">U/PRICE</th>
                 <th style="width: 15%;">TAXABLE VALUE</th>
                 <th style="width: 10%;">VAT RATE</th>
-                <th style="width: 15%;">VAT AMOUNT</th>
-                <th style="width: 15%;">TOTAL AED</th> <!-- Added Total AED column -->
+                <th style="width: 12%;">VAT AMOUNT</th>
+                <th style="width: 13%;">TOTAL AED</th> <!-- Adjusted width -->
             </tr>
         </thead>
         <tbody>
@@ -156,17 +156,20 @@
             </tr>
             {% endfor %}
             <tr>
-                <td colspan="6" class="right bold">TOTAL TAXABLE</td>
+                <td colspan="5" class="right bold">TOTAL TAXABLE</td>
+                <td class="right bold"></td>
                 <td class="right bold">{{ invoice.total_taxable }}</td>
                 <td class="right bold">{{ invoice.total_taxable|add:invoice.total_vat }} AED</td> <!-- Total AED -->
             </tr>
             <tr>
-                <td colspan="6" class="right bold">TOTAL VAT</td>
+                <td colspan="5" class="right bold">TOTAL VAT</td>
+                <td class="right bold"></td>
                 <td class="right bold">{{ invoice.total_vat }}</td>
                 <td class="right bold"></td> <!-- Empty for VAT row -->
             </tr>
             <tr>
-                <td colspan="6" class="right bold">TOTAL AMOUNT</td>
+                <td colspan="5" class="right bold">TOTAL AMOUNT</td>
+                <td class="right bold"></td>
                 <td class="right bold">{{ invoice.total_amount }}</td>
                 <td class="right bold">{{ invoice.total_amount }} AED</td> <!-- Total AED -->
             </tr>
