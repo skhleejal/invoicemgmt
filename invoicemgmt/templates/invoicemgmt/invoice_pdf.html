@@ -29,11 +29,10 @@
             text-align: center;
         }
         .signature {
-            position: fixed; /* Use fixed positioning to ensure it stays at the bottom-right */
+            position: absolute;
             bottom: 50px; /* Adjust distance from the bottom */
             right: 50px; /* Adjust distance from the right */
             text-align: center;
-            font-size: 12px; /* Adjust font size if needed */
         }
     </style>
     <meta charset="UTF-8">
@@ -44,6 +43,22 @@
     <div class="header">
         <img src="{% static 'img/WhatsApp Image 2025-09-29 at 5.48.43 AM.jpeg' %}" alt="High Speed Graphics Logo">
     </div>
+
+    <h2 class="center">TAX INVOICE</h2>
+
+    <table class="no-border">
+        <tr>
+        .signature { float: right; margin-top: 50px; }
+        .stamp { float: left; margin-top: 50px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <img src="{% static 'img/WhatsApp Image 2025-09-29 at 5.48.43 AM.jpeg' %}" alt="High Speed Graphics Logo">
+    </div>
+
+
 
     <h2 class="center">TAX INVOICE</h2>
 
@@ -121,14 +136,16 @@
     </table>
 
     <div class="footer">
+        
         <p>Payment Method: {{ invoice.payment_method }}</p>
         <p>Thank you for your business!</p>
     </div>
 
     <div class="signature">
-        Receiver's Signature<br><br><br>
+        For High Speed Graphics<br><br><br>
         _______________________
     </div>
+
 
 </body>
 </html>
