@@ -5,36 +5,17 @@
     <meta charset="UTF-8">
     <title>Invoice PDF</title>
     <style>
-        /* 1. Define the top margin for the entire page when printing/PDFing */
-        @page {
-            margin-top: 5cm; /* Pushes the entire document content down by 5 cm */
-            margin-left: 1cm;
-            margin-right: 1cm;
-            margin-bottom: 1cm;
-        }
-        
-        /* 2. Remove any conflicting margin from the body element */
+        /* 1. Letterhead Space */
         body { 
             font-family: Arial, sans-serif; 
             font-size: 12px;
-            margin: 0; /* Ensures body starts at the edge of the @page margin */
+            margin: 0; 
             padding: 0;
-            /* **Crucially, the margin-top is now handled by @page, not the body.** */
+            margin-top: 5cm; 
         }
 
-        .header { 
-            text-align: center; 
-            border-bottom: 2px solid #000; 
-            padding-bottom: 10px; 
-        }
         .header img { 
-            max-width: 100%; 
-            height: auto; 
-            max-height: 150px; 
-        }
-        .company-details { 
-            font-size: 14px; 
-            font-weight: bold; 
+            display: none; 
         }
 
         table { 
@@ -45,9 +26,24 @@
         th, td { 
             border: 1px solid #000; 
             padding: 6px; 
+            vertical-align: top; 
         }
         th { 
             background-color: #f0f0f0; 
+            text-align: center;
+        }
+
+        /* Styles for the empty filler rows */
+        .filler-row td {
+            height: 15px; /* Adjust this height for a finer grain */
+            border-top: none;
+            border-bottom: none;
+            padding: 0; /* Remove padding to maximize space filling */
+        }
+        
+        /* Ensures borders are visible for the TOTAL row */
+        .total-row td {
+            border-top: 1px solid #000 !important;
         }
 
         .no-border td { 
@@ -62,18 +58,26 @@
         .center { 
             text-align: center; 
         }
-        .footer { 
-            margin-top: 30px; 
-            font-size: 10px; 
-        }
 
-        .signature { 
-            float: right; 
-            margin-top: 50px; 
+        /* 2. Signature Table for reliable two-column footer */
+        .signature-table {
+            margin-top: 50px;
+            border: none;
+            width: 100%;
         }
-        .stamp { 
-            float: left; 
-            margin-top: 50px; 
+        .signature-table td {
+            border: none;
+            padding: 0;
+            vertical-align: top;
+        }
+        .signature-table .line {
+            margin-top: 30px;
+            border-top: 1px solid black;
+        }
+        .footer-text { 
+            margin-top: 30px; 
+            font-size: 10px;
+            text-align: center;
         }
     </style>
 </head>
@@ -130,8 +134,14 @@
             <tr>
                 <td class="center">{{ forloop.counter }}</td>
                 <td>
-                    {% if item.product %}<strong>{{ item.product }}</strong><br>{% endif %}
-                    {{ item.description }}
+                    <pre style="margin: 0; padding: 0; font-family: inherit;">
+<strong>BUSINESS CARD</strong>
+"College Of Pharmacy"
+PROF:SHEREF KHALIFA
+PROF:BAZIGHA ABDUL RASOOL
+PROF:BASIL HAMEED AMARNEH
+(Each 100 Card)
+</pre>
                 </td>
                 <td class="center">{{ item.quantity }}</td>
                 <td class="right">{{ item.unit_price }}</td>
@@ -141,7 +151,14 @@
                 <td class="right">{{ item.vat_amount }}</td>
             </tr>
             {% endfor %}
-            <tr>
+
+            <tr class="filler-row"><td colspan="8"></td></tr>
+            <tr class="filler-row"><td colspan="8"></td></tr>
+            <tr class="filler-row"><td colspan="8"></td></tr>
+            <tr class="filler-row"><td colspan="8"></td></tr>
+            <tr class="filler-row"><td colspan="8"></td></tr>
+            <tr class="filler-row"><td colspan="8"></td></tr>
+            <tr class="total-row">
                 <td colspan="4" class="right bold">TOTAL</td>
                 <td class="right bold">{{ invoice.total_amount }}</td>
                 <td class="right bold">{{ invoice.total_taxable }}</td>
@@ -158,16 +175,23 @@
         </tr>
     </table>
 
-    <div class="footer">
-        
+    <div class="footer-text">
         <p>Payment Method: {{ invoice.payment_method }}</p>
         <p>Thank you for your business!</p>
     </div>
 
-    <div class="signature">
-        For High Speed Graphics<br><br><br>
-        _______________________
-    </div>
+    <table class="signature-table">
+        <tr>
+            <td style="width: 50%; text-align: left;">
+                For High Speed Graphics
+                <div class="line"></div>
+            </td>
+            <td style="width: 50%; text-align: right;">
+                Receiver Signature
+                <div class="line"></div>
+            </td>
+        </tr>
+    </table>
 
 </body>
 </html>
