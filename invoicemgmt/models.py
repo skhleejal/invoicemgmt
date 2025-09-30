@@ -147,7 +147,9 @@ class Invoice(models.Model):
                 if latest:
                     next_number = int(latest) + 1
                 else:
-                    next_number = 1026
+                    next_number = 1025
+                
+                self.invoice_number = str(next_number)  # Add this missing line!
 
         # Calculate totals only if invoice already exists (has line items)
         taxable = 0

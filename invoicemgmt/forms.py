@@ -20,43 +20,18 @@ class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
         fields = [
-            'customer', 'invoice_date', 'vat_number',
-            'po_number', 'po_date', 'delivery_note', 'do_date', 'ship_to',
-            'total_taxable', 'total_vat', 'total_amount',
-            'amount_in_words', 'payment_method', 'invoice_type'
+            'customer', 'invoice_date', 'vat_number'
+            # Remove all the P.O. fields and calculated fields that don't exist
         ]
         widgets = {
-            'invoice_date': forms.DateInput(attrs={'type': 'date'}),
-            'po_date': forms.DateInput(attrs={'type': 'date'}),
-            'do_date': forms.DateInput(attrs={'type': 'date'}),
-            'total_taxable': forms.NumberInput(attrs={'readonly': 'readonly'}),
-            'total_vat': forms.NumberInput(attrs={'readonly': 'readonly'}),
-            'total_amount': forms.NumberInput(attrs={'readonly': 'readonly'}),
-            'amount_in_words': forms.TextInput(attrs={'readonly': 'readonly'}),
-            'payment_method': forms.TextInput(),
+            'customer': forms.Select(attrs={'class': 'form-control'}),
+            'invoice_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'vat_number': forms.TextInput(attrs={'class': 'form-control'}),
         }
         labels = {
             'customer': 'Customer',
-            'invoice_number': 'Invoice Number',
             'invoice_date': 'Invoice Date',
             'vat_number': 'VAT Number',
-            'po_number': 'PO Number',
-            'po_date': 'PO Date',
-            'delivery_note': 'Delivery Note',
-            'do_date': 'DO Date',
-            'ship_to': 'Ship To',
-            'total_taxable': 'Total Taxable Amount',
-            'total_vat': 'Total VAT Amount',
-            'total_amount': 'Total Amount',
-            'amount_in_words': 'Amount in Words',
-            'payment_method': 'Payment Method',
-            'invoice_type': 'Document Type',
-        }
-        help_texts = {
-            'total_taxable': 'Calculated automatically.',
-            'total_vat': 'Calculated automatically.',
-            'total_amount': 'Sum of taxable and VAT.',
-            'payment_method': 'CDC / Cash / Transfer etc.',
         }
 
     def clean_customer(self):
@@ -130,22 +105,12 @@ class InvoiceLineItemForm(forms.ModelForm):
 class PurchaseForm(forms.ModelForm):
     class Meta:
         model = Purchase
-        fields = ['supplier_name', 'po_number', 'po_date', 'delivery_note', 'do_date', 'ship_to']
+        fields = ['supplier_name']  # Only use fields that exist in your Purchase model
         widgets = {
             'supplier_name': forms.TextInput(attrs={'placeholder': 'Enter supplier name', 'class': 'form-control'}),
-            'po_number': forms.TextInput(attrs={'placeholder': 'P.O. Number', 'class': 'form-control'}),
-            'po_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'delivery_note': forms.TextInput(attrs={'placeholder': 'Delivery Note', 'class': 'form-control'}),
-            'do_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'ship_to': forms.TextInput(attrs={'placeholder': 'Ship To Address', 'class': 'form-control'}),
         }
         labels = {
             'supplier_name': 'Supplier Name',
-            'po_number': 'P.O. Number',
-            'po_date': 'P.O. Date',
-            'delivery_note': 'Delivery Note',
-            'do_date': 'D.O. Date',
-            'ship_to': 'Ship To',
         }
 
 class PurchaseLineItemForm(forms.ModelForm):
