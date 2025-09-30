@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>Invoice PDF</title>
     <style>
-        /* REMOVED margin-top: 5cm from body */
+        /* REMOVED margin-top from body */
         body { 
             font-family: Arial, sans-serif; 
             font-size: 12px;
@@ -32,7 +32,7 @@
             text-align: center;
         }
 
-        /* Style for the large empty filler row */
+        /* Style for the large empty filler row (to extend item lines) */
         .large-filler-row td {
             /* ADJUST THIS HEIGHT (e.g., 180px, 220px, etc.) to control the vertical length of lines */
             height: 180px; 
@@ -73,16 +73,14 @@
             margin-top: 30px;
             border-top: 1px solid black;
         }
-        .footer-text { 
-            margin-top: 30px; 
-            font-size: 10px;
-            text-align: center;
-        }
+        
+        /* Removed .footer-text styles as content is now integrated */
+
     </style>
 </head>
 <body>
     
-    <div style="height: 8cm; width: 100%;">
+    <div style="height: 10cm; width: 100%;">
         &nbsp;<br>&nbsp;<br>&nbsp;
     </div>
 
@@ -176,23 +174,20 @@ PROF:BASIL HAMEED AMARNEH
         </tr>
     </table>
 
-    <div class="footer-text">
-        <p>Payment Method: {{ invoice.payment_method }}</p>
-        <p>Thank you for your business!</p>
-    </div>
-
     <table class="signature-table">
         <tr>
             <td style="width: 50%; text-align: left;">
+                <p style="margin: 0; font-size: 10px;">Payment Method: {{ invoice.payment_method }}</p>
+                <p style="margin: 5px 0 20px 0; font-size: 10px;">Thank you for your business!</p>
+                
                 For High Speed Graphics
                 <div class="line"></div>
             </td>
             <td style="width: 50%; text-align: right;">
-                Receiver Signature
+                <p style="margin: 0 0 50px 0; font-size: 10px;">&nbsp;</p> Receiver Signature
                 <div class="line"></div>
             </td>
         </tr>
     </table>
-
 </body>
 </html>
