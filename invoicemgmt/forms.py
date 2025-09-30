@@ -7,7 +7,7 @@ from .models import Purchase, PurchaseLineItem
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
-        fields = ['name', 'po_box', 'city', 'email', 'country', 'phone', 'fax', 'vat_number']
+        fields = ['name', 'po_box', 'city', 'email', 'country', 'phone', 'fax', 'vat_number' ,'address']
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone')
@@ -23,7 +23,7 @@ class InvoiceForm(forms.ModelForm):
             'customer', 'invoice_date', 'vat_number',
             'po_number', 'po_date', 'delivery_note', 'do_date', 'ship_to',
             'total_taxable', 'total_vat', 'total_amount',
-            'amount_in_words', 'payment_method', 'invoice_type'
+            'amount_in_words', 'payment_method'
         ]
         widgets = {
             'invoice_date': forms.DateInput(attrs={'type': 'date'}),
@@ -50,7 +50,7 @@ class InvoiceForm(forms.ModelForm):
             'total_amount': 'Total Amount',
             'amount_in_words': 'Amount in Words',
             'payment_method': 'Payment Method',
-            'invoice_type': 'Document Type',
+            
         }
         help_texts = {
             'total_taxable': 'Calculated automatically.',

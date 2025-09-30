@@ -44,7 +44,7 @@ from django.template.loader import render_to_string
 from .utils import send_mailjet_email
 
 
-shop_name = "SHEROOK KALBA"
+shop_name = "HIGH SPEED"
 
 # def register(request):
 #     if request.method == 'POST':
