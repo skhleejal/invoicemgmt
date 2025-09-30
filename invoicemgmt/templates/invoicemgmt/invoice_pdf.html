@@ -29,22 +29,29 @@
         th, td { 
             border: 1px solid #000; 
             padding: 6px; 
-            vertical-align: top; /* Ensures multi-line text starts at the top of the cell */
+            vertical-align: top; 
         }
         th { 
             background-color: #f0f0f0; 
             text-align: center;
         }
 
-        /* 2. Style for the empty row cell used to force height */
-        .filler-row-td {
-            height: 150px; /* **ADJUST THIS HEIGHT** to fill space until the bottom of the page */
-            border-bottom: none !important;
+        /* 2. Style to force the table body to take up vertical space */
+        .item-table-body tr:last-child td {
+             /* Set a minimum height on the last row's cells to push the TOTAL line down. 
+                Adjust this value (e.g., 180px, 220px, etc.) until it looks right. */
+            min-height: 180px; 
         }
-        .filler-row-desc-td {
-             height: 150px;
-             border-bottom: none !important;
+        .item-table-body tr td {
+            /* This ensures the lines for the empty space are present */
+            border-bottom: none;
+            border-top: none;
         }
+        /* Style to ensure the last visible line (TOTAL row) is solid */
+        .item-table-body tr:last-child {
+            border-top: 1px solid black;
+        }
+
 
         /* 3. General styles */
         .no-border td { 
@@ -59,8 +66,8 @@
         .center { 
             text-align: center; 
         }
+        /* 4. RE-APPLIED SIGNATURE STYLES */
         .footer-signatures {
-            /* Using flexbox for a modern, reliable side-by-side layout */
             display: flex;
             justify-content: space-between;
             margin-top: 50px;
@@ -132,13 +139,17 @@
                 <th style="width: 15%;">VAT AMOUNT</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody class="item-table-body">
             {% for item in invoice.line_items.all %}
             <tr>
                 <td class="center">{{ forloop.counter }}</td>
                 <td>
-                    {% if item.product %}<strong>{{ item.product }}</strong><br>{% endif %}
-                    {{ item.description }}
+                    <strong>BUSINESS CARD</strong><br>
+                    "College Of Pharmacy"<br>
+                    PROF:SHEREF KHALIFA<br>
+                    PROF:BAZIGHA ABDUL RASOOL<br>
+                    PROF:BASIL HAMEED AMARNEH<br>
+                    (Each 100 Card)
                 </td>
                 <td class="center">{{ item.quantity }}</td>
                 <td class="right">{{ item.unit_price }}</td>
@@ -150,21 +161,21 @@
             {% endfor %}
 
             <tr>
-                <td class="filler-row-td"></td>
-                <td class="filler-row-desc-td"></td>
-                <td class="filler-row-td"></td>
-                <td class="filler-row-td"></td>
-                <td class="filler-row-td"></td>
-                <td class="filler-row-td"></td>
-                <td class="filler-row-td"></td>
-                <td class="filler-row-td"></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
             </tr>
             <tr>
-                <td colspan="4" class="right bold">TOTAL</td>
-                <td class="right bold">{{ invoice.total_amount }}</td>
-                <td class="right bold">{{ invoice.total_taxable }}</td>
-                <td class="center bold"> </td>
-                <td class="right bold">{{ invoice.total_vat }}</td>
+                <td colspan="4" class="right bold" style="border-top: 1px solid black;">TOTAL</td>
+                <td class="right bold" style="border-top: 1px solid black;">{{ invoice.total_amount }}</td>
+                <td class="right bold" style="border-top: 1px solid black;">{{ invoice.total_taxable }}</td>
+                <td class="center bold" style="border-top: 1px solid black;"> </td>
+                <td class="right bold" style="border-top: 1px solid black;">{{ invoice.total_vat }}</td>
             </tr>
         </tbody>
     </table>
