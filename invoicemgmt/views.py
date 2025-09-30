@@ -357,81 +357,34 @@ def select_document_type(request):
 @permission_required('invoicemgmt.add_invoice', raise_exception=True)
 @login_required
 def create_invoice(request):
-    InvoiceLineItemFormSet = inlineformset_factory(
-        Invoice, InvoiceLineItem,
-        form=InvoiceLineItemForm,
-        extra=3, can_delete=True
-    )
-
     if request.method == 'POST':
-        form = InvoiceForm(request.POST)
-        formset = InvoiceLineItemFormSet(request.POST)
+        # Create invoice form and line item formset
+        invoice_form = InvoiceForm(request.POST)
+        line_item_formset = InvoiceLineItemFormSet(request.POST)
 
-        if form.is_valid() and formset.is_valid():
-            invoice = form.save(commit=False)
-            invoice.created_by = request.user  # Assign the invoice to the current user
-            formset.instance = invoice
+        if invoice_form.is_valid() and line_item_formset.is_valid():
+            # Save the invoice
+            invoice = invoice_form.save()
 
-            # stock_errors = []
+            # Save the line items
+            line_item_formset.instance = invoice
+            line_item_formset.save()
 
-            # for item_form in formset:
-            #     product = item_form.cleaned_data.get('product')
-            #     quantity = item_form.cleaned_data.get('quantity')
-
-                # if product and quantity:
-                #     if product.stock < quantity:
-                #         stock_errors.append(
-                #             f"⚠ Not enough stock for {product.name} (Available: {product.stock}, Requested: {quantity})"
-                #         )
-
-            # if stock_errors:
-            #     for err in stock_errors:
-            #         messages.error(request, err)
-            #     return render(request, 'invoicemgmt/create_invoice.html', {
-            #         'form': form,
-            #         'formset': formset,
-            #         'document_type': 'invoice'
-            #     })
-
-            try:
-                invoice.save()  # 💡 This will now safely calculate amount_in_words
-
-                total_amount = 0
-                line_items = formset.save(commit=False)
-
-                for item_form in line_items:
-                    product = item_form.product
-                    quantity = item_form.quantity
-                    price = product.price
-                    item_form.amount = quantity * price
-                    item_form.invoice = invoice
-                    item_form.save()
-
-                    total_amount += item_form.amount
-
-                    # Reduce stock
-                    # product.stock -= quantity
-                    # product.save()
-
-                invoice.total_amount = total_amount
-                invoice.save()
-
-                # messages.success(request, '✅ Invoice saved and stock updated.')
-                # return redirect('invoice_list')
-
-            except Exception as e:
-                messages.error(request, f"❌ Error saving invoice: {str(e)}")
-
+            return redirect('invoice_list')
         else:
-            messages.error(request, 'Please correct the errors below.')
+            # If forms are invalid, render the form with errors
+            return render(request, 'invoicemgmt/invoice_form.html', {
+                'invoice_form': invoice_form,
+                'line_item_formset': line_item_formset,
+            })
     else:
-        form = InvoiceForm()
-        formset = InvoiceLineItemFormSet()
+        # Render empty forms for GET request
+        invoice_form = InvoiceForm()
+        line_item_formset = InvoiceLineItemFormSet()
 
-    return render(request, 'invoicemgmt/create_invoice.html', {
-        'form': form,
-        'formset': formset,
-        'document_type': 'invoice'
+    return render(request, 'invoicemgmt/invoice_form.html', {
+        'invoice_form': invoice_form,
+        'line_item_formset': line_item_formset,
     })
 
 
