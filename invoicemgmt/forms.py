@@ -93,11 +93,11 @@ class InvoiceForm(forms.ModelForm):
 class InvoiceLineItemForm(forms.ModelForm):
     class Meta:
         model = InvoiceLineItem
-        fields = ['description', 'product', 'quantity', 'unit_price', 'vat_rate', 'is_discount']
+        fields = ['product','description', 'quantity', 'unit_price', 'vat_rate', 'is_discount']
         widgets = {
             'description': forms.TextInput(attrs={'placeholder': 'Enter description'}),
             'unit_price': forms.NumberInput(attrs={'placeholder': 'Enter amount'}),
-            'is_discount': forms.CheckboxInput(),
+            'is_discount': forms.NumberInput(attrs={'placeholder': 'Enter discount amount', 'class': 'form-control'}),  # Change to numeric input
         }
         labels = {
             'product': 'Product*',
@@ -105,12 +105,14 @@ class InvoiceLineItemForm(forms.ModelForm):
             'quantity': 'Quantity*',
             'unit_price': 'Unit Price*',
             'vat_rate': 'VAT Rate (%)*',
+            'is_discount': 'Discount Amount',  # Update label
         }
         help_texts = {
             'description': 'Describe the item briefly.',
             'quantity': 'Quantity of the product.',
             'unit_price': 'Rate per unit.',
             'vat_rate': 'VAT percentage (e.g., 5).',
+            'is_discount': 'Enter the discount amount (negative value).',
         }
 
 class PurchaseForm(forms.ModelForm):
