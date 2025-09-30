@@ -5,21 +5,18 @@
     <meta charset="UTF-8">
     <title>Invoice PDF</title>
     <style>
-        /* 1. Define the top margin for the entire page when printing/PDFing */
         @page {
-            margin-top: 5cm; /* Pushes the entire document content down by 5 cm */
+            margin-top: 5cm;
             margin-left: 1cm;
             margin-right: 1cm;
             margin-bottom: 1cm;
         }
         
-        /* 2. Remove any conflicting margin from the body element */
         body { 
             font-family: Arial, sans-serif; 
             font-size: 12px;
-            margin: 0; /* Ensures body starts at the edge of the @page margin */
+            margin: 0;
             padding: 0;
-            /* **Crucially, the margin-top is now handled by @page, not the body.** */
         }
 
         .header { 
@@ -31,10 +28,6 @@
             max-width: 100%; 
             height: auto; 
             max-height: 150px; 
-        }
-        .company-details { 
-            font-size: 14px; 
-            font-weight: bold; 
         }
 
         table { 
@@ -67,13 +60,30 @@
             font-size: 10px; 
         }
 
-        .signature { 
-            float: right; 
-            margin-top: 50px; 
+        /* Updated Signature Styles */
+        .signature-container {
+            display: flex;
+            justify-content: space-between; /* Aligns the two boxes on opposite sides */
+            margin-top: 50px;
+            width: 100%;
         }
-        .stamp { 
-            float: left; 
-            margin-top: 50px; 
+
+        .signature-box {
+            width: 45%; /* Ensures both boxes take up equal space */
+        }
+
+        .signature-sender {
+            text-align: left; /* Aligns "For High Speed Graphics" to the left */
+        }
+
+        .signature-receiver {
+            text-align: right; /* Aligns "Receiver Signature" to the right */
+        }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 5px;
+            width: 100%;
         }
     </style>
 </head>
@@ -159,26 +169,21 @@
     </table>
 
     <div class="footer">
-        
         <p>Payment Method: {{ invoice.payment_method }}</p>
         <p>Thank you for your business!</p>
     </div>
-    
-    </div>
 
-        <div class="signature-container clearfix">
+    <div class="signature-container">
+        <div class="signature-box signature-sender">
+            For High Speed Graphics
+            <div class="signature-line"></div>
+        </div>
+
         <div class="signature-box signature-receiver">
             Receiver Signature
             <div class="signature-line"></div>
         </div>
-
-        <div class="signature-box signature-sender">
-            For High Speed Graphics
-             <div class="signature-line"></div>
-</div>
-   </div>
-
-    
+    </div>
 
 </body>
 </html>
