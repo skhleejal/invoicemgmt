@@ -371,7 +371,7 @@ def create_invoice(request):
             line_item_formset.instance = invoice
             line_item_formset.save()
 
-            return redirect('invoice_list')
+            return redirect('invoice_list.html')
         else:
             # If forms are invalid, render the form with errors
             return render(request, 'invoicemgmt/invoice_form.html', {
