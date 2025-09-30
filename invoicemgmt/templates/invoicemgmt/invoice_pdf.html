@@ -2,54 +2,71 @@
 <!DOCTYPE html>
 <html>
 <head>
-        <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            margin-top: 5cm; /* Push all content down by 5 cm */
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 50px; /* Space below the header */
-        }
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .table th, .table td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: center;
-        }
-        .table th {
-            background-color: #f2f2f2;
-        }
-        .footer {
-            margin-top: 50px; /* Add space below the table */
-            text-align: center;
-        }
-    </style>
     <meta charset="UTF-8">
     <title>Invoice PDF</title>
     <style>
-        body { font-family: Arial, sans-serif; font-size: 12px; }
-        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; }
-        .header img { max-width: 100%; height: auto; max-height: 150px; }
-        .company-details { font-size: 14px; font-weight: bold; }
+        /* Removed the margin-top: 5cm; rule. This will place the content at the top,
+           allowing the existing HTML structure to define the layout. */
+        body { 
+            font-family: Arial, sans-serif; 
+            font-size: 12px;
+            margin: 0; /* Reset default margin */
+            padding: 0; /* Reset default padding */
+        }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #000; padding: 6px; }
-        th { background-color: #f0f0f0; }
+        .header { 
+            text-align: center; 
+            border-bottom: 2px solid #000; 
+            padding-bottom: 10px; 
+        }
+        .header img { 
+            max-width: 100%; 
+            height: auto; 
+            max-height: 150px; 
+        }
+        .company-details { 
+            font-size: 14px; 
+            font-weight: bold; 
+        }
 
-        .no-border td { border: none; }
-        .bold { font-weight: bold; }
-        .right { text-align: right; }
-        .center { text-align: center; }
-        .footer { margin-top: 30px; font-size: 10px; }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 10px; 
+        }
+        th, td { 
+            border: 1px solid #000; 
+            padding: 6px; 
+        }
+        th { 
+            background-color: #f0f0f0; 
+        }
 
-        .signature { float: right; margin-top: 50px; }
-        .stamp { float: left; margin-top: 50px; }
+        .no-border td { 
+            border: none; 
+        }
+        .bold { 
+            font-weight: bold; 
+        }
+        .right { 
+            text-align: right; 
+        }
+        .center { 
+            text-align: center; 
+        }
+        .footer { 
+            margin-top: 30px; 
+            font-size: 10px; 
+        }
+
+        .signature { 
+            float: right; 
+            margin-top: 50px; 
+        }
+        .stamp { 
+            float: left; 
+            margin-top: 50px; 
+        }
     </style>
 </head>
 <body>
@@ -58,10 +75,8 @@
         <img src="{% static 'img/WhatsApp Image 2025-09-29 at 5.48.43 AM.jpeg' %}" alt="High Speed Graphics Logo">
     </div>
 
-
-
     <h2 class="center">TAX INVOICE</h2>
-
+    
     <table class="no-border">
         <tr>
             <td width="50%">
@@ -145,7 +160,6 @@
         For High Speed Graphics<br><br><br>
         _______________________
     </div>
-
 
 </body>
 </html>
