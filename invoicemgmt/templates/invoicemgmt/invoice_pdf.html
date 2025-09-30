@@ -2,11 +2,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <style>
+        <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
+            margin-top: 5cm; /* Push all content down by 5 cm */
         }
         .header {
             text-align: center;
@@ -28,26 +29,25 @@
             margin-top: 50px; /* Add space below the table */
             text-align: center;
         }
-        .signature {
-            position: absolute;
-            bottom: 50px; /* Adjust distance from the bottom */
-            right: 50px; /* Adjust distance from the right */
-            text-align: center;
-        }
     </style>
     <meta charset="UTF-8">
     <title>Invoice PDF</title>
-</head>
-<body>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; }
+        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; }
+        .header img { max-width: 100%; height: auto; max-height: 150px; }
+        .company-details { font-size: 14px; font-weight: bold; }
 
-    <div class="header">
-        <img src="{% static 'img/WhatsApp Image 2025-09-29 at 5.48.43 AM.jpeg' %}" alt="High Speed Graphics Logo">
-    </div>
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #000; padding: 6px; }
+        th { background-color: #f0f0f0; }
 
-    <h2 class="center">TAX INVOICE</h2>
+        .no-border td { border: none; }
+        .bold { font-weight: bold; }
+        .right { text-align: right; }
+        .center { text-align: center; }
+        .footer { margin-top: 30px; font-size: 10px; }
 
-    <table class="no-border">
-        <tr>
         .signature { float: right; margin-top: 50px; }
         .stamp { float: left; margin-top: 50px; }
     </style>
