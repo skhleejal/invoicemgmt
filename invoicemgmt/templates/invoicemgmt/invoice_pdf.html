@@ -27,16 +27,10 @@
 <body>
 
     <div class="header">
-        <img src="{% static 'img/WhatsApp Image 2025-09-29 at 5.48.43 AM.jpeg' %}" alt="Company Logo" style="max-width: 100%; height: auto;">
+        <img src="{% static 'img/WhatsApp Image 2025-09-29 at 5.48.43 AM.jpeg' %}" alt="High Speed Graphics Logo">
     </div>
 
-    <div class="header">
-        <div class="company-details">
-            SHEROOK KALBA TR. L.L.C<br>
-            P.O. Box 66118, Sharjah - U.A.E. | Tel: +971 6 5672150 | Fax: +971 6 5672151<br>
-            Email: skalbatr@gmail.com | Web: www.sherookkalba.com
-        </div>
-    </div>
+
 
     <h2 class="center">TAX INVOICE</h2>
 
@@ -47,11 +41,11 @@
                 {{ invoice.customer.name }}<br>
                 {{ invoice.customer.address }}<br>
                 Tel: {{ invoice.customer.phone }} | Fax: {{ invoice.customer.fax }}<br>
-                VAT NO: {{ invoice.customer.vat_no }}
+                VAT NO: {{ invoice.customer.vat_number }}
             </td>
             <td>
                 <strong>DATE:</strong> {{ invoice.invoice_date }}<br>
-                <strong>INVOICE NO.:</strong> {{ invoice.id }}<br>
+                <strong>INVOICE NO.:</strong> {{ invoice.invoice_number }}<br>
                 <strong>VAT NO.:</strong> {{ invoice.vat_number }}
             </td>
         </tr>
@@ -85,7 +79,7 @@
             <tr>
                 <td class="center">{{ forloop.counter }}</td>
                 <td>
-                    {% if item.product %}<strong>{{ item.product.name }}</strong><br>{% endif %}
+                    {% if item.product %}<strong>{{ item.product }}</strong><br>{% endif %}
                     {{ item.description }}
                 </td>
                 <td class="center">{{ item.quantity }}</td>
@@ -114,7 +108,7 @@
     </table>
 
     <div class="footer">
-        <!-- <p>Make all cheques payable to “Sherook Kalba Tr. LLC”</p> -->
+        
         <p>Payment Method: {{ invoice.payment_method }}</p>
         <p>Thank you for your business!</p>
     </div>

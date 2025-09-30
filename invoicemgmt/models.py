@@ -67,6 +67,7 @@ def number_to_words(n, currency='USD'):
 
 class Customer(models.Model):
     name = models.CharField(max_length=255)
+    address = models.TextField(blank=True, null=True)  # ADD THIS LINE!
     po_box = models.CharField(max_length=50, blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
     country = models.CharField(max_length=100, choices=COUNTRY_CHOICES, blank=True, null=True)
