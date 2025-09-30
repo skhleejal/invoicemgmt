@@ -42,7 +42,6 @@ from .forms import PurchaseForm, PurchaseLineItemForm
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from .utils import send_mailjet_email
-from django import forms
 
 
 shop_name = "HIGH SPEED"
@@ -371,10 +370,10 @@ def create_invoice(request):
             line_item_formset.instance = invoice
             line_item_formset.save()
 
-            return redirect('invoice_list.html')
+            return redirect('invoice_list')
         else:
             # If forms are invalid, render the form with errors
-            return render(request, 'invoicemgmt/create_invoice.html', {
+            return render(request, 'invoicemgmt/invoice_form.html', {
                 'invoice_form': invoice_form,
                 'line_item_formset': line_item_formset,
             })
@@ -383,7 +382,7 @@ def create_invoice(request):
         invoice_form = InvoiceForm()
         line_item_formset = InvoiceLineItemFormSet()
 
-    return render(request, 'invoicemgmt/create_invoice.html', {
+    return render(request, 'invoicemgmt/invoice_form.html', {
         'invoice_form': invoice_form,
         'line_item_formset': line_item_formset,
     })
