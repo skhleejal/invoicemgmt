@@ -2,172 +2,200 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Invoice PDF</title>
-    <style>
-        /* 1. Define the top margin for the entire page when printing/PDFing */
-        @page {
-            margin-top: 5cm; /* Pushes the entire document content down by 5 cm */
-            margin-left: 1cm;
-            margin-right: 1cm;
-            margin-bottom: 1cm;
-        }
-        
-        /* 2. Remove any conflicting margin from the body element */
-        body { 
-            font-family: Arial, sans-serif; 
-            font-size: 12px;
-            margin: 0; /* Ensures body starts at the edge of the @page margin */
-            padding: 0;
-            /* **Crucially, the margin-top is now handled by @page, not the body.** */
+    <meta charset="UTF-8">
+    <title>Invoice PDF</title>
+    <style>
+        /* This CSS block will be ignored by many PDF generators, so we'll use a brute-force div later */
+        @page {
+            margin-top: 10cm; /* Set to 10cm for letterhead space */
+            margin-left: 1cm;
+            margin-right: 1cm;
+            margin-bottom: 1cm;
+        }
+        
+        body { 
+            font-family: Arial, sans-serif; 
+            font-size: 12px;
+            margin: 0; 
+            padding: 0;
+        }
+
+        .header { 
+            text-align: center; 
+            border-bottom: 2px solid #000; 
+            padding-bottom: 10px; 
+        }
+        .header img { 
+            max-width: 100%; 
+            height: auto; 
+            max-height: 150px; 
+        }
+        .company-details { 
+            font-size: 14px; 
+            font-weight: bold; 
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 10px; 
+        }
+        th, td { 
+            border: 1px solid #000; 
+            padding: 6px; 
+        }
+        th { 
+            background-color: #f0f0f0; 
+        }
+
+        .no-border td { 
+            border: none; 
+        }
+        .bold { 
+            font-weight: bold; 
+        }
+        .right { 
+            text-align: right; 
+        }
+        .center { 
+            text-align: center; 
+        }
+        .footer { 
+            margin-top: 30px; 
+            font-size: 10px; 
+        }
+
+        /* Styles for signature container and floating elements */
+        .signature-container {
+            overflow: auto; /* Contains the floating divs */
+            width: 100%;
+            margin-top: 50px;
         }
 
-        .header { 
-            text-align: center; 
-            border-bottom: 2px solid #000; 
-            padding-bottom: 10px; 
-        }
-        .header img { 
-            max-width: 100%; 
-            height: auto; 
-            max-height: 150px; 
-        }
-        .company-details { 
-            font-size: 14px; 
-            font-weight: bold; 
-        }
-
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 10px; 
-        }
-        th, td { 
-            border: 1px solid #000; 
-            padding: 6px; 
-        }
-        th { 
-            background-color: #f0f0f0; 
-        }
-
-        .no-border td { 
-            border: none; 
-        }
-        .bold { 
-            font-weight: bold; 
-        }
-        .right { 
-            text-align: right; 
-        }
-        .center { 
-            text-align: center; 
-        }
-        .footer { 
-            margin-top: 30px; 
-            font-size: 10px; 
-        }
-
-        .signature { 
-            float: right; 
+        .signature-sender { 
+            float: left; /* Keep sender on the left */
+            width: 45%;
             margin-top: 50px; 
-        }
-        .stamp { 
-            float: left; 
+            text-align: left;
+        }
+        .signature-receiver {
+            float: right; /* Add receiver on the right */
+            width: 45%;
             margin-top: 50px; 
+            text-align: right;
         }
-    </style>
+        .signature-line {
+             border-top: 1px solid black;
+             margin-top: 5px; /* Adjust spacing above the line */
+        }
+        .stamp { 
+            float: left; 
+            margin-top: 50px; 
+        }
+    </style>
 </head>
 <body>
-
-    <div class="header">
-        <img src="{% static 'img/WhatsApp Image 2025-09-29 at 5.48.43 AM.jpeg' %}" alt="High Speed Graphics Logo">
-    </div>
-
-    <h2 class="center">TAX INVOICE</h2>
     
-    <table class="no-border">
-        <tr>
-            <td width="50%">
-                <strong>BILL TO:</strong><br>
-                {{ invoice.customer.name }}<br>
-                {{ invoice.customer.city }}<br>
-                Tel: {{ invoice.customer.phone }} | Fax: {{ invoice.customer.fax }}<br>
-                VAT NO: {{ invoice.customer.vat_number }}
-            </td>
-            <td>
-                <strong>DATE:</strong> {{ invoice.invoice_date }}<br>
-                <strong>INVOICE NO.:</strong> {{ invoice.invoice_number }}<br>
-                <strong>VAT NO.:</strong> {{ invoice.vat_number }}
-            </td>
-        </tr>
-    </table>
-
-    <table>
-        <tr>
-            <td><strong>P.O. NUMBER</strong><br>{{ invoice.po_number }}</td>
-            <td><strong>P.O. DATE</strong><br>{{ invoice.po_date }}</td>
-            <td><strong>DELIVERY NOTE</strong><br>{{ invoice.delivery_note }}</td>
-            <td><strong>D.O. DATE</strong><br>{{ invoice.do_date }}</td>
-            <td><strong>SHIP TO</strong><br>{{ invoice.ship_to }}</td>
-        </tr>
-    </table>
-
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 5%;">SL</th>
-                <th style="width: 25%;">PRODUCT / DESCRIPTION</th>
-                <th style="width: 8%;">QTY</th>
-                <th style="width: 12%;">U/PRICE</th>
-                <th style="width: 12%;">AMOUNT</th>
-                <th style="width: 13%;">TAXABLE VALUE</th>
-                <th style="width: 10%;">VAT RATE</th>
-                <th style="width: 15%;">VAT AMOUNT</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in invoice.line_items.all %}
-            <tr>
-                <td class="center">{{ forloop.counter }}</td>
-                <td>
-                    {% if item.product %}<strong>{{ item.product }}</strong><br>{% endif %}
-                    {{ item.description }}
-                </td>
-                <td class="center">{{ item.quantity }}</td>
-                <td class="right">{{ item.unit_price }}</td>
-                <td class="right">{{ item.amount }}</td>
-                <td class="right">{{ item.amount }}</td>
-                <td class="center">{{ item.vat_rate }}%</td>
-                <td class="right">{{ item.vat_amount }}</td>
-            </tr>
-            {% endfor %}
-            <tr>
-                <td colspan="4" class="right bold">TOTAL</td>
-                <td class="right bold">{{ invoice.total_amount }}</td>
-                <td class="right bold">{{ invoice.total_taxable }}</td>
-                <td class="center bold"> </td>
-                <td class="right bold">{{ invoice.total_vat }}</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <table>
-        <tr>
-            <td style="width: 75%;"><strong>TOTAL AMOUNT AED (IN WORDS):</strong><br>{{ invoice.amount_in_words }}</td>
-            <td class="center bold" style="font-size: 16px;">{{ invoice.total_amount }}</td>
-        </tr>
-    </table>
-
-    <div class="footer">
-        
-        <p>Payment Method: {{ invoice.payment_method }}</p>
-        <p>Thank you for your business!</p>
+    <div style="height: 10cm; width: 100%;">
+        &nbsp;<br>&nbsp;<br>&nbsp;
     </div>
 
-    <div class="signature">
-        For High Speed Graphics<br><br><br>
-        _______________________
-    </div>
+    <div class="header">
+        <img src="{% static 'img/WhatsApp Image 2025-09-29 at 5.48.43 AM.jpeg' %}" alt="High Speed Graphics Logo">
+    </div>
 
+    <h2 class="center">TAX INVOICE</h2>
+    
+    <table class="no-border">
+        <tr>
+            <td width="50%">
+                <strong>BILL TO:</strong><br>
+                {{ invoice.customer.name }}<br>
+                {{ invoice.customer.city }}<br>
+                Tel: {{ invoice.customer.phone }} | Fax: {{ invoice.customer.fax }}<br>
+                VAT NO: {{ invoice.customer.vat_number }}
+            </td>
+            <td>
+                <strong>DATE:</strong> {{ invoice.invoice_date }}<br>
+                <strong>INVOICE NO.:</strong> {{ invoice.invoice_number }}<br>
+                <strong>VAT NO.:</strong> {{ invoice.vat_number }}
+            </td>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <td><strong>P.O. NUMBER</strong><br>{{ invoice.po_number }}</td>
+            <td><strong>P.O. DATE</strong><br>{{ invoice.po_date }}</td>
+            <td><strong>DELIVERY NOTE</strong><br>{{ invoice.delivery_note }}</td>
+            <td><strong>D.O. DATE</strong><br>{{ invoice.do_date }}</td>
+            <td><strong>SHIP TO</strong><br>{{ invoice.ship_to }}</td>
+        </tr>
+    </table>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 5%;">SL</th>
+                <th style="width: 25%;">PRODUCT / DESCRIPTION</th>
+                <th style="width: 8%;">QTY</th>
+                <th style="width: 12%;">U/PRICE</th>
+                <th style="width: 12%;">AMOUNT</th>
+                <th style="width: 13%;">TAXABLE VALUE</th>
+                <th style="width: 10%;">VAT RATE</th>
+                <th style="width: 15%;">VAT AMOUNT</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in invoice.line_items.all %}
+            <tr>
+                <td class="center">{{ forloop.counter }}</td>
+                <td>
+                    {% if item.product %}<strong>{{ item.product }}</strong><br>{% endif %}
+                    {{ item.description }}
+                </td>
+                <td class="center">{{ item.quantity }}</td>
+                <td class="right">{{ item.unit_price }}</td>
+                <td class="right">{{ item.amount }}</td>
+                <td class="right">{{ item.amount }}</td>
+                <td class="center">{{ item.vat_rate }}%</td>
+                <td class="right">{{ item.vat_amount }}</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td colspan="4" class="right bold">TOTAL</td>
+                <td class="right bold">{{ invoice.total_amount }}</td>
+                <td class="right bold">{{ invoice.total_taxable }}</td>
+                <td class="center bold"> </td>
+                <td class="right bold">{{ invoice.total_vat }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table>
+        <tr>
+            <td style="width: 75%;"><strong>TOTAL AMOUNT AED (IN WORDS):</strong><br>{{ invoice.amount_in_words }}</td>
+            <td class="center bold" style="font-size: 16px;">{{ invoice.total_amount }}</td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        
+        <p>Payment Method: {{ invoice.payment_method }}</p>
+        <p>Thank you for your business!</p>
+    </div>
+    
+    <div class="signature-container">
+        <div class="signature-sender">
+            For High Speed Graphics<br><br>
+            <div class="signature-line"></div>
+        </div>
+
+        <div class="signature-receiver">
+            Receiver Signature<br><br>
+            <div class="signature-line"></div>
+        </div>
+    </div>
+    
 </body>
 </html>
