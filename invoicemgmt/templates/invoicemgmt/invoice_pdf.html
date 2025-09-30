@@ -19,7 +19,6 @@
             font-size: 12px;
             margin: 0; /* Ensures body starts at the edge of the @page margin */
             padding: 0;
-            /* **Crucially, the margin-top is now handled by @page, not the body.** */
         }
 
         .header { 
@@ -67,14 +66,28 @@
             font-size: 10px; 
         }
 
-        .signature { 
-            float: right; 
-            margin-top: 50px; 
+        /* --- START: Corrected Signature Styles using Flexbox --- */
+        .signature-container {
+            display: flex;
+            justify-content: space-between; /* Puts max space between the two boxes */
+            align-items: flex-end;
+            margin-top: 50px; /* Space from the content above */
+            width: 100%;
+            overflow: hidden; 
         }
-        .stamp { 
-            float: left; 
-            margin-top: 50px; 
+
+        .signature-box {
+            width: 45%; /* Give each box a width to ensure they sit side-by-side */
+            text-align: center;
+            padding-top: 20px;
         }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 5px;
+            width: 100%;
+        }
+        /* --- END: Corrected Signature Styles --- */
     </style>
 </head>
 <body>
@@ -159,14 +172,11 @@
     </table>
 
     <div class="footer">
-        
         <p>Payment Method: {{ invoice.payment_method }}</p>
         <p>Thank you for your business!</p>
     </div>
-    
-    </div>
 
-        <div class="signature-container clearfix">
+    <div class="signature-container">
         <div class="signature-box signature-receiver">
             Receiver Signature
             <div class="signature-line"></div>
@@ -174,11 +184,9 @@
 
         <div class="signature-box signature-sender">
             For High Speed Graphics
-             <div class="signature-line"></div>
+            <div class="signature-line"></div>
+        </div>
     </div>
-   </div>
-
-    
 
 </body>
 </html>
