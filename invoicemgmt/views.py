@@ -372,52 +372,27 @@ def create_invoice(request):
             invoice.created_by = request.user  # Assign the invoice to the current user
             formset.instance = invoice
 
-            # stock_errors = []
-
-            # for item_form in formset:
-            #     product = item_form.cleaned_data.get('product')
-            #     quantity = item_form.cleaned_data.get('quantity')
-
-                # if product and quantity:
-                #     if product.stock < quantity:
-                #         stock_errors.append(
-                #             f"⚠ Not enough stock for {product.name} (Available: {product.stock}, Requested: {quantity})"
-                #         )
-
-            # if stock_errors:
-            #     for err in stock_errors:
-            #         messages.error(request, err)
-            #     return render(request, 'invoicemgmt/create_invoice.html', {
-            #         'form': form,
-            #         'formset': formset,
-            #         'document_type': 'invoice'
-            #     })
-
             try:
-                invoice.save()  # 💡 This will now safely calculate amount_in_words
+                invoice.save()  # Save the invoice
 
                 total_amount = 0
                 line_items = formset.save(commit=False)
 
                 for item_form in line_items:
-                    product = item_form.product
+                    # Use unit_price directly instead of product.price
                     quantity = item_form.quantity
-                    price = product.price
-                    item_form.amount = quantity * price
+                    unit_price = item_form.unit_price  # Ensure this is provided
+                    item_form.amount = quantity * unit_price
                     item_form.invoice = invoice
                     item_form.save()
 
                     total_amount += item_form.amount
 
-                    # Reduce stock
-                    # product.stock -= quantity
-                    # product.save()
-
                 invoice.total_amount = total_amount
                 invoice.save()
 
-                # messages.success(request, '✅ Invoice saved and stock updated.')
-                # return redirect('invoice_list')
+                messages.success(request, '✅ Invoice saved successfully.')
+                return redirect('invoice_list')
 
             except Exception as e:
                 messages.error(request, f"❌ Error saving invoice: {str(e)}")
