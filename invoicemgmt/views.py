@@ -1054,10 +1054,29 @@ def test_email(request):
 #     template = get_template('invoicemgmt/delivery_note_pdf.html')
 #     html = template.render({'note': note})
 #     pdf_file = BytesIO()
-#     pisa_status = pisa.CreatePDF(html, dest=pdf_file)
+#     pisa.CreatePDF(html, dest=pdf_file)
 #     if pisa_status.err:
 #         return HttpResponse('PDF generation failed', status=500)
 #     pdf_file.seek(0)
 #     response = HttpResponse(pdf_file.getvalue(), content_type='application/pdf')
 #     response['Content-Disposition'] = f'attachment; filename="delivery_note_{note.pk}.pdf"'
 #     return response
+
+from django.forms import inlineformset_factory
+from .models import Invoice, InvoiceLineItem
+
+# Define the formset for InvoiceLineItem
+InvoiceLineItemFormSet = inlineformset_factory(
+    Invoice,  # Parent model
+    InvoiceLineItem,  # Child model
+    fields=['product', 'description', 'quantity', 'unit_price', 'vat_rate'],  # Fields to include
+    extra=1,  # Number of empty forms to display
+    can_delete=True,  # Allow deletion of line items
+    widgets={
+        'product': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Product name'}),
+        'description': forms.Textarea(attrs={'rows': 2, 'class': 'form-control', 'placeholder': 'Description'}),
+        'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+        'unit_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        'vat_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'value': '5.00'}),
+    }
+)
