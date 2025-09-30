@@ -5,13 +5,21 @@
     <meta charset="UTF-8">
     <title>Invoice PDF</title>
     <style>
-        /* Removed the margin-top: 5cm; rule. This will place the content at the top,
-           allowing the existing HTML structure to define the layout. */
+        /* 1. Define the top margin for the entire page when printing/PDFing */
+        @page {
+            margin-top: 5cm; /* Pushes the entire document content down by 5 cm */
+            margin-left: 1cm;
+            margin-right: 1cm;
+            margin-bottom: 1cm;
+        }
+        
+        /* 2. Remove any conflicting margin from the body element */
         body { 
             font-family: Arial, sans-serif; 
             font-size: 12px;
-            margin: 0; /* Reset default margin */
-            padding: 0; /* Reset default padding */
+            margin: 0; /* Ensures body starts at the edge of the @page margin */
+            padding: 0;
+            /* **Crucially, the margin-top is now handled by @page, not the body.** */
         }
 
         .header { 
