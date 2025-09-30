@@ -144,7 +144,12 @@ class Invoice(models.Model):
                     max_number=Max('invoice_number')
                 )['max_number']
 
-                self.invoice_number = str(int(latest) + 1) if latest else '1025'
+                if latest:
+                    next_number = int(latest) + 1
+                else:
+                    next_number = 1025  # Your desired starting number
+                
+            self.invoice_number = str(next_number)
 
         # Calculate totals only if invoice already exists (has line items)
         taxable = 0
