@@ -5,13 +5,12 @@
     <meta charset="UTF-8">
     <title>Invoice PDF</title>
     <style>
-        /* 1. Letterhead Space */
+        /* 1. REMOVED margin-top: 5cm from body */
         body { 
             font-family: Arial, sans-serif; 
             font-size: 12px;
             margin: 0; 
             padding: 0;
-            margin-top: 5cm; 
         }
 
         .header img { 
@@ -33,15 +32,15 @@
             text-align: center;
         }
 
-        /* Styles for the empty filler rows */
-        .filler-row td {
-            height: 15px; /* Adjust this height for a finer grain */
+        /* 2. Style for the large empty filler row */
+        .large-filler-row td {
+            /* **ADJUST THIS HEIGHT** (e.g., 180px, 220px, etc.) to control the vertical length of lines */
+            height: 180px; 
             border-top: none;
             border-bottom: none;
-            padding: 0; /* Remove padding to maximize space filling */
+            padding: 0; 
         }
-        
-        /* Ensures borders are visible for the TOTAL row */
+
         .total-row td {
             border-top: 1px solid #000 !important;
         }
@@ -59,7 +58,7 @@
             text-align: center; 
         }
 
-        /* 2. Signature Table for reliable two-column footer */
+        /* 3. Signature Table for reliable two-column footer */
         .signature-table {
             margin-top: 50px;
             border: none;
@@ -82,6 +81,8 @@
     </style>
 </head>
 <body>
+    
+    <div style="height: 5cm; width: 100%;"></div>
 
     <div class="header">
         <img src="{% static 'img/WhatsApp Image 2025-09-29 at 5.48.43 AM.jpeg' %}" alt="High Speed Graphics Logo">
@@ -120,12 +121,12 @@
         <thead>
             <tr>
                 <th style="width: 5%;">SL</th>
-                <th style="width: 25%;">PRODUCT / DESCRIPTION</th>
+                <th style="width: 35%;">PRODUCT / DESCRIPTION</th> 
                 <th style="width: 8%;">QTY</th>
-                <th style="width: 12%;">U/PRICE</th>
-                <th style="width: 12%;">AMOUNT</th>
-                <th style="width: 13%;">TAXABLE VALUE</th>
-                <th style="width: 10%;">VAT RATE</th>
+                <th style="width: 10%;">U/PRICE</th>
+                <th style="width: 10%;">AMOUNT</th>
+                <th style="width: 10%;">TAXABLE VALUE</th>
+                <th style="width: 7%;">VAT RATE</th>
                 <th style="width: 15%;">VAT AMOUNT</th>
             </tr>
         </thead>
@@ -134,7 +135,7 @@
             <tr>
                 <td class="center">{{ forloop.counter }}</td>
                 <td>
-                    <pre style="margin: 0; padding: 0; font-family: inherit;">
+                    <pre style="margin: 0; padding: 0; font-family: inherit; white-space: pre-wrap;">
 <strong>BUSINESS CARD</strong>
 "College Of Pharmacy"
 PROF:SHEREF KHALIFA
@@ -152,12 +153,10 @@ PROF:BASIL HAMEED AMARNEH
             </tr>
             {% endfor %}
 
-            <tr class="filler-row"><td colspan="8"></td></tr>
-            <tr class="filler-row"><td colspan="8"></td></tr>
-            <tr class="filler-row"><td colspan="8"></td></tr>
-            <tr class="filler-row"><td colspan="8"></td></tr>
-            <tr class="filler-row"><td colspan="8"></td></tr>
-            <tr class="filler-row"><td colspan="8"></td></tr>
+            <tr class="large-filler-row">
+                <td colspan="8"></td>
+            </tr>
+
             <tr class="total-row">
                 <td colspan="4" class="right bold">TOTAL</td>
                 <td class="right bold">{{ invoice.total_amount }}</td>
