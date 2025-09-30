@@ -5,21 +5,18 @@
     <meta charset="UTF-8">
     <title>Invoice PDF</title>
     <style>
-        /* 1. Define the top margin for the entire page when printing/PDFing */
         @page {
-            margin-top: 5cm; /* Pushes the entire document content down by 5 cm */
+            margin-top: 5cm;
             margin-left: 1cm;
             margin-right: 1cm;
             margin-bottom: 1cm;
         }
         
-        /* 2. Remove any conflicting margin from the body element */
         body { 
             font-family: Arial, sans-serif; 
             font-size: 12px;
-            margin: 0; /* Ensures body starts at the edge of the @page margin */
+            margin: 0;
             padding: 0;
-            /* **Crucially, the margin-top is now handled by @page, not the body.** */
         }
 
         .header { 
@@ -73,7 +70,14 @@
 
         .signature-box {
             width: 45%; /* Ensures both boxes take up equal space */
-            text-align: center;
+        }
+
+        .signature-sender {
+            text-align: left; /* Aligns "For High Speed Graphics" to the left */
+        }
+
+        .signature-receiver {
+            text-align: right; /* Aligns "Receiver Signature" to the right */
         }
 
         .signature-line {
@@ -170,12 +174,12 @@
     </div>
 
     <div class="signature-container">
-        <div class="signature-box">
+        <div class="signature-box signature-sender">
             For High Speed Graphics
             <div class="signature-line"></div>
         </div>
 
-        <div class="signature-box">
+        <div class="signature-box signature-receiver">
             Receiver Signature
             <div class="signature-line"></div>
         </div>
