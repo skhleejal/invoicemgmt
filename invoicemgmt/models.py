@@ -196,17 +196,15 @@ class Invoice(models.Model):
 class InvoiceLineItem(models.Model):
     invoice = models.ForeignKey(Invoice, related_name='line_items', on_delete=models.CASCADE)
     description = models.TextField()
-    # product = models.ForeignKey(Product, on_delete=models.CASCADE, null=False, blank=False)
-    product = models.CharField(max_length=255)
+    product = models.CharField(max_length=255)  # Product name as a string
     quantity = models.PositiveIntegerField(default=1)
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)  # Unit price must be explicitly provided
     amount = models.DecimalField(max_digits=20, decimal_places=2, default=0.00)
     vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=5.00)
     vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def save(self, *args, **kwargs):
-        # if self.product and not self.unit_price:
-        #     self.unit_price = self.product.price
+        # Calculate totals based on quantity and unit price
         self.amount = self.quantity * self.unit_price
         self.vat_amount = (self.vat_rate / 100) * self.amount
         super().save(*args, **kwargs)
