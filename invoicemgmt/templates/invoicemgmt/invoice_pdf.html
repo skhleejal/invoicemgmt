@@ -19,6 +19,7 @@
             font-size: 12px;
             margin: 0; /* Ensures body starts at the edge of the @page margin */
             padding: 0;
+            /* **Crucially, the margin-top is now handled by @page, not the body.** */
         }
 
         .header { 
@@ -30,10 +31,6 @@
             max-width: 100%; 
             height: auto; 
             max-height: 150px; 
-        }
-        .company-details { 
-            font-size: 14px; 
-            font-weight: bold; 
         }
 
         table { 
@@ -66,20 +63,17 @@
             font-size: 10px; 
         }
 
-        /* --- START: Corrected Signature Styles using Flexbox --- */
+        /* Updated Signature Styles */
         .signature-container {
             display: flex;
-            justify-content: space-between; /* Puts max space between the two boxes */
-            align-items: flex-end;
-            margin-top: 50px; /* Space from the content above */
+            justify-content: space-between; /* Aligns the two boxes on opposite sides */
+            margin-top: 50px;
             width: 100%;
-            overflow: hidden; 
         }
 
         .signature-box {
-            width: 45%; /* Give each box a width to ensure they sit side-by-side */
+            width: 45%; /* Ensures both boxes take up equal space */
             text-align: center;
-            padding-top: 20px;
         }
 
         .signature-line {
@@ -87,7 +81,6 @@
             margin-top: 5px;
             width: 100%;
         }
-        /* --- END: Corrected Signature Styles --- */
     </style>
 </head>
 <body>
@@ -177,13 +170,13 @@
     </div>
 
     <div class="signature-container">
-        <div class="signature-box signature-receiver">
-            Receiver Signature
+        <div class="signature-box">
+            For High Speed Graphics
             <div class="signature-line"></div>
         </div>
 
-        <div class="signature-box signature-sender">
-            For High Speed Graphics
+        <div class="signature-box">
+            Receiver Signature
             <div class="signature-line"></div>
         </div>
     </div>
