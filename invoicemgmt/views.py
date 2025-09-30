@@ -360,7 +360,7 @@ def create_invoice(request):
     InvoiceLineItemFormSet = inlineformset_factory(
         Invoice, InvoiceLineItem,
         form=InvoiceLineItemForm,
-        extra=3, can_delete=True
+        extra=6, can_delete=True
     )
 
     if request.method == 'POST':
