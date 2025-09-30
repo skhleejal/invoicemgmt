@@ -42,6 +42,7 @@ from .forms import PurchaseForm, PurchaseLineItemForm
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from .utils import send_mailjet_email
+from django import forms
 
 
 shop_name = "HIGH SPEED"
