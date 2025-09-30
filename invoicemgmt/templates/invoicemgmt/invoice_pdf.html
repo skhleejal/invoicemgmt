@@ -1,4 +1,3 @@
-{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -7,7 +6,6 @@
     <style>
         body { font-family: Arial, sans-serif; font-size: 12px; }
         .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; }
-        .header img { max-width: 100%; height: auto; max-height: 150px; }
         .company-details { font-size: 14px; font-weight: bold; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -27,7 +25,11 @@
 <body>
 
     <div class="header">
-        <img src="{% static 'img/WhatsApp Image 2025-09-29 at 5.48.43 AM.jpeg' %}" alt="Company Logo" style="max-width: 100%; height: auto;">
+        <div class="company-details">
+            SHEROOK KALBA TR. L.L.C<br>
+            P.O. Box 66118, Sharjah - U.A.E. | Tel: +971 6 5672150 | Fax: +971 6 5672151<br>
+            Email: skalbatr@gmail.com | Web: www.sherookkalba.com
+        </div>
     </div>
 
     <h2 class="center">TAX INVOICE</h2>
@@ -38,24 +40,24 @@
                 <strong>BILL TO:</strong><br>
                 {{ invoice.customer.name }}<br>
                 {{ invoice.customer.address }}<br>
-                Tel: {{ invoice.customer.phone|default:"" }} | Fax: {{ invoice.customer.fax|default:"" }}<br>
-                VAT NO: {{ invoice.customer.vat_no|default:"" }}
+                Tel: {{ invoice.customer.phone }} | Fax: {{ invoice.customer.fax }}<br>
+                VAT NO: {{ invoice.customer.vat_no }}
             </td>
             <td>
                 <strong>DATE:</strong> {{ invoice.invoice_date }}<br>
-                <strong>INVOICE NO.:</strong> {{ invoice.invoice_number }}<br>
-                <strong>VAT NO.:</strong> {{ invoice.vat_number|default:"" }}
+                <strong>INVOICE NO.:</strong> {{ invoice.id }}<br>
+                <strong>VAT NO.:</strong> {{ invoice.vat_number }}
             </td>
         </tr>
     </table>
 
-    <table class="no-border">
+    <table>
         <tr>
-            <td><strong>P.O. NUMBER</strong><br>{{ invoice.po_number|default:"None" }}</td>
-            <td><strong>P.O. DATE</strong><br>{{ invoice.po_date|default:"None" }}</td>
-            <td><strong>DELIVERY NOTE</strong><br>{{ invoice.delivery_note|default:"None" }}</td>
-            <td><strong>D.O. DATE</strong><br>{{ invoice.do_date|default:"None" }}</td>
-            <td><strong>SHIP TO</strong><br>{{ invoice.ship_to|default:"None" }}</td>
+            <td><strong>P.O. NUMBER</strong><br>{{ invoice.po_number }}</td>
+            <td><strong>P.O. DATE</strong><br>{{ invoice.po_date }}</td>
+            <td><strong>DELIVERY NOTE</strong><br>{{ invoice.delivery_note }}</td>
+            <td><strong>D.O. DATE</strong><br>{{ invoice.do_date }}</td>
+            <td><strong>SHIP TO</strong><br>{{ invoice.ship_to }}</td>
         </tr>
     </table>
 
@@ -66,10 +68,10 @@
                 <th style="width: 25%;">PRODUCT / DESCRIPTION</th>
                 <th style="width: 8%;">QTY</th>
                 <th style="width: 12%;">U/PRICE</th>
-                <th style="width: 13%;">TAXABLE AMOUNT</th>
+                <th style="width: 12%;">AMOUNT</th>
+                <th style="width: 13%;">TAXABLE VALUE</th>
                 <th style="width: 10%;">VAT RATE</th>
                 <th style="width: 15%;">VAT AMOUNT</th>
-                <th style="width: 12%;">TOTAL AED</th>
             </tr>
         </thead>
         <tbody>
@@ -77,43 +79,45 @@
             <tr>
                 <td class="center">{{ forloop.counter }}</td>
                 <td>
-                    <strong>{{ item.product }}</strong><br>
-                    <small>{{ item.description|default:"" }}</small>
+                    {% if item.product %}<strong>{{ item.product.name }}</strong><br>{% endif %}
+                    {{ item.description }}
                 </td>
                 <td class="center">{{ item.quantity }}</td>
                 <td class="right">{{ item.unit_price }}</td>
                 <td class="right">{{ item.amount }}</td>
+                <td class="right">{{ item.amount }}</td>
                 <td class="center">{{ item.vat_rate }}%</td>
                 <td class="right">{{ item.vat_amount }}</td>
-                <td class="right"><strong>{{ item.amount|add:item.vat_amount }}</strong></td>
             </tr>
             {% endfor %}
             <tr>
-                <td colspan="4" class="right"><strong>TOTAL</strong></td>
-                <td class="right"><strong>{{ invoice.subtotal }}</strong></td>
-                <td></td>
-                <td class="right"><strong>{{ invoice.vat_amount }}</strong></td>
-                <td class="right"><strong>{{ invoice.total_amount }}</strong></td>
+                <td colspan="4" class="right bold">TOTAL</td>
+                <td class="right bold">{{ invoice.total_amount }}</td>
+                <td class="right bold">{{ invoice.total_amount }}</td>
+                <td class="center bold"> </td>
+                <td class="right bold">{{ invoice.total_vat }}</td>
             </tr>
         </tbody>
     </table>
 
-    <table class="no-border">
+    <table>
         <tr>
-            <td style="width: 75%;"><strong>TOTAL AMOUNT AED (IN WORDS):</strong><br>{{ invoice.amount_in_words|default:"" }}</td>
-            <td class="center bold" style="font-size: 16px;">{{ invoice.total_amount }}</td>
+            <td style="width: 75%;"><strong>TOTAL AMOUNT AED (IN WORDS):</strong><br>{{ invoice.amount_in_words }}</td>
+            <td class="center bold" style="font-size: 16px;">{{ invoice.total_amount_with_vat }}</td>
         </tr>
     </table>
 
     <div class="footer">
-        <p>Payment Method: {{ invoice.payment_method|default:"Cash" }}</p>
+        <!-- <p>Make all cheques payable to “Sherook Kalba Tr. LLC”</p> -->
+        <p>Payment Method: {{ invoice.payment_method }}</p>
         <p>Thank you for your business!</p>
     </div>
 
     <div class="signature">
-        For High Speed Graphics <br><br><br>
+        For High Speed Graphics<br><br><br>
         _______________________
     </div>
+
 
 </body>
 </html>
