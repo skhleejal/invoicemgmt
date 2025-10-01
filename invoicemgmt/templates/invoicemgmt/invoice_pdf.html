@@ -182,7 +182,7 @@
                 <td class="right">{{ item.amount }}</td>
                 <td class="center">{{ item.vat_rate }}%</td>
                 <td class="right">{{ item.vat_amount }}</td>
-                <td class="right">{{ item.total_value|floatformat:2 }}</td> 
+                <td>{{ invoice.total_amount|floatformat:2 }}</td>
                 
             </tr>
             {% endfor %}
