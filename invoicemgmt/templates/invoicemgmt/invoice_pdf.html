@@ -149,7 +149,7 @@
                 <td class="right">{{ item.unit_price }}</td>
                 <td class="right">{{ item.amount }}</td>
                 <td class="right">{{ item.vat_amount }}</td>
-                <td class="center">{{ item.vat_rate }}%</td>
+                <td class="center">{{ item.vat_rate }}</td> <!-- Removed % symbol -->
                 <td class="right">{{ item.amount|add:item.vat_amount }} AED</td>
             </tr>
             {% endfor %}
