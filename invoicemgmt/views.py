@@ -93,7 +93,7 @@ def register(request):
 @login_required
 def generate_invoice_pdf(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
-    template = get_template('invoicemgmt/invoice_pdf.html')
+    template = get_template('invoicemgmt/invoice_pdf_vat_percent.html')  # Updated to use the new template
     html = template.render({'invoice': invoice, 'now': now()})
 
     # Generate PDF in memory
@@ -1076,7 +1076,7 @@ def test_email(request):
 #     template = get_template('invoicemgmt/delivery_note_pdf.html')
 #     html = template.render({'note': note})
 #     pdf_file = BytesIO()
-#     pisa_status = pisa.CreatePDF(html, dest=pdf_file)
+#     pisa.CreatePDF(html, dest=pdf_file)
 #     if pisa_status.err:
 #         return HttpResponse('PDF generation failed', status=500)
 #     pdf_file.seek(0)
