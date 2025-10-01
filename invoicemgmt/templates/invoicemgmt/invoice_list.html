@@ -72,7 +72,7 @@
                         <td>{{ invoice.invoice_date }}</td>
                         <td>{{ invoice.customer.name }}</td>
                         <td>{{ invoice.get_currency_symbol }}{{ invoice.total_amount }}</td>
-                        <td>{{ invoice.amount_in_words }}</td>
+                        <td>{{ amount_in_words }}</td>
                         <td>
                             {% if invoice.status == 'open' %}
                                 <a href="{% url 'mark_invoice_paid' invoice.pk %}" class="btn btn-success btn-sm">Mark as Paid</a>
