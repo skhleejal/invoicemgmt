@@ -89,12 +89,23 @@ def register(request):
     
     return render(request, 'registration/register.html', {'form': form})
 
+from num2words import num2words
+
 @permission_required('invoicemgmt.view_invoice', raise_exception=True)
 @login_required
 def generate_invoice_pdf(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     template = get_template('invoicemgmt/invoice_pdf.html')
-    html = template.render({'invoice': invoice, 'now': now()})
+
+    # Calculate "Amount in Words" using num2words
+    amount_in_words = num2words(invoice.total_amount, lang='en') + " AED"
+
+    # Render the template with all necessary data
+    html = template.render({
+        'invoice': invoice,
+        'now': now(),
+        'amount_in_words': amount_in_words  # Pass "Amount in Words" explicitly
+    })
 
     # Generate PDF in memory
     pdf_file = BytesIO()
@@ -105,6 +116,7 @@ def generate_invoice_pdf(request, pk):
 
     pdf_file.seek(0)
 
+    # Email the PDF if customer email exists
     customer_email = invoice.customer.email
     if customer_email:
         email_body = f"Dear {invoice.customer.name},\n\nPlease find attached your invoice #{invoice.pk}.\n\nThank you!"
@@ -121,6 +133,7 @@ def generate_invoice_pdf(request, pk):
             attachments=attachment
         )
 
+    # Return the PDF as a response
     response = HttpResponse(pdf_file.getvalue(), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="Invoice_{invoice.pk}.pdf"'
     return response
