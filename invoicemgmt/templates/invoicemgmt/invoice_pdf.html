@@ -29,17 +29,19 @@
             height: auto; 
             max-height: 150px; 
         }
+        .company-details { 
+            font-size: 14px; 
+            font-weight: bold; 
+        }
 
         table { 
             width: 100%; 
             border-collapse: collapse; 
             margin-top: 10px; 
-            table-layout: fixed; /* CSS Added to prevent columns from overflowing */
         }
         th, td { 
             border: 1px solid #000; 
             padding: 6px; 
-            word-wrap: break-word; /* CSS Added to prevent columns from overflowing */
         }
         th { 
             background-color: #f0f0f0; 
@@ -62,15 +64,26 @@
             font-size: 10px; 
         }
 
+        /* Correct Signature Styles */
         .signature-container {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-between; /* Aligns items to opposite ends */
             margin-top: 50px;
             width: 100%;
         }
-        .signature-box { width: 45%; }
-        .signature-sender { text-align: left; }
-        .signature-receiver { text-align: right; }
+
+        .signature-box {
+            width: 45%; /* Give each box roughly half the space */
+        }
+
+        .signature-sender {
+            text-align: left;
+        }
+
+        .signature-receiver {
+            text-align: right;
+        }
+
         .signature-line {
             border-top: 1px solid #000;
             margin-top: 5px;
@@ -105,26 +118,25 @@
 
     <table>
         <tr>
-            <td><strong>P.O. NUMBER</strong><br>{{ invoice.po_number|default:"None" }}</td>
-            <td><strong>P.O. DATE</strong><br>{{ invoice.po_date|default:"None" }}</td>
-            <td><strong>DELIVERY NOTE</strong><br>{{ invoice.delivery_note|default:"None" }}</td>
-            <td><strong>D.O. DATE</strong><br>{{ invoice.do_date|default:"None" }}</td>
-            <td><strong>SHIP TO</strong><br>{{ invoice.ship_to|default:"WAREHOUSE" }}</td>
+            <td><strong>P.O. NUMBER</strong><br>{{ invoice.po_number }}</td>
+            <td><strong>P.O. DATE</strong><br>{{ invoice.po_date }}</td>
+            <td><strong>DELIVERY NOTE</strong><br>{{ invoice.delivery_note }}</td>
+            <td><strong>D.O. DATE</strong><br>{{ invoice.do_date }}</td>
+            <td><strong>SHIP TO</strong><br>{{ invoice.ship_to }}</td>
         </tr>
     </table>
 
     <table>
         <thead>
             <tr>
-                <th style="width: 4%;">SL</th>
-                <th style="width: 26%;">PRODUCT / DESCRIPTION</th>
-                <th style="width: 7%;">QTY</th>
-                <th style="width: 10%;">U/PRICE</th>
-                <th style="width: 10%;">AMOUNT</th>
-                <th style="width: 10%;">TAXABLE VALUE</th>
-                <th style="width: 8%;">VAT RATE</th>
-                <th style="width: 10%;">VAT AMOUNT</th>
-                <th style="width: 15%;">TOTAL AED</th>
+                <th style="width: 5%;">SL</th>
+                <th style="width: 25%;">PRODUCT / DESCRIPTION</th>
+                <th style="width: 8%;">QTY</th>
+                <th style="width: 12%;">U/PRICE</th>
+                <th style="width: 12%;">AMOUNT</th>
+                <th style="width: 13%;">TAXABLE VALUE</th>
+                <th style="width: 10%;">VAT RATE</th>
+                <th style="width: 15%;">VAT AMOUNT</th>
             </tr>
         </thead>
         <tbody>
@@ -135,21 +147,20 @@
                     {% if item.product %}<strong>{{ item.product }}</strong><br>{% endif %}
                     {{ item.description }}
                 </td>
-                <td class="center">{{ item.quantity|floatformat:2 }}</td>
-                <td class="right">{{ item.unit_price|floatformat:2 }}</td>
-                <td class="right">{{ item.amount|floatformat:2 }}</td>
-                <td class="right">{{ item.taxable_value|floatformat:2 }}</td> <td class="center">{{ item.vat_rate|floatformat:2 }}%</td>
-                <td class="right">{{ item.vat_amount|floatformat:2 }}</td>
-                <td class="right">{{ item.taxable_value|add:item.vat_amount|floatformat:2 }}</td>
+                <td class="center">{{ item.quantity }}</td>
+                <td class="right">{{ item.unit_price }}</td>
+                <td class="right">{{ item.amount }}</td>
+                <td class="right">{{ item.amount }}</td>
+                <td class="center">{{ item.vat_rate }}%</td>
+                <td class="right">{{ item.vat_amount }}</td>
             </tr>
             {% endfor %}
             <tr>
                 <td colspan="4" class="right bold">TOTAL</td>
-                <td class="right bold">{{ invoice.total_taxable|floatformat:2 }}</td>
-                <td class="right bold">{{ invoice.total_taxable|floatformat:2 }}</td>
-                <td class="center bold"></td>
-                <td class="right bold">{{ invoice.total_vat|floatformat:2 }}</td>
-                <td class="right bold">{{ invoice.total_amount|floatformat:2 }}</td>
+                <td class="right bold">{{ invoice.total_amount }}</td>
+                <td class="right bold">{{ invoice.total_taxable }}</td>
+                <td class="center bold"> </td>
+                <td class="right bold">{{ invoice.total_vat }}</td>
             </tr>
         </tbody>
     </table>
@@ -157,11 +168,12 @@
     <table>
         <tr>
             <td style="width: 75%;"><strong>TOTAL AMOUNT AED (IN WORDS):</strong><br>{{ invoice.amount_in_words }}</td>
-            <td class="center bold" style="font-size: 16px;">{{ invoice.total_amount|floatformat:2 }}</td>
+            <td class="center bold" style="font-size: 16px;">{{ invoice.total_amount }}</td>
         </tr>
     </table>
 
     <div class="footer">
+        
         <p>Payment Method: {{ invoice.payment_method }}</p>
         <p>Thank you for your business!</p>
     </div>
@@ -171,6 +183,7 @@
             For High Speed Graphics
             <div class="signature-line"></div>
         </div>
+
         <div class="signature-box signature-receiver">
             Receiver Signature
             <div class="signature-line"></div>
