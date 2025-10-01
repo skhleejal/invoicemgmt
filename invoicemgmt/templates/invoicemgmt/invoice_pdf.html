@@ -34,13 +34,12 @@
             width: 100%; 
             border-collapse: collapse; 
             margin-top: 10px; 
-            table-layout: fixed; /* Ensures fixed column widths */
+            table-layout: fixed; /* Prevents content from changing column widths */
         }
         th, td { 
             border: 1px solid #000; 
-            padding: 4px; /* Slightly increased padding for readability */
-            font-size: 11px; /* Adjusted font size for better balance */
-            word-wrap: break-word; /* Prevents overflow */
+            padding: 6px; 
+            word-wrap: break-word; /* Ensures long text wraps inside cells */
         }
         th { 
             background-color: #f0f0f0; 
@@ -129,14 +128,13 @@
         <thead>
             <tr>
                 <th style="width: 5%;">SL</th>
-                <th style="width: 22%;">PRODUCT / DESCRIPTION</th>
+                <th style="width: 25%;">PRODUCT / DESCRIPTION</th>
                 <th style="width: 8%;">QTY</th>
                 <th style="width: 10%;">U/PRICE</th>
-                <th style="width: 10%;">AMOUNT</th>
                 <th style="width: 12%;">TAXABLE VALUE</th>
-                <th style="width: 10%;">VAT AMOUNT</th>
-                <th style="width: 8%;">VAT RATE</th> <!-- Reduced width for VAT Rate -->
-                <th style="width: 15%;">TOTAL AED</th>
+                <th style="width: 14%;">VAT AMOUNT</th> <!-- Increased width for VAT Amount -->
+                <th style="width: 10%;">VAT RATE</th> <!-- Reduced width for VAT Rate -->
+                <th style="width: 16%;">TOTAL AED</th>
             </tr>
         </thead>
         <tbody>
@@ -151,7 +149,7 @@
                 <td class="right">{{ item.unit_price }}</td>
                 <td class="right">{{ item.amount }}</td>
                 <td class="right">{{ item.vat_amount }}</td>
-                <td class="center">{{ item.vat_rate }}%</td> <!-- Reverted to include % symbol -->
+                <td class="center">{{ item.vat_rate }}%</td>
                 <td class="right">{{ item.amount|add:item.vat_amount }} AED</td>
             </tr>
             {% endfor %}
