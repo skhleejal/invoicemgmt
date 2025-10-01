@@ -38,10 +38,13 @@
             width: 100%; 
             border-collapse: collapse; 
             margin-top: 10px; 
+            table-layout: fixed; /* Ensures fixed column widths */
         }
         th, td { 
             border: 1px solid #000; 
-            padding: 6px; 
+            padding: 4px; /* Slightly increased padding for readability */
+            font-size: 11px; /* Adjusted font size for better balance */
+            word-wrap: break-word; /* Prevents overflow */
         }
         th { 
             background-color: #f0f0f0; 
@@ -130,13 +133,14 @@
         <thead>
             <tr>
                 <th style="width: 5%;">SL</th>
-                <th style="width: 25%;">PRODUCT / DESCRIPTION</th>
+                <th style="width: 22%;">PRODUCT / DESCRIPTION</th>
                 <th style="width: 8%;">QTY</th>
-                <th style="width: 12%;">U/PRICE</th>
-                <th style="width: 12%;">AMOUNT</th>
-                <th style="width: 13%;">TAXABLE VALUE</th>
-                <th style="width: 10%;">VAT RATE</th>
-                <th style="width: 15%;">VAT AMOUNT</th>
+                <th style="width: 10%;">U/PRICE</th>
+                <th style="width: 10%;">AMOUNT</th>
+                <th style="width: 12%;">TAXABLE VALUE</th>
+                <th style="width: 10%;">VAT AMOUNT</th>
+                <th style="width: 8%;">VAT RATE</th>
+                <th style="width: 10%;">TOTAL AED</th> <!-- Added TOTAL AED next to VAT Amount -->
             </tr>
         </thead>
         <tbody>
@@ -151,16 +155,18 @@
                 <td class="right">{{ item.unit_price }}</td>
                 <td class="right">{{ item.amount }}</td>
                 <td class="right">{{ item.amount }}</td>
-                <td class="center">{{ item.vat_rate }}%</td>
                 <td class="right">{{ item.vat_amount }}</td>
+                <td class="center">{{ item.vat_rate }}%</td>
+                <td class="right">{{ item.total_aed }}</td> <!-- Displaying TOTAL AED -->
             </tr>
             {% endfor %}
             <tr>
                 <td colspan="4" class="right bold">TOTAL</td>
                 <td class="right bold">{{ invoice.total_amount }}</td>
                 <td class="right bold">{{ invoice.total_taxable }}</td>
-                <td class="center bold"> </td>
                 <td class="right bold">{{ invoice.total_vat }}</td>
+                <td class="center bold"> </td>
+                <td class="right bold">{{ invoice.total_aed }}</td> <!-- Displaying TOTAL AED in the footer -->
             </tr>
         </tbody>
     </table>
