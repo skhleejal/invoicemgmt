@@ -116,43 +116,6 @@ class Invoice(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
     
     # --- NEW: Central method to update totals ---
-    def update_totals(self):
-        taxable = Decimal(0)
-        vat = Decimal(0)
-        
-        for item in self.line_items.all():
-            taxable += item.taxable_value
-            vat += item.vat_amount
-
-        self.total_taxable = taxable
-        self.total_vat = vat
-        self.total_amount = taxable + vat
-
-        # Convert total amount to words
-        self.amount_in_words = number_to_words(self.total_amount, currency='AED')
-
-        # Update fields in the database
-        Invoice.objects.filter(pk=self.pk).update(
-            total_taxable=self.total_taxable,
-            total_vat=self.total_vat,
-            total_amount=self.total_amount,
-            amount_in_words=self.amount_in_words
-        )
-
-    def save(self, *args, **kwargs):
-        if not self.invoice_number:
-            with transaction.atomic():
-                latest = Invoice.objects.select_for_update().filter(
-                    invoice_number__regex=r'^\d+$'
-                ).aggregate(
-                    max_number=Max('invoice_number')
-                )['max_number']
-                self.invoice_number = str(int(latest) + 1) if latest else '1025'
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"Invoice #{self.invoice_number}"
-
 
 
 class InvoiceLineItem(models.Model):

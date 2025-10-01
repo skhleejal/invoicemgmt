@@ -182,7 +182,7 @@
                 <td class="right">{{ item.amount }}</td>
                 <td class="center">{{ item.vat_rate }}%</td>
                 <td class="right">{{ item.vat_amount }}</td>
-                <td class="right">{{ item.amount|add:item.vat_amount|floatformat:2 }}</td>
+                <td class="right">{{ item.taxable_value|add:item.vat_amount|floatformat:2 }}</td>
                 
             </tr>
             <!-- Debugging values -->
