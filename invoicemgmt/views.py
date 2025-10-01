@@ -91,14 +91,26 @@ def register(request):
 
 from num2words import num2words  # Ensure this library is installed
 
+def amount_to_words(amount, currency="AED"):
+    """
+    Convert amount to words with custom handling for unsupported currencies.
+    """
+    if currency == "AED":
+        # Custom handling for AED
+        words = num2words(amount, lang='en') + " AED"
+    else:
+        # Default handling for supported currencies
+        words = num2words(amount, to='currency', lang='en', currency=currency)
+    return words
+
 @permission_required('invoicemgmt.view_invoice', raise_exception=True)
 @login_required
 def generate_invoice_pdf(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     template = get_template('invoicemgmt/invoice_pdf.html')
 
-    # Convert total amount to words
-    amount_in_words = num2words(invoice.total_amount, to='currency', lang='en', currency='AED')
+    # Convert total amount to words using the custom function
+    amount_in_words = amount_to_words(invoice.total_amount, currency="AED")
 
     html = template.render({'invoice': invoice, 'now': now(), 'amount_in_words': amount_in_words})
 
