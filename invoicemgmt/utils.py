@@ -33,7 +33,6 @@ CURRENCY_SYMBOL = {
 }
 
 def number_to_words(amount, currency="USD"):
-    # Basic number-to-words converter (English only)
     import math
     from num2words import num2words
 
@@ -47,6 +46,8 @@ def number_to_words(amount, currency="USD"):
     currency_name = currency_name_from_code(currency)
 
     if fraction > 0:
+        if currency == "AED":
+            return f"{words} {currency_name} and {fraction} fils"
         return f"{words} {currency_name} and {fraction}/100"
     return f"{words} {currency_name}"
 
