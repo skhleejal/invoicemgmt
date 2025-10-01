@@ -3,7 +3,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Invoice PDF</title>
+    <title>test INVOICE</title>
     <style>
         @page {
             margin-top: 5cm;
@@ -29,23 +29,28 @@
             height: auto; 
             max-height: 150px; 
         }
-        .company-details { 
-            font-size: 14px; 
-            font-weight: bold; 
-        }
 
         table { 
             width: 100%; 
             border-collapse: collapse; 
             margin-top: 10px; 
+            table-layout: fixed;
         }
         th, td { 
             border: 1px solid #000; 
             padding: 6px; 
+            word-wrap: break-word;
         }
         th { 
             background-color: #f0f0f0; 
         }
+
+        {% if invoice.line_items.all|length > 4 %}
+        th, td {
+            padding: 3px;
+            font-size: 10px;
+        }
+        {% endif %}
 
         .no-border td { 
             border: none; 
@@ -63,56 +68,16 @@
             margin-top: 30px; 
             font-size: 10px; 
         }
-        table { 
-                width: 100%; 
-                border-collapse: collapse; 
-                margin-top: 10px; 
-                table-layout: fixed;
-            }
-            th, td { 
-                border: 1px solid #000; 
-                padding: 6px; /* This is your default style */
-                word-wrap: break-word;
-            }
-            th { 
-                background-color: #f0f0f0; 
-            }
 
-            /* --- PASTE THE NEW DYNAMIC CODE HERE --- */
-            {% if invoice.line_items.all|length > 4 %}
-            /* This style will ONLY apply if you have 5 or more items */
-            th, td {
-                padding: 3px;    /* Makes rows shorter */
-                font-size: 10px; /* Makes text smaller */
-            }
-            {% endif %}
-            /* --- END OF NEW CODE --- */
-
-            .no-border td { 
-                border: none; 
-            }
-
-
-        /* Correct Signature Styles */
         .signature-container {
             display: flex;
-            justify-content: space-between; /* Aligns items to opposite ends */
+            justify-content: space-between;
             margin-top: 50px;
             width: 100%;
         }
-
-        .signature-box {
-            width: 45%; /* Give each box roughly half the space */
-        }
-
-        .signature-sender {
-            text-align: left;
-        }
-
-        .signature-receiver {
-            text-align: right;
-        }
-
+        .signature-box { width: 45%; }
+        .signature-sender { text-align: left; }
+        .signature-receiver { text-align: right; }
         .signature-line {
             border-top: 1px solid #000;
             margin-top: 5px;
@@ -126,7 +91,7 @@
         <img src="{% static 'img/WhatsApp Image 2025-09-29 at 5.48.43 AM.jpeg' %}" alt="High Speed Graphics Logo">
     </div>
 
-    <h2 class="center">Test invoice</h2>
+    <h2 class="center">TAX INVOICE</h2>
     
     <table class="no-border">
         <tr>
@@ -134,7 +99,7 @@
                 <strong>BILL TO:</strong><br>
                 {{ invoice.customer.name }}<br>
                 {{ invoice.customer.city }}<br>
-                Tel: {{ invoice.customer.phone }} | Fax: {{ invoice.customer.fax }}<br>
+                Tel: {{ invoice.customer.phone|default:"None" }} | Fax: {{ invoice.customer.fax|default:"None" }}<br>
                 VAT NO: {{ invoice.customer.vat_number }}
             </td>
             <td>
@@ -147,11 +112,11 @@
 
     <table>
         <tr>
-            <td><strong>P.O. NUMBER</strong><br>{{ invoice.po_number }}</td>
-            <td><strong>P.O. DATE</strong><br>{{ invoice.po_date }}</td>
-            <td><strong>DELIVERY NOTE</strong><br>{{ invoice.delivery_note }}</td>
-            <td><strong>D.O. DATE</strong><br>{{ invoice.do_date }}</td>
-            <td><strong>SHIP TO</strong><br>{{ invoice.ship_to }}</td>
+            <td><strong>P.O. NUMBER</strong><br>{{ invoice.po_number|default:"None" }}</td>
+            <td><strong>P.O. DATE</strong><br>{{ invoice.po_date|default:"None" }}</td>
+            <td><strong>DELIVERY NOTE</strong><br>{{ invoice.delivery_note|default:"None" }}</td>
+            <td><strong>D.O. DATE</strong><br>{{ invoice.do_date|default:"None" }}</td>
+            <td><strong>SHIP TO</strong><br>{{ invoice.ship_to|default:"WAREHOUSE" }}</td>
         </tr>
     </table>
 
@@ -159,13 +124,12 @@
         <thead>
             <tr>
                 <th style="width: 5%;">SL</th>
-                <th style="width: 25%;">PRODUCT / DESCRIPTION</th>
+                <th style="width: 35%;">PRODUCT / DESCRIPTION</th>
                 <th style="width: 8%;">QTY</th>
                 <th style="width: 12%;">U/PRICE</th>
-                <th style="width: 13%;">TAXABLE VALUE</th>
-                <th style="width: 10%;">VAT RATE</th>
-                <th style="width: 15%;">VAT AMOUNT</th>
-                
+                <th style="width: 12%;">TAXABLE VALUE</th>
+                <th style="width: 8%;">VAT RATE</th>
+                <th style="width: 10%;">VAT AMOUNT</th>
                 <th style="width: 10%;">TOTAL AED</th>
             </tr>
         </thead>
@@ -177,42 +141,37 @@
                     {% if item.product %}<strong>{{ item.product }}</strong><br>{% endif %}
                     {{ item.description }}
                 </td>
-                <td class="center">{{ item.quantity }}</td>
-                <td class="right">{{ item.unit_price }}</td>
-                <td class="right">{{ item.amount }}</td>
-                <td class="center">{{ item.vat_rate }}%</td>
-                <td class="right">{{ item.vat_amount }}</td>
-                <!-- <td class="right">{{ item.amount|add:item.vat_amount|floatformat:2 }}</td> -->
+                <td class="center">{{ item.quantity|floatformat:2 }}</td>
+                <td class="right">{{ item.unit_price|floatformat:2 }}</td>
+                <td class="right">{{ item.taxable_value|floatformat:2 }}</td>
+                <td class="center">{{ item.vat_rate|floatformat:2 }}%</td>
+                <td class="right">{{ item.vat_amount|floatformat:2 }}</td>
                 <td class="right">{{ item.taxable_value|add:item.vat_amount|floatformat:2 }}</td>
-                
             </tr>
-            <!-- Debugging values -->
-            <!-- <tr>
-                <td colspan="8">
-                    Taxable Value: {{ item.amount }} | VAT Amount: {{ item.vat_amount }} | Total AED: {{ item.amount|add:item.vat_amount }}
-                </td>
-            </tr> -->
+            {% empty %}
+            <tr>
+                <td colspan="8" class="center">This invoice has no line items.</td>
+            </tr>
             {% endfor %}
+
             <tr>
                 <td colspan="4" class="right bold">TOTAL</td>
-                <td class="right bold">{{ invoice.total_amount }}</td>
-                <!-- <td class="right bold">{{ invoice.total_taxable }}</td> -->
-                <td class="center bold"> </td>
-                <td class="right bold">{{ invoice.total_vat }}</td>
-                <td class="right bold">{{ invoice.total_amount }}</td>
+                <td class="right bold">{{ invoice.total_taxable|floatformat:2 }}</td>
+                <td class="center bold"></td>
+                <td class="right bold">{{ invoice.total_vat|floatformat:2 }}</td>
+                <td class="right bold">{{ invoice.total_amount|floatformat:2 }}</td>
             </tr>
         </tbody>
     </table>
 
     <table>
         <tr>
-            <td style="width: 75%;"><strong>TOTAL AMOUNT AED (IN WORDS):</strong><br>{{ amount_in_words }}</td>
-            <td class="center bold" style="font-size: 16px;">{{ invoice.total_amount }}</td>
+            <td style="width: 75%;"><strong>TOTAL AMOUNT AED (IN WORDS):</strong><br>{{ invoice.amount_in_words }}</td>
+            <td class="center bold" style="font-size: 16px;">{{ invoice.total_amount|floatformat:2 }}</td>
         </tr>
     </table>
 
     <div class="footer">
-        
         <p>Payment Method: {{ invoice.payment_method }}</p>
         <p>Thank you for your business!</p>
     </div>
