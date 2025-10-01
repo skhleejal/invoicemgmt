@@ -196,11 +196,10 @@ class InvoiceLineItem(models.Model):
 # --- NEW: Signal to automatically update Invoice totals ---
 @receiver([post_save, post_delete], sender=InvoiceLineItem)
 def update_invoice_on_line_item_change(sender, instance, **kwargs):
-    """
-    When an InvoiceLineItem is saved or deleted,
-    it triggers the update_totals method on its parent Invoice.
-    """
-    instance.invoice.update_totals()
+    try:
+        instance.invoice.update_totals()
+    except Exception as e:
+        print(f"Error updating totals for Invoice #{instance.invoice.pk}: {e}")
 
 
 # Make sure these models are active in your models.py file
