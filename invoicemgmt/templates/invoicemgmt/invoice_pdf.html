@@ -63,6 +63,35 @@
             margin-top: 30px; 
             font-size: 10px; 
         }
+        table { 
+                width: 100%; 
+                border-collapse: collapse; 
+                margin-top: 10px; 
+                table-layout: fixed;
+            }
+            th, td { 
+                border: 1px solid #000; 
+                padding: 6px; /* This is your default style */
+                word-wrap: break-word;
+            }
+            th { 
+                background-color: #f0f0f0; 
+            }
+
+            /* --- PASTE THE NEW DYNAMIC CODE HERE --- */
+            {% if invoice.line_items.all|length > 4 %}
+            /* This style will ONLY apply if you have 5 or more items */
+            th, td {
+                padding: 3px;    /* Makes rows shorter */
+                font-size: 10px; /* Makes text smaller */
+            }
+            {% endif %}
+            /* --- END OF NEW CODE --- */
+
+            .no-border td { 
+                border: none; 
+            }
+
 
         /* Correct Signature Styles */
         .signature-container {
