@@ -962,7 +962,7 @@ def export_invoices_to_excel(request):
                 "Invoice Number": invoice.invoice_number,
                 "Customer": invoice.customer.name,
                 "Date": invoice.invoice_date.strftime('%Y-%m-%d') if invoice.invoice_date else "",
-                "Product": item.product.name if item.product else item.description,
+                "Product": item.product.name if hasattr(item.product, 'name') else item.product if item.product else item.description,  # Fixed product handling
                 "Quantity": item.quantity,
                 "Unit Price": item.unit_price,
                 "Amount": item.amount,
