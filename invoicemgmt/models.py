@@ -116,6 +116,28 @@ class Invoice(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
     
     # --- NEW: Central method to update totals ---
+    # --- NEW: Central method to update totals ---
+    def update_totals(self):
+        """
+        Calculates and updates the invoice's totals based on its line items.
+        """
+        # Use Django's aggregation for an efficient database-level calculation
+        aggregates = self.line_items.aggregate(
+            total_taxable=Sum('taxable_value'),
+            total_vat=Sum('vat_amount')
+        )
+
+        self.total_taxable = aggregates['total_taxable'] or Decimal('0.00')
+        self.total_vat = aggregates['total_vat'] or Decimal('0.00')
+        self.total_amount = self.total_taxable + self.total_vat
+        
+        # Update amount in words
+        if self.total_amount > 0:
+            self.amount_in_words = num2words(self.total_amount).title() + " AED"
+
+        # Save the invoice instance without triggering a new save signal loop
+        self.save(update_fields=['total_taxable', 'total_vat', 'total_amount', 'amount_in_words'])
+
 
 
 class InvoiceLineItem(models.Model):
