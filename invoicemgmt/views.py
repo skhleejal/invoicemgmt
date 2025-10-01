@@ -93,7 +93,7 @@ def register(request):
 @login_required
 def generate_invoice_pdf(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
-    template = get_template('invoicemgmt/invoice_pdf_vat_percent.html')  # Updated to use the new template
+    template = get_template('invoicemgmt/invoice_pdf.html')  # Reverted to original template
     html = template.render({'invoice': invoice, 'now': now()})
 
     # Generate PDF in memory
