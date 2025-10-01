@@ -128,11 +128,10 @@ class Invoice(models.Model):
         self.total_vat = vat
         self.total_amount = taxable + vat
 
-        country = getattr(self.customer, 'country', None)
-        currency = COUNTRY_CURRENCY.get(country, 'USD') if country else 'USD'
-        self.amount_in_words = number_to_words(self.total_amount, currency=currency)
+        # Convert total amount to words
+        self.amount_in_words = number_to_words(self.total_amount, currency='AED')
 
-        # Use update_fields to avoid recursion with signals
+        # Update fields in the database
         Invoice.objects.filter(pk=self.pk).update(
             total_taxable=self.total_taxable,
             total_vat=self.total_vat,
@@ -148,20 +147,12 @@ class Invoice(models.Model):
                 ).aggregate(
                     max_number=Max('invoice_number')
                 )['max_number']
-
-                if latest:
-                    next_number = int(latest) + 1
-                else:
-                    next_number = 1025
-                
-                self.invoice_number = str(next_number)
-
-        # Note: Total calculation logic is removed from here and handled by signals.
+                self.invoice_number = str(int(latest) + 1) if latest else '1025'
         super().save(*args, **kwargs)
 
     def __str__(self):
-        customer_name = self.customer.name if self.customer else "Unknown Customer"
-        return f"Invoice #{self.invoice_number or 'N/A'} for {customer_name}"
+        return f"Invoice #{self.invoice_number}"
+
 
 
 class InvoiceLineItem(models.Model):
