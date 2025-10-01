@@ -185,6 +185,12 @@
                 <td class="right">{{ item.amount|add:item.vat_amount|floatformat:2 }}</td>
                 
             </tr>
+            <!-- Debugging values -->
+            <tr>
+                <td colspan="8">
+                    Taxable Value: {{ item.amount }} | VAT Amount: {{ item.vat_amount }} | Total AED: {{ item.amount|add:item.vat_amount }}
+                </td>
+            </tr>
             {% endfor %}
             <tr>
                 <td colspan="4" class="right bold">TOTAL</td>
