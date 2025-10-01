@@ -103,7 +103,7 @@
                 <strong>BILL TO:</strong><br>
                 {{ invoice.customer.name }}<br>
                 {{ invoice.customer.city }}<br>
-                Tel: {{ invoice.customer.phone }} | Fax: {{ invoice.customer.fax }}<br>
+                Tel: {{ invoice.customer.phone|default:"None" }} | Fax: {{ invoice.customer.fax|default:"None" }}<br>
                 VAT NO: {{ invoice.customer.vat_number }}
             </td>
             <td>
@@ -147,11 +147,9 @@
                 </td>
                 <td class="center">{{ item.quantity|floatformat:2 }}</td>
                 <td class="right">{{ item.unit_price|floatformat:2 }}</td>
-                <td class="right">{{ item.taxable_value|floatformat:2 }}</td>
-                <td class="center">{{ item.vat_rate|floatformat:2 }}%</td>
+                <td class="right">{{ item.taxable_value|floatformat:2 }}</td> <td class="center">{{ item.vat_rate|floatformat:2 }}%</td>
                 <td class="right">{{ item.vat_amount|floatformat:2 }}</td>
-                <td class="right">{{ item.taxable_value|add:item.vat_amount|floatformat:2 }}</td>
-            </tr>
+                <td class="right">{{ item.taxable_value|add:item.vat_amount|floatformat:2 }}</td> </tr>
             {% endfor %}
 
             <tr>
