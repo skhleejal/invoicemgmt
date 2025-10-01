@@ -455,15 +455,18 @@ def invoice_list(request):
     if request.user.is_superuser:  
         invoices = Invoice.objects.all()
     else:
-    
         invoices = Invoice.objects.filter(created_by=request.user)
     
-   
     if query:
         invoices = invoices.filter(
             Q(customer__name__icontains=query) |
             Q(invoice_number__icontains=query)
         )
+    
+    # Dynamically calculate "Amount in Words" for each invoice
+    for invoice in invoices:
+        invoice.amount_in_words = num2words(invoice.total_amount, lang='en') + " AED"
+
     return render(request, 'invoicemgmt/invoice_list.html', {'invoices': invoices, 'query': query})
 
 
