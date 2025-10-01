@@ -42,8 +42,8 @@
         }
         th, td { 
             border: 1px solid #000; 
-            padding: 4px; /* Slightly increased padding for readability */
-            font-size: 11px; /* Adjusted font size for better balance */
+            padding: 6px; /* Increased padding */
+            font-size: 11px; 
             word-wrap: break-word; /* Prevents overflow */
         }
         th { 
@@ -133,14 +133,13 @@
         <thead>
             <tr>
                 <th style="width: 5%;">SL</th>
-                <th style="width: 22%;">PRODUCT / DESCRIPTION</th>
+                <th style="width: 35%;">PRODUCT / DESCRIPTION</th>
                 <th style="width: 8%;">QTY</th>
-                <th style="width: 10%;">U/PRICE</th>
-                <th style="width: 10%;">AMOUNT</th>
+                <th style="width: 12%;">U/PRICE</th>
                 <th style="width: 12%;">TAXABLE VALUE</th>
-                <th style="width: 10%;">VAT AMOUNT</th>
                 <th style="width: 8%;">VAT RATE</th>
-                <th style="width: 10%;">TOTAL AED</th> <!-- Added TOTAL AED next to VAT Amount -->
+                <th style="width: 10%;">VAT AMOUNT</th>
+                <th style="width: 10%;">TOTAL AED</th>
             </tr>
         </thead>
         <tbody>
@@ -151,22 +150,20 @@
                     {% if item.product %}<strong>{{ item.product }}</strong><br>{% endif %}
                     {{ item.description }}
                 </td>
-                <td class="center">{{ item.quantity }}</td>
-                <td class="right">{{ item.unit_price }}</td>
-                <td class="right">{{ item.amount }}</td>
-                <td class="right">{{ item.amount }}</td>
-                <td class="right">{{ item.vat_amount }}</td>
-                <td class="center">{{ item.vat_rate }}%</td>
-                <td class="right">{{ item.total_aed }}</td> <!-- Displaying TOTAL AED -->
+                <td class="center">{{ item.quantity|floatformat:2 }}</td>
+                <td class="right">{{ item.unit_price|floatformat:2 }}</td>
+                <td class="right">{{ item.taxable_value|floatformat:2 }}</td>
+                <td class="center">{{ item.vat_rate|floatformat:2 }}%</td>
+                <td class="right">{{ item.vat_amount|floatformat:2 }}</td>
+                <td class="right">{{ item.taxable_value|add:item.vat_amount|floatformat:2 }}</td>
             </tr>
             {% endfor %}
+
             <tr>
                 <td colspan="4" class="right bold">TOTAL</td>
-                <td class="right bold">{{ invoice.total_amount }}</td>
-                <td class="right bold">{{ invoice.total_taxable }}</td>
-                <td class="right bold">{{ invoice.total_vat }}</td>
-                <td class="center bold"> </td>
-                <td class="right bold">{{ invoice.total_aed }}</td> <!-- Displaying TOTAL AED in the footer -->
+                <td class="right bold">{{ invoice.total_taxable|floatformat:2 }}</td>
+                <td class="center bold"></td> <td class="right bold">{{ invoice.total_vat|floatformat:2 }}</td>
+                <td class="right bold">{{ invoice.total_amount|floatformat:2 }}</td>
             </tr>
         </tbody>
     </table>
@@ -174,7 +171,7 @@
     <table>
         <tr>
             <td style="width: 75%;"><strong>TOTAL AMOUNT AED (IN WORDS):</strong><br>{{ invoice.amount_in_words }}</td>
-            <td class="center bold" style="font-size: 16px;">{{ invoice.total_amount }}</td>
+            <td class="center bold" style="font-size: 16px;">{{ invoice.total_amount|floatformat:2 }}</td>
         </tr>
     </table>
 
