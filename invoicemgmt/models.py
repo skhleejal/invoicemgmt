@@ -145,6 +145,10 @@ class InvoiceLineItem(models.Model):
 
     def __str__(self):
         return f"{self.description[:30]}"
+    @property
+    def total_value(self):
+        """Calculates the sum of taxable value and VAT amount."""
+        return self.taxable_value + self.vat_amount
 
 
 # --- NEW: Signal to automatically update Invoice totals ---
