@@ -132,9 +132,9 @@
                 <th style="width: 8%;">QTY</th>
                 <th style="width: 10%;">U/PRICE</th>
                 <th style="width: 12%;">TAXABLE VALUE</th>
-                <th style="width: 12%;">VAT RATE</th> <!-- Further increased width for VAT Rate -->
-                <th style="width: 12%;">VAT AMOUNT</th> <!-- Adjusted width -->
-                <th style="width: 16%;">TOTAL AED</th> <!-- Adjusted width -->
+                <th style="width: 12%;">VAT AMOUNT</th> <!-- Switched position with VAT Rate -->
+                <th style="width: 12%;">VAT RATE</th> <!-- Switched position with VAT Amount -->
+                <th style="width: 16%;">TOTAL AED</th>
             </tr>
         </thead>
         <tbody>
@@ -148,8 +148,8 @@
                 <td class="center">{{ item.quantity }}</td>
                 <td class="right">{{ item.unit_price }}</td>
                 <td class="right">{{ item.amount }}</td>
-                <td class="center">{{ item.vat_rate }}%</td>
                 <td class="right">{{ item.vat_amount }}</td>
+                <td class="center">{{ item.vat_rate }}%</td>
                 <td class="right">{{ item.amount|add:item.vat_amount }} AED</td>
             </tr>
             {% endfor %}
@@ -157,8 +157,8 @@
             <tr>
                 <td colspan="4" class="right bold">TOTAL</td>
                 <td class="right bold">{{ invoice.total_taxable }}</td>
-                <td class="center bold"></td>
                 <td class="right bold">{{ invoice.total_vat }}</td>
+                <td class="center bold"></td>
                 <td class="right bold">{{ invoice.total_amount }} AED</td>
             </tr>
         </tbody>
