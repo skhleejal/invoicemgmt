@@ -128,7 +128,7 @@
                 <th style="width: 8%;">QTY</th>
                 <th style="width: 12%;">U/PRICE</th>
                 <th style="width: 12%;">TAXABLE VALUE</th>
-                <th style="width: 8%;">VAT RATE</th>
+                <!-- <th style="width: 8%;">VAT RATE</th> -->
                 <th style="width: 10%;">VAT AMOUNT</th>
                 <th style="width: 10%;">TOTAL AED</th>
             </tr>
@@ -144,7 +144,7 @@
                 <td class="center">{{ item.quantity|floatformat:2 }}</td>
                 <td class="right">{{ item.unit_price|floatformat:2 }}</td>
                 <td class="right">{{ item.taxable_value|floatformat:2 }}</td>
-                <td class="center">{{ item.vat_rate|floatformat:2 }}%</td>
+                <!-- <td class="center">{{ item.vat_rate}}%</td> -->
                 <td class="right">{{ item.vat_amount|floatformat:2 }}</td>
                 <td class="right">{{ item.taxable_value|add:item.vat_amount|floatformat:2 }}</td>
             </tr>
