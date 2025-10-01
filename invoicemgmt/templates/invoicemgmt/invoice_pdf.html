@@ -155,10 +155,10 @@
             {# This is the corrected TOTAL row #}
             <tr>
                 <td colspan="4" class="right bold">TOTAL</td>
-                <td class="right bold">{{ invoice.total_amount }}</td>
-                <td class="center bold"></td> {# Empty cell for VAT Rate column #}
-                <td class="right bold">{{ invoice.total_vat }}</td>
-                <td class="right bold">{{ invoice.total_amount|add:invoice.total_vat }} AED</td> {# This is the new cell for the Grand Total #}
+                <td class="right bold">{{ invoice.total_taxable }}</td>   {# Displays the subtotal (e.g., 301.50) #}
+                <td class="center bold"></td>                              {# Empty cell for VAT Rate column #}
+                <td class="right bold">{{ invoice.total_vat }}</td>       {# Displays the VAT (e.g., 15.08) #}
+                <td class="right bold">{{ invoice.total_amount }} AED</td> {# Displays the final total (e.g., 316.58) #}
             </tr>
         </tbody>
     </table>
@@ -166,7 +166,7 @@
     <table>
         <tr>
             <td style="width: 75%;"><strong>TOTAL AMOUNT AED (IN WORDS):</strong><br>{{ invoice.amount_in_words }}</td>
-            <td class="center bold" style="font-size: 16px;">{{ invoice.total_amount|add:invoice.total_vat }}</td>
+            <td class="center bold" style="font-size: 16px;">{{ invoice.total_amount }}</td>
         </tr>
     </table>
 
