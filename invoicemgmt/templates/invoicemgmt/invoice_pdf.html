@@ -34,7 +34,8 @@
             width: 100%; 
             border-collapse: collapse; 
             margin-top: 10px; 
-            table-layout: fixed; /* Prevents content from changing column widths */
+            table-layout: fixed; /* Ensures fixed column widths */
+            word-wrap: break-word; /* Prevents overflow */
         }
         th, td { 
             border: 1px solid #000; 
@@ -149,7 +150,7 @@
                 <td class="right">{{ item.unit_price }}</td>
                 <td class="right">{{ item.amount }}</td>
                 <td class="right">{{ item.vat_amount }}</td>
-                <td class="center">{{ item.vat_rate }}</td> <!-- Removed % symbol -->
+                <td class="center">{{ item.vat_rate }}%</td> <!-- Reverted to include % symbol -->
                 <td class="right">{{ item.amount|add:item.vat_amount }} AED</td>
             </tr>
             {% endfor %}
