@@ -8,7 +8,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from decimal import Decimal
 import datetime
-
+from django.db.models import Sum
 # --- NEW: Import Django Signals ---
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
