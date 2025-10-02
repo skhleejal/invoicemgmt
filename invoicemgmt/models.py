@@ -130,19 +130,31 @@ class Invoice(models.Model):
         super().save(*args, **kwargs)
 
     # --- THIS IS THE TOTALS CALCULATION METHOD ---
+    # This goes inside your class Invoice(models.Model):
+# Replace your old update_totals method with this one.
+
     def update_totals(self):
+        """
+        Calculates and updates the invoice's totals based on its line items.
+        """
         aggregates = self.line_items.aggregate(
             total_taxable=Sum('taxable_value'),
             total_vat=Sum('vat_amount')
         )
         self.total_taxable = aggregates['total_taxable'] or Decimal('0.00')
         self.total_vat = aggregates['total_vat'] or Decimal('0.00')
-        self.total_amount = self.total_taxable + self.total_vat
-        if self.total_amount > 0:
-            self.amount_in_words = num2words(self.total_amount).title() + " AED"
-        # Use update_fields to prevent this from re-triggering the save method infinitely
-        super().save(update_fields=['total_taxable', 'total_vat', 'total_amount', 'amount_in_words'])
 
+        # --- THIS IS THE CRITICAL LINE THAT FIXES THE BUG ---
+        self.total_amount = self.total_taxable + self.total_vat
+        
+        # Update amount in words based on the CORRECT total
+        if self.total_amount > 0:
+            self.amount_in_words = num2words(self.total_amount).title().replace('-', ' ') + " AED"
+        else:
+            self.amount_in_words = "Zero AED"
+
+        # Save the updated fields to the database
+        super().save(update_fields=['total_taxable', 'total_vat', 'total_amount', 'amount_in_words'])
 
     # def update_totals(self):
     #     """
