@@ -185,7 +185,7 @@ class Invoice(models.Model):
 
 class InvoiceLineItem(models.Model):
     invoice = models.ForeignKey(Invoice, related_name='line_items', on_delete=models.CASCADE)
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
     product = models.CharField(max_length=255, blank=True, null=True)
     quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1.00)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
