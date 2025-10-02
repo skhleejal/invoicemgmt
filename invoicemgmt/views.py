@@ -381,35 +381,23 @@ def create_invoice(request):
         formset = InvoiceLineItemFormSet(request.POST)
 
         if form.is_valid() and formset.is_valid():
-            invoice = form.save(commit=False)
-            invoice.created_by = request.user  # Assign the invoice to the current user
-            formset.instance = invoice
-
             try:
-                invoice.save()  # Save the invoice
+                # First, save the main invoice form
+                invoice = form.save(commit=False)
+                invoice.created_by = request.user
+                invoice.save()  # The model's save() method runs here
 
-                total_amount = 0
-                line_items = formset.save(commit=False)
-
-                for item_form in line_items:
-                    # Use unit_price directly instead of product.price
-                    quantity = item_form.quantity
-                    unit_price = item_form.unit_price  # Ensure this is provided
-                    item_form.amount = quantity * unit_price
-                    item_form.invoice = invoice
-                    item_form.save()
-
-                    total_amount += item_form.amount
-
-                invoice.total_amount = total_amount
-                invoice.save()
+                # Now, link the line items to the invoice and save them.
+                # Our signal will automatically handle all the total calculations
+                # in the background. We don't need any loops here.
+                formset.instance = invoice
+                formset.save()
 
                 messages.success(request, '✅ Invoice saved successfully.')
                 return redirect('invoice_list')
 
             except Exception as e:
                 messages.error(request, f"❌ Error saving invoice: {str(e)}")
-
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
@@ -421,7 +409,6 @@ def create_invoice(request):
         'formset': formset,
         'document_type': 'invoice'
     })
-
 
 @permission_required('invoicemgmt.view_invoice', raise_exception=True)
 @login_required
