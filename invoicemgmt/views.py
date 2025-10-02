@@ -373,7 +373,7 @@ def create_invoice(request):
     InvoiceLineItemFormSet = inlineformset_factory(
         Invoice, InvoiceLineItem,
         form=InvoiceLineItemForm,
-        extra=14, can_delete=True
+        extra=20, can_delete=True
     )
 
     if request.method == 'POST':
