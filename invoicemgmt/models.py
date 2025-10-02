@@ -136,7 +136,12 @@ class Invoice(models.Model):
 
 # In your Invoice class in models.py
 
+# Paste this into your Invoice model in models.py
+
     def update_totals(self):
+        # This message will appear in your terminal if the fix is working
+        print("--- RUNNING THE CORRECT UPDATE TOTALS METHOD ---")
+
         aggregates = self.line_items.aggregate(
             total_taxable=Sum('taxable_value'),
             total_vat=Sum('vat_amount')
@@ -144,9 +149,11 @@ class Invoice(models.Model):
         self.total_taxable = aggregates['total_taxable'] or Decimal('0.00')
         self.total_vat = aggregates['total_vat'] or Decimal('0.00')
 
-        # This is the line that fixes the calculation
         self.total_amount = self.total_taxable + self.total_vat
         
+        # This will show us the correct number in the terminal
+        print(f"--- CALCULATED TOTAL AMOUNT: {self.total_amount} ---")
+
         if self.total_amount > 0:
             self.amount_in_words = num2words(self.total_amount).title().replace('-', ' ') + " AED"
         else:
