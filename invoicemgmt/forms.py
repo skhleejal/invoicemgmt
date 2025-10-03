@@ -1,6 +1,6 @@
 from django import forms
 from .models import  Invoice, InvoiceLineItem, Customer
-from .models import Purchase, PurchaseLineItem
+from .models import Purchase, PurchaseLineItem,DeliveryNoteLineItem,DeliveryNote
 
 class CustomerForm(forms.ModelForm):
     class Meta:
@@ -148,3 +148,24 @@ class PurchaseLineItemForm(forms.ModelForm):
             'price': 'Rate per unit.',
             'vat_rate': 'VAT percentage (e.g., 5).',
         }
+
+
+
+    
+class DeliveryNoteForm(forms.ModelForm):
+    class Meta:
+        model = DeliveryNote
+        fields = [
+            'company_name', 'company_address', 'company_email', 'company_phone',
+            'delivery_to_name', 'delivery_to_address', 'date', 'due_date',
+            'terms', 'signature', 'signature_date'
+        ]
+
+
+DeliveryNoteLineItemFormSet = forms.inlineformset_factory(
+    DeliveryNote,
+    DeliveryNoteLineItem,
+    fields=['product_name', 'description', 'quantity', 'complete'],
+    extra=20,
+    can_delete=True
+)

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container mt-5 mb-5 p-4 shadow rounded bg-white" style="max-width: 900px;">
+    <h2>Create Delivery Note</h2>
+    <form method="post" role="form" aria-label="Create Delivery Note">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {{ form|crispy }}
+        <h4>Products</h4>
+        {{ formset.management_form }}
+        {% for item_form in formset %}
+            {{ item_form.non_field_errors }}
+            <div class="row mb-2">
+                {{ item_form|crispy }}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-success mt-3">Save Delivery Note</button>
+    </form>
+    <a href="{% url 'delivery_note_list' %}" class="btn btn-secondary mt-3">Cancel</a>
+</div>
+{% endblock %}

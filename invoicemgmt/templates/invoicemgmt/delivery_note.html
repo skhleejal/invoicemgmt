@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5 mb-5 p-4 shadow rounded bg-white" style="max-width: 900px;">
+    <div style="display: flex; justify-content: space-between;">
+        <div>
+            <h2>{{ note.company_name }}</h2>
+            <p>{{ note.company_address }}</p>
+            <p>{{ note.company_email }}</p>
+            <p>{{ note.company_phone }}</p>
+        </div>
+        <div style="text-align:right;">
+            <h2 style="color:#007bff;">Delivery Note</h2>
+        </div>
+    </div>
+    <hr>
+    <div style="display: flex; justify-content: space-between;">
+        <div>
+            <strong>Delivery to:</strong><br>
+            Name: {{ note.delivery_to_name }}<br>
+            Address: {{ note.delivery_to_address }}
+        </div>
+        <div>
+            <strong>Date:</strong> {{ note.date }}<br>
+            <strong>Due Date:</strong> {{ note.due_date }}
+        </div>
+    </div>
+    <table class="table table-bordered mt-4">
+        <thead style="background:#eaf4fb;">
+            <tr>
+                <th>Item No</th>
+                <th>Description</th>
+                <th>QTY</th>
+                <th>Complete</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Loop through delivery items if you have a related model -->
+            {% for item in note.items.all %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ item.description }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{% if item.complete %}✔{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">No items delivered.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div style="margin-top:40px;">
+        <strong>Signature:</strong> ______________________
+        <br>
+        <strong>Date:</strong> ______________________
+    </div>
+    <div class="section mt-4">
+        <strong>Terms & Conditions:</strong><br>
+        {{ note.terms }}
+    </div>
+</div>
+{% endblock %}

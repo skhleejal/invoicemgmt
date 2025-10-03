@@ -271,3 +271,40 @@ class PurchaseLineItem(models.Model):
         self.amount = self.quantity * self.price
         self.vat_amount = self.amount * (self.vat_rate / 100)
         super().save(*args, **kwargs)
+
+
+
+class DeliveryNote(models.Model):
+    delivery_note_number = models.PositiveIntegerField(unique=True, blank=True, null=True)
+    company_name = models.CharField(max_length=255)
+    company_address = models.TextField()
+    company_email = models.EmailField()
+    company_phone = models.CharField(max_length=50)
+    delivery_to_name = models.CharField(max_length=255)
+    delivery_to_address = models.TextField()
+    date = models.DateField()
+    due_date = models.DateField(blank=True, null=True)
+    # You can use a related model for line items if needed
+    terms = models.TextField(blank=True, null=True)
+    signature = models.CharField(max_length=255, blank=True, null=True)
+    signature_date = models.DateField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.delivery_note_number:
+            # Start numbering at 107
+            last_note = DeliveryNote.objects.aggregate(max_number=models.Max('delivery_note_number'))
+            self.delivery_note_number = (last_note['max_number'] or 106) + 1
+        super().save(*args, **kwargs)
+
+
+    def __str__(self):
+        return f"Delivery Note to {self.delivery_to_name} on {self.date}"
+    
+
+
+class DeliveryNoteLineItem(models.Model):
+    delivery_note = models.ForeignKey(DeliveryNote, on_delete=models.CASCADE, related_name='items')
+    product_name = models.CharField(max_length=255, blank=True, null=True)  # Product name field
+    description = models.CharField(max_length=255, blank=True)
+    quantity = models.PositiveIntegerField()
+    complete = models.BooleanField(default=False)

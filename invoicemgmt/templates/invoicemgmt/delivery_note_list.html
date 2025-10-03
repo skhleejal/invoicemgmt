@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5 mb-5 p-4 shadow rounded bg-white" style="max-width: 900px;">
+    <h2>Delivery Notes</h2>
+    <table class="table table-bordered mt-4">
+        <thead style="background:#eaf4fb;">
+            <tr>
+                <th>#</th>
+                <th>Company</th>
+                <th>Delivery To</th>
+                <th>Date</th>
+                <th>Due Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for note in notes %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ note.company_name }}</td>
+                <td>{{ note.delivery_to_name }}</td>
+                <td>{{ note.date }}</td>
+                <td>{{ note.due_date }}</td>
+                <td>
+                    <a href="{% url 'delivery_note_detail' note.id %}" class="btn btn-info btn-sm">View</a>
+                    <a href="{% url 'delivery_note_pdf' note.id %}" class="btn btn-info btn-sm">Download PDF</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">No delivery notes found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'create_delivery_note' %}" class="btn btn-primary mt-3">Create Delivery Note</a>
+</div>
+{% endblock %}

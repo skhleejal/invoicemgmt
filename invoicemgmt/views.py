@@ -1022,67 +1022,79 @@ def test_email(request):
 #         form = QuotationForm(instance=quotation)
 #     return render(request, 'invoicemgmt/quotation_form.html', {'form': form, 'quotation': quotation})
 
-# @login_required
-# def create_delivery_note(request):
-#     if request.method == 'POST':
-#         form = DeliveryNoteForm(request.POST)
-#         formset = DeliveryNoteLineItemFormSet(request.POST)
-#         if form.is_valid() and formset.is_valid():
-#             note = form.save()
-#             formset.instance = note
-#             formset.save()
-#             return redirect('delivery_note_detail', pk=note.pk)
-#     else:
-#         form = DeliveryNoteForm()
-#         formset = DeliveryNoteLineItemFormSet()
-#     return render(request, 'invoicemgmt/delivery_note_form.html', {'form': form, 'formset': formset})
+@login_required
+def create_delivery_note(request):
+    if request.method == 'POST':
+        form = DeliveryNoteForm(request.POST)
+        formset = DeliveryNoteLineItemFormSet(request.POST)
+        if form.is_valid() and formset.is_valid():
+            # Save the main delivery note
+            note = form.save()
+
+            # Link the line items to the delivery note
+            formset.instance = note
+            formset.save()
+
+            return redirect('delivery_note_detail', pk=note.pk)
+    else:
+        form = DeliveryNoteForm()
+        formset = DeliveryNoteLineItemFormSet()
+
+    return render(request, 'invoicemgmt/delivery_note_form.html', {
+        'form': form,
+        'formset': formset
+    })
 
 
-# from .models import DeliveryNote
-# from .forms import DeliveryNoteForm,DeliveryNoteLineItemFormSet
-# from django.contrib.auth.decorators import login_required
-# from django.shortcuts import render, get_object_or_404, redirect
+from .models import DeliveryNote
+from .forms import DeliveryNoteForm,DeliveryNoteLineItemFormSet
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404, redirect
 
-# @login_required
-# def delivery_note_list(request):
-#     notes = DeliveryNote.objects.all()
-#     return render(request, 'invoicemgmt/delivery_note_list.html', {'notes': notes})
+@login_required
+def delivery_note_list(request):
+    notes = DeliveryNote.objects.all().order_by('delivery_note_number')
+    return render(request, 'invoicemgmt/delivery_note_list.html', {'notes': notes})
 
-# @login_required
-# def create_delivery_note(request):
-#     if request.method == 'POST':
-#         form = DeliveryNoteForm(request.POST)
-#         formset = DeliveryNoteLineItemFormSet(request.POST)
-#         if form.is_valid() and formset.is_valid():
-#             note = form.save()
-#             formset.instance = note
-#             formset.save()
-#             return redirect('delivery_note_detail', pk=note.pk)
-#     else:
-#         form = DeliveryNoteForm()
-#         formset = DeliveryNoteLineItemFormSet()
-#     return render(request, 'invoicemgmt/delivery_note_form.html', {'form': form, 'formset': formset})
+@login_required
+def create_delivery_note(request):
+    if request.method == 'POST':
+        form = DeliveryNoteForm(request.POST)
+        formset = DeliveryNoteLineItemFormSet(request.POST)
+        if form.is_valid() and formset.is_valid():
+            note = form.save()
+            formset.instance = note
+            formset.save()
+            return redirect('delivery_note_detail', pk=note.pk)
+    else:
+        form = DeliveryNoteForm()
+        formset = DeliveryNoteLineItemFormSet()
 
-# @login_required
-# def delivery_note_detail(request, pk):
-#     note = get_object_or_404(DeliveryNote, pk=pk)
-#     return render(request, 'invoicemgmt/delivery_note.html', {'note': note})
+    return render(request, 'invoicemgmt/delivery_note_form.html', {
+        'form': form,
+        'formset': formset
+    })
+
+@login_required
+def delivery_note_detail(request, pk):
+    note = get_object_or_404(DeliveryNote, pk=pk)
+    return render(request, 'invoicemgmt/delivery_note.html', {'note': note})
 
 
-# from django.http import HttpResponse
-# from django.template.loader import get_template
+from django.http import HttpResponse
+from django.template.loader import get_template
 
 
-# @login_required
-# def delivery_note_pdf(request, pk):
-#     note = get_object_or_404(DeliveryNote, pk=pk)
-#     template = get_template('invoicemgmt/delivery_note_pdf.html')
-#     html = template.render({'note': note})
-#     pdf_file = BytesIO()
-#     pisa_status = pisa.CreatePDF(html, dest=pdf_file)
-#     if pisa_status.err:
-#         return HttpResponse('PDF generation failed', status=500)
-#     pdf_file.seek(0)
-#     response = HttpResponse(pdf_file.getvalue(), content_type='application/pdf')
-#     response['Content-Disposition'] = f'attachment; filename="delivery_note_{note.pk}.pdf"'
-#     return response
+@login_required
+def delivery_note_pdf(request, pk):
+    note = get_object_or_404(DeliveryNote, pk=pk)
+    template = get_template('invoicemgmt/delivery_note_pdf.html')
+    html = template.render({'note': note})
+    pdf_file = BytesIO()
+    pisa_status = pisa.CreatePDF(html, dest=pdf_file)
+    if pisa_status.err:
+        return HttpResponse('PDF generation failed', status=500)
+    pdf_file.seek(0)
+    response = HttpResponse(pdf_file.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="delivery_note_{note.pk}.pdf"'
+    return response
