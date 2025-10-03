@@ -118,12 +118,16 @@ class InvoiceLineItemForm(forms.ModelForm):
 class PurchaseForm(forms.ModelForm):
     class Meta:
         model = Purchase
-        fields = ['supplier_name']
+        fields = ['supplier_name', 'date', 'purchase_number']
         widgets = {
             'supplier_name': forms.TextInput(attrs={'placeholder': 'Enter supplier name', 'class': 'form-control'}),
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),  # Editable date field
+            'purchase_number': forms.TextInput(attrs={'placeholder': 'Enter purchase number', 'class': 'form-control'}),
         }
         labels = {
             'supplier_name': 'Supplier Name*',
+            'date': 'Date*',
+            'purchase_number': 'Purchase Number*',
         }
 
 class PurchaseLineItemForm(forms.ModelForm):
