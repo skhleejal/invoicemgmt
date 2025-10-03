@@ -37,6 +37,20 @@
                 <div class="text-danger">{{ purchase_form.supplier_name.errors }}</div>
             {% endif %}
         </div>
+        <div class="mb-3">
+            <label for="id_date" class="form-label">Date*</label>
+            {{ purchase_form.date }}
+            {% if purchase_form.date.errors %}
+                <div class="text-danger">{{ purchase_form.date.errors }}</div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="id_purchase_number" class="form-label">Invoice Number*</label>
+            {{ purchase_form.purchase_number }}
+            {% if purchase_form.purchase_number.errors %}
+                <div class="text-danger">{{ purchase_form.purchase_number.errors }}</div>
+            {% endif %}
+        </div>
         {{ formset.management_form }}
         {% for form in formset %}
             <div class="line-item mb-3 p-3 border rounded bg-light">
