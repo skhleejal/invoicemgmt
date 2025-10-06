@@ -453,7 +453,7 @@ def invoice_list(request):
     # Dynamically calculate "Amount in Words" for each invoice
     for invoice in invoices:
         invoice.amount_in_words = num2words(invoice.total_amount, lang='en') + " AED"
-    invoices = Invoice.objects.all().order_by('invoice_number')  # Order by invoice_number
+    invoices = Invoice.objects.all().order_by('-invoice_number')  # Order by invoice_number
     return render(request, 'invoicemgmt/invoice_list.html', {'invoices': invoices, 'query': query})
 
 
