@@ -114,11 +114,12 @@ def generate_invoice_pdf(request, pk):
 
     line_items = invoice.line_items.all()
     for item in line_items:
-        item.unit_price = "{:.2f}".format(item.unit_price)  # Format to 2 decimal places
-        item.taxable_value = "{:.2f}".format(item.taxable_value)
-        item.vat_rate = "{:.2f}".format(item.vat_rate)
-        item.vat_amount = "{:.2f}".format(item.vat_amount)
-        item.total_value = "{:.2f}".format(item.total_value)
+        # Ensure numeric fields are converted to float before formatting
+        item.unit_price = "{:.2f}".format(float(item.unit_price))  # Format to 2 decimal places
+        item.taxable_value = "{:.2f}".format(float(item.taxable_value))
+        item.vat_rate = "{:.2f}".format(float(item.vat_rate))
+        item.vat_amount = "{:.2f}".format(float(item.vat_amount))
+        item.total_value = "{:.2f}".format(float(item.total_value))
 
     # Render the template with all necessary data
     html = template.render({
@@ -852,7 +853,6 @@ from django.forms import inlineformset_factory
 #             return redirect('quotation_list')
 #     else:
 #         form = QuotationForm()
-#         formset = QuotationLineItemFormSet()
 #     return render(request, 'invoicemgmt/quotation_form.html', {'form': form, 'formset': formset})
 
 # @login_required
