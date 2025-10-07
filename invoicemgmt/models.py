@@ -57,9 +57,9 @@ def number_to_words(n, currency='AED'):
         
         if currency == 'AED':
             if fractional_part > 0:
-                words += f" AED and " + num2words(fractional_part, lang='en').title() + " Fils"
+                words += f" Dirhams and " + num2words(fractional_part, lang='en').title() + " Fils"
             else:
-                words += " AED Only"
+                words += " Dirhams Only"
         else:
             if fractional_part > 0:
                 words += f" {currency} and " + num2words(fractional_part, lang='en').title() + " Cents"
