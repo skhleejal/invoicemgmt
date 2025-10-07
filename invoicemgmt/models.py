@@ -53,18 +53,13 @@ def number_to_words(n, currency='AED'):
         integer_part = int(n)
         fractional_part = round((n - integer_part) * 100)  # Round fractional part to two decimal places
         
-        words = num2words(integer_part, lang='en').title()
+        # Use num2words with `to_words` and remove "and" from the output
+        words = num2words(integer_part, lang='en').replace(" and ", " ").title() + " Dirhams"
         
-        if currency == 'AED':
-            if fractional_part > 0:
-                words += f" Dirhams and " + num2words(fractional_part, lang='en').title() + " Fils"
-            else:
-                words += " Dirhams Only"
+        if fractional_part > 0:
+            words += " and " + num2words(fractional_part, lang='en').replace(" and ", " ").title() + " Fils"
         else:
-            if fractional_part > 0:
-                words += f" {currency} and " + num2words(fractional_part, lang='en').title() + " Cents"
-            else:
-                words += f" {currency} Only"
+            words += " Only"
         
         return words
     except Exception:
