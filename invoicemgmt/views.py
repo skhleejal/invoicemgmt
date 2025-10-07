@@ -236,11 +236,6 @@ def home(request):
     if request.user.is_superuser:
         invoice_qs = Invoice.objects.all()
         total_customers = Customer.objects.count()
-    else:
-        invoice_qs = Invoice.objects.filter(created_by=request.user)
-        # Only customers served by this user
-        total_customers = Customer.objects.filter(invoice__created_by=request.user).distinct().count()
-
     # Use invoice_qs for all stats!
     sales_amount = invoice_qs.filter(status="paid").aggregate(total=Sum('total_amount'))['total'] or 0
     total_invoices = invoice_qs.count()
@@ -625,6 +620,11 @@ def import_invoices_from_excel(request):
                 # --- Handle Invoice Number ---
                 invoice_number = row.get("Invoice Number")
                 invoice_number = str(int(invoice_number)).strip() if pd.notna(invoice_number) else None
+
+                # --- Check for Duplicate Invoice Number ---
+                if invoice_number and Invoice.objects.filter(invoice_number=invoice_number).exists():
+                    messages.warning(request, f"⚠️ Skipped duplicate invoice number: {invoice_number}")
+                    continue
 
                 # --- Create/Get Customer ---
                 customer, _ = Customer.objects.get_or_create(
