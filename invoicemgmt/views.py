@@ -105,12 +105,8 @@ def generate_invoice_pdf(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     template = get_template('invoicemgmt/invoice_pdf.html')
 
-    # Calculate "Amount in Words" with proper handling of fractional amounts
-    integer_part = int(invoice.total_amount)
-    fractional_part = round((invoice.total_amount - integer_part) * 100)
-    amount_in_words = num2words(integer_part, lang='en').title() + " Dirhams"
-    if fractional_part > 0:
-        amount_in_words += " and " + num2words(fractional_part, lang='en').title() + " Fils"
+    # Use the already calculated amount_in_words from the database
+    amount_in_words = invoice.amount_in_words
 
     # Render the template with all necessary data
     html = template.render({
@@ -590,6 +586,10 @@ def update_invoice(request, pk):
 @login_required
 @permission_required('invoicemgmt.add_invoice', raise_exception=True)
 def import_invoices_from_excel(request):
+    if request.method == "POST" and request.FILES.get("excel_file"):
+        file = request.FILES["excel_file"]
+        filepath = default_storage.save(file.name, file)
+        df = pd.read_excel(default_storage.path(filepath))
     if request.method == "POST" and request.FILES.get("excel_file"):
         file = request.FILES["excel_file"]
         filepath = default_storage.save(file.name, file)
