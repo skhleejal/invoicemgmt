@@ -113,7 +113,7 @@ class Invoice(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='invoices')
 
     invoice_type_choices = (('Receipt', 'Receipt'), ('Invoice', 'Invoice'),)
-    invoice_type = models.CharField(max_length=50, choices=invoice_type_choices, blank=True, null=True, default='')
+    invoice_type = models.CharField(max_length=50, choices=self.invoice_type_choices, blank=True, null=True, default='')
 
     STATUS_CHOICES = [('open', 'Open'), ('paid', 'Paid'),]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
@@ -157,10 +157,11 @@ class Invoice(models.Model):
         # This will show us the correct number in the terminal
         print(f"--- CALCULATED TOTAL AMOUNT: {self.total_amount} ---")
 
+        # Use the number_to_words function to format the amount in words
         if self.total_amount > 0:
-            self.amount_in_words = num2words(self.total_amount).title().replace('-', ' ') + " AED"
+            self.amount_in_words = number_to_words(self.total_amount, currency='AED')
         else:
-            self.amount_in_words = "Zero AED"
+            self.amount_in_words = "Zero Dirhams"
 
         super().save(update_fields=['total_taxable', 'total_vat', 'total_amount', 'amount_in_words'])
         # def update_totals(self):
