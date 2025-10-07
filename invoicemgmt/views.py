@@ -108,29 +108,15 @@ def generate_invoice_pdf(request, pk):
     # Calculate "Amount in Words" with proper handling of fractional amounts
     integer_part = int(invoice.total_amount)
     fractional_part = round((invoice.total_amount - integer_part) * 100)
-    amount_in_words = f"{num2words(integer_part, lang='en').title()} Dirhams"
+    amount_in_words = num2words(integer_part, lang='en').title() + " Dirhams"
     if fractional_part > 0:
-        amount_in_words += f" and {num2words(fractional_part, lang='en').title()} Fils"
-
-    line_items = invoice.line_items.all()
-    for item in line_items:
-        try:
-            # Ensure numeric fields are converted to float before formatting
-            item.unit_price = "{:.2f}".format(float(item.unit_price))  # Format to 2 decimal places
-            item.taxable_value = "{:.2f}".format(float(item.taxable_value))
-            item.vat_rate = "{:.2f}".format(float(item.vat_rate))
-            item.vat_amount = "{:.2f}".format(float(item.vat_amount))
-            item.total_value = "{:.2f}".format(float(item.total_value))
-        except ValueError as e:
-            print(f"Error formatting line item: {e}")
-            raise ValueError(f"Invalid numeric value in line item: {item.product or item.description}")
+        amount_in_words += " and " + num2words(fractional_part, lang='en').title() + " Fils"
 
     # Render the template with all necessary data
     html = template.render({
         'invoice': invoice,
         'now': now(),
-        'amount_in_words': amount_in_words,  # Pass "Amount in Words" explicitly
-        'line_items': line_items,  # Pass formatted line items
+        'amount_in_words': amount_in_words  # Pass "Amount in Words" explicitly
     })
 
     # Generate PDF in memory
@@ -236,6 +222,11 @@ def home(request):
     if request.user.is_superuser:
         invoice_qs = Invoice.objects.all()
         total_customers = Customer.objects.count()
+    else:
+        invoice_qs = Invoice.objects.filter(created_by=request.user)
+        # Only customers served by this user
+        total_customers = Customer.objects.filter(invoice__created_by=request.user).distinct().count()
+
     # Use invoice_qs for all stats!
     sales_amount = invoice_qs.filter(status="paid").aggregate(total=Sum('total_amount'))['total'] or 0
     total_invoices = invoice_qs.count()
