@@ -192,7 +192,7 @@ class InvoiceLineItem(models.Model):
     description = models.TextField(blank=True, null=True)
     product = models.CharField(max_length=255, blank=True, null=True)
     quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1.00)
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=5, default=0.00)
     amount = models.DecimalField(max_digits=20, decimal_places=2, default=0.00)
     vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=5.00) # Changed default to 5%
     vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
