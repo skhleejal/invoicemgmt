@@ -108,24 +108,29 @@ def generate_invoice_pdf(request, pk):
     # Calculate "Amount in Words" with proper handling of fractional amounts
     integer_part = int(invoice.total_amount)
     fractional_part = round((invoice.total_amount - integer_part) * 100)
-    amount_in_words = num2words(integer_part, lang='en').title() + " Dirhams"
+    amount_in_words = f"{num2words(integer_part, lang='en').title()} Dirhams"
     if fractional_part > 0:
-        amount_in_words += " and " + num2words(fractional_part, lang='en').title() + " Fils"
+        amount_in_words += f" and {num2words(fractional_part, lang='en').title()} Fils"
 
     line_items = invoice.line_items.all()
     for item in line_items:
-        # Ensure numeric fields are converted to float before formatting
-        item.unit_price = "{:.2f}".format(float(item.unit_price))  # Format to 2 decimal places
-        item.taxable_value = "{:.2f}".format(float(item.taxable_value))
-        item.vat_rate = "{:.2f}".format(float(item.vat_rate))
-        item.vat_amount = "{:.2f}".format(float(item.vat_amount))
-        item.total_value = "{:.2f}".format(float(item.total_value))
+        try:
+            # Ensure numeric fields are converted to float before formatting
+            item.unit_price = "{:.2f}".format(float(item.unit_price))  # Format to 2 decimal places
+            item.taxable_value = "{:.2f}".format(float(item.taxable_value))
+            item.vat_rate = "{:.2f}".format(float(item.vat_rate))
+            item.vat_amount = "{:.2f}".format(float(item.vat_amount))
+            item.total_value = "{:.2f}".format(float(item.total_value))
+        except ValueError as e:
+            print(f"Error formatting line item: {e}")
+            raise ValueError(f"Invalid numeric value in line item: {item}")
 
     # Render the template with all necessary data
     html = template.render({
         'invoice': invoice,
         'now': now(),
-        'amount_in_words': amount_in_words  # Pass "Amount in Words" explicitly
+        'amount_in_words': amount_in_words,  # Pass "Amount in Words" explicitly
+        'line_items': line_items,  # Pass formatted line items
     })
 
     # Generate PDF in memory
@@ -621,11 +626,6 @@ def import_invoices_from_excel(request):
                 invoice_number = row.get("Invoice Number")
                 invoice_number = str(int(invoice_number)).strip() if pd.notna(invoice_number) else None
 
-                # --- Check for Duplicate Invoice Number ---
-                if invoice_number and Invoice.objects.filter(invoice_number=invoice_number).exists():
-                    messages.warning(request, f"⚠️ Skipped duplicate invoice number: {invoice_number}")
-                    continue
-
                 # --- Create/Get Customer ---
                 customer, _ = Customer.objects.get_or_create(
                     name=customer_name,
@@ -853,6 +853,7 @@ from django.forms import inlineformset_factory
 #             return redirect('quotation_list')
 #     else:
 #         form = QuotationForm()
+#         formset = QuotationLineItemFormSet()
 #     return render(request, 'invoicemgmt/quotation_form.html', {'form': form, 'formset': formset})
 
 # @login_required
