@@ -53,13 +53,13 @@ def number_to_words(n, currency='AED'):
         integer_part = int(n)
         fractional_part = round((n - integer_part) * 100)  # Round fractional part to two decimal places
         
-        words = num2words(integer_part, lang='en').title()
+        words = num2words(integer_part, lang='en').replace(" and ", " ").title() + " Dirhams"
         
         if currency == 'AED':
             if fractional_part > 0:
-                words += f" Dirhams and " + num2words(fractional_part, lang='en').title() + " Fils"
+                words += " and " + num2words(fractional_part, lang='en').replace(" and ", " ").title() + " Fils"
             else:
-                words += " Dirhams Only"
+                words += "  Only"
         else:
             if fractional_part > 0:
                 words += f" {currency} and " + num2words(fractional_part, lang='en').title() + " Cents"
@@ -255,7 +255,8 @@ class Purchase(models.Model):
         vat = 0
         if self.pk:
             for item in self.line_items.all():
-                total += item.amount
+                total += item.amount 
+
                 vat += item.vat_amount
         self.total_amount = total + vat
         self.vat_amount = vat
