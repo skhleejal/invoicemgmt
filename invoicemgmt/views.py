@@ -90,6 +90,14 @@ def register(request):
     return render(request, 'registration/register.html', {'form': form})
 
 from num2words import num2words
+from num2words import num2words
+from django.shortcuts import get_object_or_404
+from django.template.loader import get_template
+from django.utils.timezone import now
+from xhtml2pdf import pisa
+from io import BytesIO
+from django.http import HttpResponse
+import base64
 
 @permission_required('invoicemgmt.view_invoice', raise_exception=True)
 @login_required
@@ -97,8 +105,12 @@ def generate_invoice_pdf(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     template = get_template('invoicemgmt/invoice_pdf.html')
 
-    # Calculate "Amount in Words" using num2words
-    amount_in_words = num2words(invoice.total_amount, lang='en') + " AED"
+    # Calculate "Amount in Words" with proper handling of fractional amounts
+    integer_part = int(invoice.total_amount)
+    fractional_part = round((invoice.total_amount - integer_part) * 100)
+    amount_in_words = num2words(integer_part, lang='en').title() + " Dirhams"
+    if fractional_part > 0:
+        amount_in_words += " and " + num2words(fractional_part, lang='en').title() + " Fils"
 
     # Render the template with all necessary data
     html = template.render({
@@ -126,12 +138,17 @@ def generate_invoice_pdf(request, pk):
             "Filename": f"Invoice_{invoice.pk}.pdf",
             "Base64Content": base64.b64encode(pdf_content).decode('utf-8')
         }]
-        status, response = send_mailjet_email(
-            subject=f"Invoice #{invoice.pk} from Sherook Kalba",
-            body=email_body,
-            to_email=customer_email,
-            attachments=attachment
-        )
+        try:
+            status, response = send_mailjet_email(
+                subject=f"Invoice #{invoice.pk} from Sherook Kalba",
+                body=email_body,
+                to_email=customer_email,
+                attachments=attachment
+            )
+            if status != 200:
+                print(f"Error sending email: {response}")
+        except Exception as e:
+            print(f"Email sending failed: {e}")
 
     # Return the PDF as a response
     response = HttpResponse(pdf_file.getvalue(), content_type='application/pdf')
