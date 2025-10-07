@@ -94,6 +94,8 @@ class Customer(models.Model):
 
 
 class Invoice(models.Model):
+    INVOICE_TYPE_CHOICES = (('Receipt', 'Receipt'), ('Invoice', 'Invoice'))  # Define choices as a class-level constant
+
     invoice_number = models.CharField(max_length=100, unique=True, blank=True)
     invoice_date = models.DateField()
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
@@ -104,7 +106,6 @@ class Invoice(models.Model):
     do_date = models.DateField(blank=True, null=True)
     ship_to = models.CharField(max_length=255, blank=True, null=True)
     total_taxable = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    
     total_vat = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     payment_method = models.CharField(max_length=100, blank=True, null=True, default="30 days credit")
@@ -112,10 +113,9 @@ class Invoice(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='invoices')
 
-    invoice_type_choices = (('Receipt', 'Receipt'), ('Invoice', 'Invoice'),)
-    invoice_type = models.CharField(max_length=50, choices=self.invoice_type_choices, blank=True, null=True, default='')
+    invoice_type = models.CharField(max_length=50, choices=INVOICE_TYPE_CHOICES, blank=True, null=True, default='')
 
-    STATUS_CHOICES = [('open', 'Open'), ('paid', 'Paid'),]
+    STATUS_CHOICES = [('open', 'Open'), ('paid', 'Paid')]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
     
     # --- NEW: Central method to update totals ---
