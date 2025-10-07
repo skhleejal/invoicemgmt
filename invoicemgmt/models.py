@@ -48,23 +48,25 @@ COUNTRY_PHONE_CODES = {
 COUNTRY_CHOICES = [(c, c) for c in COUNTRY_CURRENCY.keys()]
 
 # ----- Utils -----
-def number_to_words(n, currency='USD'):
+def number_to_words(n, currency='AED'):
     try:
-        if currency in ['USD', 'INR', 'EUR', 'GBP']:
-            return num2words(n, to='currency', lang='en', currency=currency)
-        else:
-            # Format for AED and other currencies
-            integer_part = int(n)
-            fractional_part = int((n - integer_part) * 100)
-            
-            words = num2words(integer_part, lang='en').title()
-            
+        integer_part = int(n)
+        fractional_part = round((n - integer_part) * 100)  # Round fractional part to two decimal places
+        
+        words = num2words(integer_part, lang='en').title()
+        
+        if currency == 'AED':
             if fractional_part > 0:
-                words += f" {currency} and " + num2words(fractional_part, lang='en') + " fils"
+                words += f" Dirhams and " + num2words(fractional_part, lang='en').title() + " Fils"
             else:
-                words += f" {currency} only"
-            return words
-            
+                words += " Dirhams Only"
+        else:
+            if fractional_part > 0:
+                words += f" {currency} and " + num2words(fractional_part, lang='en').title() + " Cents"
+            else:
+                words += f" {currency} Only"
+        
+        return words
     except Exception:
         return str(n)
 
@@ -102,6 +104,7 @@ class Invoice(models.Model):
     do_date = models.DateField(blank=True, null=True)
     ship_to = models.CharField(max_length=255, blank=True, null=True)
     total_taxable = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    
     total_vat = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     payment_method = models.CharField(max_length=100, blank=True, null=True, default="30 days credit")
