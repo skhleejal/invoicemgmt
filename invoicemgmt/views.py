@@ -112,6 +112,14 @@ def generate_invoice_pdf(request, pk):
     if fractional_part > 0:
         amount_in_words += " and " + num2words(fractional_part, lang='en').title() + " Fils"
 
+    line_items = invoice.line_items.all()
+    for item in line_items:
+        item.unit_price = "{:.2f}".format(item.unit_price)  # Format to 2 decimal places
+        item.taxable_value = "{:.2f}".format(item.taxable_value)
+        item.vat_rate = "{:.2f}".format(item.vat_rate)
+        item.vat_amount = "{:.2f}".format(item.vat_amount)
+        item.total_value = "{:.2f}".format(item.total_value)
+
     # Render the template with all necessary data
     html = template.render({
         'invoice': invoice,
