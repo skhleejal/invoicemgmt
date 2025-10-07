@@ -123,7 +123,7 @@ def generate_invoice_pdf(request, pk):
             item.total_value = "{:.2f}".format(float(item.total_value))
         except ValueError as e:
             print(f"Error formatting line item: {e}")
-            raise ValueError(f"Invalid numeric value in line item: {item}")
+            raise ValueError(f"Invalid numeric value in line item: {item.product or item.description}")
 
     # Render the template with all necessary data
     html = template.render({
