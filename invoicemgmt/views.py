@@ -466,7 +466,10 @@ def invoice_list(request):
     # Dynamically calculate "Amount in Words" for each invoice
     for invoice in invoices:
         invoice.amount_in_words = num2words(invoice.total_amount, lang='en') + " AED"
-    invoices = Invoice.objects.all().order_by('-invoice_number')  # Order by invoice_number
+    
+    # Order the filtered invoices by invoice_number
+    invoices = invoices.order_by('-invoice_number')  # Apply ordering to the filtered queryset
+    
     return render(request, 'invoicemgmt/invoice_list.html', {'invoices': invoices, 'query': query})
 
 
@@ -586,10 +589,6 @@ def update_invoice(request, pk):
 @login_required
 @permission_required('invoicemgmt.add_invoice', raise_exception=True)
 def import_invoices_from_excel(request):
-    if request.method == "POST" and request.FILES.get("excel_file"):
-        file = request.FILES["excel_file"]
-        filepath = default_storage.save(file.name, file)
-        df = pd.read_excel(default_storage.path(filepath))
     if request.method == "POST" and request.FILES.get("excel_file"):
         file = request.FILES["excel_file"]
         filepath = default_storage.save(file.name, file)
