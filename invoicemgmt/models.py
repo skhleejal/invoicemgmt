@@ -237,6 +237,10 @@ class Purchase(models.Model):
     purchase_number = models.CharField(max_length=50, unique=True) 
 
     def save(self, *args, **kwargs):
+        if not self.purchase_number:  # Assign a sequential number if not set
+            last_purchase = Purchase.objects.exclude(pk=self.pk).order_by('-purchase_number').first()
+            self.purchase_number = (last_purchase.purchase_number + 1) if last_purchase else 1
+        super().save(*args, **kwargs)
         # if not self.purchase_number:
         #     with transaction.atomic():
         #         latest = Purchase.objects.select_for_update().filter(
@@ -256,7 +260,12 @@ class Purchase(models.Model):
         self.total_amount = total + vat
         self.vat_amount = vat
         super().save(*args, **kwargs)
-
+@receiver(post_delete, sender=Purchase)
+def reset_purchase_numbers(sender, instance, **kwargs):
+    purchases = Purchase.objects.order_by('purchase_number')
+    for index, purchase in enumerate(purchases, start=1):
+        purchase.purchase_number = index
+        purchase.save()
 
 class PurchaseLineItem(models.Model):
     purchase = models.ForeignKey('Purchase', related_name='line_items', on_delete=models.CASCADE)

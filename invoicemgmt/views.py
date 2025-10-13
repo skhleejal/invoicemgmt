@@ -684,12 +684,30 @@ def purchase_summary(request, pk):
     
 @login_required
 def purchase_pdf(request, pk):
+    from num2words import num2words
     purchase = get_object_or_404(Purchase, pk=pk)
-    html_string = render_to_string('invoicemgmt/purchase_pdf.html', {'purchase': purchase})
-    html = HTML(string=html_string)
-    pdf_file = html.write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename=purchase_{purchase.purchase_number}.pdf'
+
+    # Format numeric values for line items
+    line_items = purchase.line_items.all()
+    for item in line_items:
+        item.unit_price = "{:.2f}".format(float(item.unit_price))
+        item.taxable_amount = "{:.2f}".format(float(item.taxable_amount))
+        item.vat_amount = "{:.2f}".format(float(item.vat_amount))
+        item.total_amount = "{:.2f}".format(float(item.total_amount))
+
+    # Convert total amount to words
+    amount_in_words = num2words(purchase.total_amount, lang='en') + ' AED' if hasattr(purchase, 'total_amount') else ''
+
+    # Render the template
+    template = get_template('invoicemgmt/purchase_pdf.html')
+    html = template.render({'purchase': purchase, 'line_items': line_items, 'amount_in_words': amount_in_words})
+    pdf_file = BytesIO()
+    pisa_status = pisa.CreatePDF(html, dest=pdf_file)
+    if pisa_status.err:
+        return HttpResponse('PDF generation failed', status=500)
+    pdf_file.seek(0)
+    response = HttpResponse(pdf_file.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Purchase_{purchase.pk}.pdf"'
     return response
 
 @login_required
@@ -737,7 +755,7 @@ def purchase_create(request):
     PurchaseLineItemFormSet = inlineformset_factory(
         Purchase, PurchaseLineItem,
         form=PurchaseLineItemForm,
-        extra=1, can_delete=True
+        extra=4, can_delete=True
     )
     if request.method == 'POST':
         purchase_form = PurchaseForm(request.POST)
