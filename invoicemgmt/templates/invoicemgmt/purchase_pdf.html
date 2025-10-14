@@ -181,7 +181,7 @@
                 <td colspan="5" class="right bold">TOTAL</td>
                 <td class="right bold">{{ purchase.total_amount|floatformat:2 }}</td>
                 <td class="right bold">{{ purchase.vat_amount|floatformat:2 }}</td>
-                <td class="right bold">{{ purchase.total_amount|add:purchase.vat_amount|floatformat:2 }}</td> <!-- Correct Grand Total -->
+                <td class="right bold">{{ purchase.total_amount|floatformat:2 }}</td> <!-- Correct Grand Total -->
             </tr>
         </tbody>
     </table>

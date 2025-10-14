@@ -237,35 +237,20 @@ class Purchase(models.Model):
     purchase_number = models.CharField(max_length=50, unique=True) 
 
     def save(self, *args, **kwargs):
-        if not self.purchase_number:  # Assign a sequential number if not set
-            last_purchase = Purchase.objects.exclude(pk=self.pk).order_by('-purchase_number').first()
-            self.purchase_number = (last_purchase.purchase_number + 1) if last_purchase else 1
-        super().save(*args, **kwargs)
-        # if not self.purchase_number:
-        #     with transaction.atomic():
-        #         latest = Purchase.objects.select_for_update().filter(
-        #             purchase_number__regex=r'^\d+$'
-        #         ).aggregate(
-        #             max_number=Max('purchase_number')
-        #         )['max_number']
-        #         self.purchase_number = str(int(latest) + 1) if latest else '1000'
-        # Calculate totals if purchase already exists (has line items)
-        total = 0
-        vat = 0
+        if not self.purchase_number:
+            last_purchase = Purchase.objects.exclude(pk=self.pk).order_by('-created_at').first()
+            self.purchase_number = str(int(last_purchase.purchase_number) + 1) if last_purchase and last_purchase.purchase_number.isnumeric() else "1"
+
         if self.pk:
-            for item in self.line_items.all():
-                total += item.amount 
-                
-                vat += item.vat_amount
-        self.total_amount = total + vat
-        self.vat_amount = vat
+            aggregates = self.line_items.aggregate(
+                total_amount=Sum('amount'),
+                total_vat=Sum('vat_amount')
+            )
+            self.total_amount = aggregates['total_amount'] or Decimal('0.00')
+            self.vat_amount = aggregates['total_vat'] or Decimal('0.00')
+
         super().save(*args, **kwargs)
-@receiver(post_delete, sender=Purchase)
-def reset_purchase_numbers(sender, instance, **kwargs):
-    purchases = Purchase.objects.order_by('purchase_number')
-    for index, purchase in enumerate(purchases, start=1):
-        purchase.purchase_number = index
-        purchase.save()
+    
 
 class PurchaseLineItem(models.Model):
     purchase = models.ForeignKey('Purchase', related_name='line_items', on_delete=models.CASCADE)

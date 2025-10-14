@@ -37,7 +37,7 @@
         <table class="table table-bordered table-striped">
             <thead class="table-dark">
                 <tr>
-                    <th>Purchase ID</th>
+                    <th>Purchase ID</th> <!-- Use Purchase ID as the unique identifier -->
                     <th>Date</th>
                     <th>Supplier Name</th>
                     <th>Total Amount</th>
@@ -49,7 +49,7 @@
                     <tr>
                         <td>
                             <a href="{% url 'purchase_detail' purchase.pk %}">
-                                #{{ purchase.pk }}
+                                #{{ purchase.purchase_number }}
                             </a>
                         </td>
                         <td>{{ purchase.date }}</td>

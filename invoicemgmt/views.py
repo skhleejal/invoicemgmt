@@ -690,10 +690,9 @@ def purchase_pdf(request, pk):
     # Format numeric values for line items
     line_items = purchase.line_items.all()
     for item in line_items:
-        item.unit_price = "{:.2f}".format(float(item.unit_price))
-        item.taxable_amount = "{:.2f}".format(float(item.taxable_amount))
-        item.vat_amount = "{:.2f}".format(float(item.vat_amount))
-        item.total_amount = "{:.2f}".format(float(item.total_amount))
+        item.amount = Decimal(item.quantity) * Decimal(item.price)  # Correct calculation
+        item.vat_amount = item.amount * (Decimal(item.vat_rate) / Decimal('100'))  # Correct VAT calculation
+        item.total_aed = item.amount + item.vat_amount  # Correct Total AED calculation
 
     # Convert total amount to words
     amount_in_words = num2words(purchase.total_amount, lang='en') + ' AED' if hasattr(purchase, 'total_amount') else ''
