@@ -251,7 +251,8 @@ class Purchase(models.Model):
 class PurchaseLineItem(models.Model):
     purchase = models.ForeignKey('Purchase', related_name='line_items', on_delete=models.CASCADE)
     product = models.CharField(max_length=255)
-    quantity = models.PositiveIntegerField()
+    quantity = models.DecimalField(max_digits=10, decimal_places=2)  # Allow dec
+    # quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=5.00)
