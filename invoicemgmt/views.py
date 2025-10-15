@@ -42,7 +42,7 @@ from .forms import PurchaseForm, PurchaseLineItemForm
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from .utils import send_mailjet_email
-
+from decimal import Decimal 
 
 shop_name = "HIGH SPEED"
 
@@ -690,9 +690,10 @@ def purchase_pdf(request, pk):
     # Format numeric values for line items
     line_items = purchase.line_items.all()
     for item in line_items:
-        item.amount = Decimal(item.quantity) * Decimal(item.price)  # Correct calculation
-        item.vat_amount = item.amount * (Decimal(item.vat_rate) / Decimal('100'))  # Correct VAT calculation
-        item.total_aed = item.amount + item.vat_amount  # Correct Total AED calculation
+        # Correct calculations using Decimal for precision
+        item.amount = Decimal(item.quantity) * Decimal(item.price)  # Taxable Amount
+        item.vat_amount = item.amount * (Decimal(item.vat_rate) / Decimal('100'))  # VAT Amount
+        item.total_aed = item.amount + item.vat_amount  # Total AED
 
     # Convert total amount to words
     amount_in_words = num2words(purchase.total_amount, lang='en') + ' AED' if hasattr(purchase, 'total_amount') else ''
@@ -718,6 +719,15 @@ def purchase_list(request):
             Q(purchase_number__icontains=query) |
             Q(supplier_name__icontains=query)
         )
+    # Recalculate totals dynamically
+    for purchase in purchases:
+        total = Decimal('0.00')
+        vat = Decimal('0.00')
+        for item in purchase.line_items.all():
+            total += item.amount
+            vat += item.vat_amount
+        purchase.total_amount = total + vat
+        purchase.vat_amount = vat
     return render(request, "invoicemgmt/purchase_list.html", {
         "purchases": purchases,
         "query": query,

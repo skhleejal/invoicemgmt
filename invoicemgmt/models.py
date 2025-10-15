@@ -237,20 +237,16 @@ class Purchase(models.Model):
     purchase_number = models.CharField(max_length=50, unique=True) 
 
     def save(self, *args, **kwargs):
-        if not self.purchase_number:
-            last_purchase = Purchase.objects.exclude(pk=self.pk).order_by('-created_at').first()
-            self.purchase_number = str(int(last_purchase.purchase_number) + 1) if last_purchase and last_purchase.purchase_number.isnumeric() else "1"
-
+        # Calculate totals if purchase already exists (has line items)
+        total = Decimal('0.00')
+        vat = Decimal('0.00')
         if self.pk:
-            aggregates = self.line_items.aggregate(
-                total_amount=Sum('amount'),
-                total_vat=Sum('vat_amount')
-            )
-            self.total_amount = aggregates['total_amount'] or Decimal('0.00')
-            self.vat_amount = aggregates['total_vat'] or Decimal('0.00')
-
+            for item in self.line_items.all():
+                total += item.amount
+                vat += item.vat_amount
+        self.total_amount = total + vat
+        self.vat_amount = vat
         super().save(*args, **kwargs)
-    
 
 class PurchaseLineItem(models.Model):
     purchase = models.ForeignKey('Purchase', related_name='line_items', on_delete=models.CASCADE)
