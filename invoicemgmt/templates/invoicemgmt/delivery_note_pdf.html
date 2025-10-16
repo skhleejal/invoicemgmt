@@ -113,7 +113,8 @@
         <tr>
             <td width="50%">
                 <strong>To:</strong><br>
-                {{ note.delivery_to_name }}<br>
+                {{ note.company_name }}<br> 
+                <!-- {{ note.delivery_to_name }}<br> -->
                 {{ note.delivery_to_address }}<br>
                 Tel: {{ note.delivery_to_phone|default:"-" }} | Fax: {{ note.delivery_to_fax|default:"-" }}
             </td>
@@ -133,6 +134,7 @@
                 <th style="width: 50%;">Description</th>
                 <th style="width: 15%;">Unit</th>
                 <th style="width: 15%;">Quantity</th>
+                <th style="width: 15%;">Completed</th> <!-- Added Completed Column -->
             </tr>
         </thead>
         <tbody>
@@ -140,11 +142,12 @@
             <tr>
                 <td class="center">{{ forloop.counter }}</td>
                 <td>{{ item.description }}</td>
-                <td class="center">{{ item.unit }}</td>
+                <td class="center">{{ item.unit }}</td> <!-- Unit Column -->
                 <td class="center">{{ item.quantity }}</td>
+                <td class="center">{% if item.complete %}✔{% else %}✘{% endif %}</td> <!-- Completed Column -->
             </tr>
             {% empty %}
-            <tr><td colspan="4" class="center">No items delivered.</td></tr>
+            <tr><td colspan="5" class="center">No items delivered.</td></tr>
             {% endfor %}
         </tbody>
     </table>

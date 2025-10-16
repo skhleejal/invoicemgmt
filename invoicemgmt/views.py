@@ -1140,4 +1140,4 @@ def delivery_note_pdf(request, pk):
     pdf_file.seek(0)
     response = HttpResponse(pdf_file.getvalue(), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="delivery_note_{note.pk}.pdf"'
-    return response
+    return response  

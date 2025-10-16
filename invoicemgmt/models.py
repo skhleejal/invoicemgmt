@@ -298,4 +298,7 @@ class DeliveryNoteLineItem(models.Model):
     product_name = models.CharField(max_length=255, blank=True, null=True)  # Product name field
     description = models.CharField(max_length=255, blank=True)
     quantity = models.PositiveIntegerField()
+    unit = models.CharField(max_length=50, blank=True, null=True)  # Unit field
+    quantity = models.DecimalField(max_digits=10, decimal_places=2)  # Allow decimals for quantity
+   
     complete = models.BooleanField(default=False)
