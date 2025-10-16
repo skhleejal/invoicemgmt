@@ -144,7 +144,7 @@
                 <td>{{ item.description }}</td>
                 <td class="center">{{ item.unit }}</td> <!-- Unit Column -->
                 <td class="center">{{ item.quantity }}</td>
-                <td class="center">{% if item.complete %}✔{% else %}✘{% endif %}</td> <!-- Completed Column -->
+                <td class="center">{% if item.complete %} {% else %} {% endif %}</td> <!-- Completed Column -->
             </tr>
             {% empty %}
             <tr><td colspan="5" class="center">No items delivered.</td></tr>
@@ -155,19 +155,19 @@
     <!-- Footer Section -->
     <div class="footer">
         <p>Materials Delivered To Your Store</p>
-        <p>For {{ note.company_name }}</p>
+        <!-- <p>For {{ note.company_name }}</p> -->
         <p>We have received the goods in good order and condition.</p>
     </div>
 
     <!-- Signature Section -->
     <div class="signature-container">
         <div class="signature-box signature-sender">
-            <p>For {{ note.company_name }}</p>
+            <p>Receiver Signature</p>
             <div class="signature-line"></div>
         </div>
 
         <div class="signature-box signature-receiver">
-            <p>Receiver Signature</p>
+            <p>For {{ note.company_name }}</p>
             <div class="signature-line"></div>
         </div>
     </div>

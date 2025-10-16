@@ -273,8 +273,8 @@ class DeliveryNote(models.Model):
     company_phone = models.CharField(max_length=50)
     delivery_to_name = models.CharField(max_length=255)
     delivery_to_address = models.TextField()
-    date = models.DateField()
-    due_date = models.DateField(blank=True, null=True)
+    date = models.DateField(default=now)
+    due_date = models.DateField(default=now,blank=True, null=True)
     # You can use a related model for line items if needed
     terms = models.TextField(blank=True, null=True)
     signature = models.CharField(max_length=255, blank=True, null=True)
@@ -301,4 +301,4 @@ class DeliveryNoteLineItem(models.Model):
     unit = models.CharField(max_length=50, blank=True, null=True)  # Unit field
     quantity = models.DecimalField(max_digits=10, decimal_places=2)  # Allow decimals for quantity
    
-    complete = models.BooleanField(default=False)
+    complete = models.BooleanField(blank=True)
