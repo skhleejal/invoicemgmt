@@ -123,8 +123,13 @@ class Invoice(models.Model):
             else:
                 last_number = int(last_invoice.invoice_number)
                 new_number = last_number + 1
+
+                # Ensure the new number is unique
+                while Invoice.objects.filter(invoice_number=str(new_number)).exists():
+                    new_number += 1
+
                 self.invoice_number = str(new_number)
-        
+    
         super().save(*args, **kwargs)
 
     # --- THIS IS THE TOTALS CALCULATION METHOD ---
