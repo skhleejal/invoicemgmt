@@ -108,11 +108,11 @@ WSGI_APPLICATION = 'djangoproject.wsgi.application'
 # }
 DATABASES = {
     'default': dj_database_url.parse(
-       "postgresql://postgres:uXgShSmyWVRHAUUMzQqcChAPXWptEpDr@tramway.proxy.rlwy.net:30399/railway"
+       "postgresql://postgres:WzJrcxLBalHKErKUEzJIaWwACHwGjMCe@metro.proxy.rlwy.net:42259/railway"
     )
 }
 
-# postgresql://postgres:WzJrcxLBalHKErKUEzJIaWwACHwGjMCe@metro.proxy.rlwy.net:42259/railway
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
