@@ -119,7 +119,7 @@ class Invoice(models.Model):
         if not self.invoice_number:
             last_invoice = Invoice.objects.all().order_by('pk').last()
             if not last_invoice:
-                self.invoice_number = "1027"
+                self.invoice_number = "1062"
             else:
                 last_number = int(last_invoice.invoice_number)
                 new_number = last_number + 1
