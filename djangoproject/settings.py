@@ -31,7 +31,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
         'invoicemgmt-production.up.railway.app',
-        'https://invoicemgmt-6ygu.onrender.com'
+        'invoicemgmt-6ygu.onrender.com'
         'localhost',
         '127.0.0.1'
 ]
