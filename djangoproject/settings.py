@@ -31,6 +31,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
         'invoicemgmt-production.up.railway.app',
+        'https://invoicemgmt-6ygu.onrender.com'
         'localhost',
         '127.0.0.1'
 ]
@@ -111,6 +112,7 @@ DATABASES = {
     )
 }
 
+# postgresql://postgres:WzJrcxLBalHKErKUEzJIaWwACHwGjMCe@metro.proxy.rlwy.net:42259/railway
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
