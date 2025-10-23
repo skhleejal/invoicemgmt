@@ -1,0 +1,19 @@
+<h1>Statement for {{ customer.name }} - Month: {{ month }}</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Invoice Number</th>
+            <th>Date</th>
+            <th>Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for invoice in invoices %}
+        <tr>
+            <td>{{ invoice.invoice_number }}</td>
+            <td>{{ invoice.invoice_date }}</td>
+            <td>{{ invoice.total_amount }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

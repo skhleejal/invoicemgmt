@@ -1,0 +1,21 @@
+<h1>Total Statement for {{ customer.name }}</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Month</th>
+            <th>Total Amount</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for total in monthly_totals %}
+        <tr>
+            <td>{{ total.month }}</td>
+            <td>{{ total.total_amount }}</td>
+            <td>
+                <a href="{% url 'generate_statement_pdf' customer.id total.month.month %}" class="btn btn-primary">Generate PDF</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

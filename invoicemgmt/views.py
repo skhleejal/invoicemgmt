@@ -1141,3 +1141,54 @@ def delivery_note_pdf(request, pk):
     response = HttpResponse(pdf_file.getvalue(), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="delivery_note_{note.pk}.pdf"'
     return response  
+
+
+def customer_total_statement(request, customer_id):
+    customer = get_object_or_404(Customer, pk=customer_id)
+    invoices = Invoice.objects.filter(customer=customer)
+    monthly_totals = invoices.annotate(month=TruncMonth('invoice_date')).values('month').annotate(
+        total_amount=Sum('total_amount')
+    )
+    return render(request, 'invoicemgmt/customer_total_statement.html', {
+        'customer': customer,
+        'invoices': invoices,
+        'monthly_totals': monthly_totals,
+    })
+
+def customer_paid_statement(request, customer_id):
+    customer = get_object_or_404(Customer, pk=customer_id)
+    invoices = Invoice.objects.filter(customer=customer, status='paid')
+    monthly_totals = invoices.annotate(month=TruncMonth('invoice_date')).values('month').annotate(
+        total_amount=Sum('total_amount')
+    )
+    return render(request, 'invoicemgmt/customer_paid_statement.html', {
+        'customer': customer,
+        'invoices': invoices,
+        'monthly_totals': monthly_totals,
+    })
+
+def customer_unpaid_statement(request, customer_id):
+    customer = get_object_or_404(Customer, pk=customer_id)
+    invoices = Invoice.objects.filter(customer=customer, status='open')
+    monthly_totals = invoices.annotate(month=TruncMonth('invoice_date')).values('month').annotate(
+        total_amount=Sum('total_amount')
+    )
+    return render(request, 'invoicemgmt/customer_unpaid_statement.html', {
+        'customer': customer,
+        'invoices': invoices,
+        'monthly_totals': monthly_totals,
+    })
+
+def generate_statement_pdf(request, customer_id, month):
+    customer = get_object_or_404(Customer, pk=customer_id)
+    invoices = Invoice.objects.filter(customer=customer, invoice_date__month=month)
+    template_path = 'invoicemgmt/customer_statement_pdf.html'
+    context = {'customer': customer, 'invoices': invoices, 'month': month}
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="statement_{customer.name}_{month}.pdf"'
+    template = get_template(template_path)
+    html = template.render(context)
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
