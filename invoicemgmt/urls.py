@@ -64,8 +64,9 @@ urlpatterns += [
      path('delivery-notes/', views.delivery_note_list, name='delivery_note_list'),
     path('delivery-notes/create/', views.create_delivery_note, name='create_delivery_note'),
     path('delivery-notes/<int:pk>/', views.delivery_note_detail, name='delivery_note_detail'),
-    # path('delivery-notes/<int:pk>/pdf/', views.delivery_note_pdf, name='delivery_note_pdf'),
     path('delivery-notes/<int:pk>/pdf/', views.delivery_note_pdf, name='delivery_note_pdf'),
+    path('delivery-notes/<int:pk>/pdf/', views.delivery_note_pdf, name='delivery_note_pdf'),
+    
     path('customer/<int:customer_id>/total/', views.customer_total_statement, name='customer_total_statement'),
     path('customer/<int:customer_id>/paid/', views.customer_paid_statement, name='customer_paid_statement'),
     path('customer/<int:customer_id>/unpaid/', views.customer_unpaid_statement, name='customer_unpaid_statement'),

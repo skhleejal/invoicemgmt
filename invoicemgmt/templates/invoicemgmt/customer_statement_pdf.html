@@ -1,19 +1,97 @@
-<h1>Statement for {{ customer.name }} - Month: {{ month }}</h1>
-<table>
-    <thead>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Statement for {{ customer.name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        p {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .summary-table {
+            width: 100%;
+            margin-bottom: 20px;
+            border-collapse: collapse;
+        }
+        .summary-table th, .summary-table td {
+            text-align: left;
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .summary-table th {
+            background-color: #f2f2f2;
+        }
+        .statement-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .statement-table th, .statement-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .statement-table th {
+            background-color: #f2f2f2;
+            text-align: center;
+        }
+        .text-right {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <h1>Statement for {{ customer.name }}</h1>
+    <p>Month: {{ month }}</p>
+
+    <!-- Account Summary Section -->
+    <table class="summary-table">
         <tr>
-            <th>Invoice Number</th>
-            <th>Date</th>
-            <th>Amount</th>
+            <th>Opening Balance:</th>
+            <td class="text-right">{{ opening_balance }}</td>
         </tr>
-    </thead>
-    <tbody>
-        {% for invoice in invoices %}
         <tr>
-            <td>{{ invoice.invoice_number }}</td>
-            <td>{{ invoice.invoice_date }}</td>
-            <td>{{ invoice.total_amount }}</td>
+            <th>Invoiced Amount:</th>
+            <td class="text-right">{{ invoiced_amount }}</td>
         </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        <tr>
+            <th>Amount Paid:</th>
+            <td class="text-right">{{ amount_paid }}</td>
+        </tr>
+        <tr>
+            <th>Balance Due:</th>
+            <td class="text-right">{{ balance_due }}</td>
+        </tr>
+    </table>
+
+    <!-- Detailed Statement Section -->
+    <table class="statement-table">
+        <thead>
+            <tr>
+                <th>Invoice Number</th>
+                <th>Date</th>
+                <th class="text-right">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for invoice in invoices %}
+            <tr>
+                <td>{{ invoice.invoice_number }}</td>
+                <td>{{ invoice.invoice_date }}</td>
+                <td class="text-right">{{ invoice.total_amount }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
