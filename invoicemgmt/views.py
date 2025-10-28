@@ -1196,6 +1196,50 @@ def customer_unpaid_statement(request, customer_id):
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum
 
+# def generate_statement_pdf(request, customer_id, month):
+#     customer = get_object_or_404(Customer, pk=customer_id)
+
+#     # Calculate opening balance (sum of payments before the month)
+#     opening_balance = Invoice.objects.filter(customer=customer, invoice_date__lt=f"2025-{month}-01").aggregate(
+#         total_paid=Sum('total_amount')
+#     )['total_paid'] or 0
+
+#     # Calculate invoiced amount for the month
+#     invoiced_amount = Invoice.objects.filter(customer=customer, invoice_date__month=month).aggregate(
+#         total_invoiced=Sum('total_amount')
+#     )['total_invoiced'] or 0
+
+#     # Calculate amount paid for the month
+#     amount_paid = Invoice.objects.filter(customer=customer, invoice_date__month=month, status='paid').aggregate(
+#         total_paid=Sum('total_amount')
+#     )['total_paid'] or 0
+
+#     # Calculate balance due
+#     balance_due = opening_balance + invoiced_amount - amount_paid
+
+#     # Prepare statement entries
+#     # invoices = Invoice.objects.filter(customer=customer, invoice_date__month=month)
+#     invoices = Invoice.objects.filter(customer=customer, invoice_date__month=month).order_by('invoice_number')
+#     # Render the PDF
+#     template_path = 'invoicemgmt/customer_statement_pdf.html'
+#     context = {
+#         'customer': customer,
+#         'month': month,
+#         'opening_balance': opening_balance,
+#         'invoiced_amount': invoiced_amount,
+#         'amount_paid': amount_paid,
+#         'balance_due': balance_due,
+#         'invoices': invoices,
+#     }
+#     response = HttpResponse(content_type='application/pdf')
+#     response['Content-Disposition'] = f'attachment; filename="statement_{customer.name}_{month}.pdf"'
+#     template = get_template(template_path)
+#     html = template.render(context)
+#     pisa_status = pisa.CreatePDF(html, dest=response)
+#     if pisa_status.err:
+#         return HttpResponse('We had some errors <pre>' + html + '</pre>')
+#     return response
+
 def generate_statement_pdf(request, customer_id, month):
     customer = get_object_or_404(Customer, pk=customer_id)
 
@@ -1217,17 +1261,20 @@ def generate_statement_pdf(request, customer_id, month):
     # Calculate balance due
     balance_due = opening_balance + invoiced_amount - amount_paid
 
-    # Prepare statement entries
-    # invoices = Invoice.objects.filter(customer=customer, invoice_date__month=month)
+    # Prepare statement entries (ordered by invoice number in ascending order)
     invoices = Invoice.objects.filter(customer=customer, invoice_date__month=month).order_by('invoice_number')
+
+    # Add PO pending amount and amount paid to each invoice dynamically
+    for invoice in invoices:
+        # Dynamically calculate amount paid based on status
+        invoice.amount_paid = invoice.total_amount if invoice.status == 'paid' else 0
+        invoice.po_pending_amount = invoice.total_amount - invoice.amount_paid
+
     # Render the PDF
     template_path = 'invoicemgmt/customer_statement_pdf.html'
     context = {
         'customer': customer,
         'month': month,
-        'opening_balance': opening_balance,
-        'invoiced_amount': invoiced_amount,
-        'amount_paid': amount_paid,
         'balance_due': balance_due,
         'invoices': invoices,
     }

@@ -5,7 +5,7 @@
     <title>Statement for {{ customer.name }}</title>
     <style>
         @page {
-            margin-top: 5cm; /* Adds space for the letterhead */
+            margin-top: 5cm; /* Restores space for the letterhead */
             margin-left: 1cm;
             margin-right: 1cm;
             margin-bottom: 1cm;
@@ -15,12 +15,6 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-        }
-
-        .header {
-            text-align: center;
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
         }
 
         h1 {
@@ -33,22 +27,6 @@
             text-align: center;
             font-size: 14px;
             margin-bottom: 20px;
-        }
-
-        .summary-table {
-            width: 100%;
-            margin-bottom: 20px;
-            border-collapse: collapse;
-        }
-
-        .summary-table th, .summary-table td {
-            text-align: left;
-            padding: 8px;
-            border: 1px solid #ddd;
-        }
-
-        .summary-table th {
-            background-color: #f2f2f2;
         }
 
         .statement-table {
@@ -74,56 +52,38 @@
     </style>
 </head>
 <body>
-    <!-- Header Section -->
-    <div class="header">
-        <!-- Letterhead already includes the logo -->
-    </div>
-
     <h1>Statement for {{ customer.name }}</h1>
     <p>Month: {{ month }}</p>
-
-    <!-- Account Summary Section -->
-    <table class="summary-table">
-        <tr>
-            <th>Opening Balance:</th>
-            <td class="text-right">{{ opening_balance }}</td>
-        </tr>
-        <tr>
-            <th>Invoiced Amount:</th>
-            <td class="text-right">{{ invoiced_amount }}</td>
-        </tr>
-        <tr>
-            <th>Amount Paid:</th>
-            <td class="text-right">{{ amount_paid }}</td>
-        </tr>
-        <tr>
-            <th>Balance Due:</th>
-            <td class="text-right">{{ balance_due }}</td>
-        </tr>
-    </table>
 
     <!-- Detailed Statement Section -->
     <table class="statement-table">
         <thead>
             <tr>
+                <th>Serial No</th>
                 <th>Invoice Number</th>
                 <th>Date</th>
                 <th>Customer Name</th>
-                <th>Payment Status</th>
+                <th>PO Number</th>
+                <th>PO Pending Amount</th>
                 <th class="text-right">Amount</th>
             </tr>
         </thead>
         <tbody>
             {% for invoice in invoices %}
             <tr>
+                <td>{{ forloop.counter }}</td> <!-- Serial Number -->
                 <td>{{ invoice.invoice_number }}</td>
                 <td>{{ invoice.invoice_date }}</td>
                 <td>{{ invoice.customer.name }}</td>
-                <td>{{ invoice.status }}</td>
+                <td>{{ invoice.po_number }}</td> <!-- PO Number -->
+                <td>{{ invoice.po_pending_amount }}</td> <!-- PO Pending Amount -->
                 <td class="text-right">{{ invoice.total_amount }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <!-- Balance Due Section -->
+    <h3 class="text-right">Total Balance: {{ balance_due }}</h3>
 </body>
 </html>
