@@ -62,10 +62,10 @@
                 <th>Serial No</th>
                 <th>Invoice Number</th>
                 <th>Date</th>
-                <th>Customer Name</th>
-                <th>PO Number</th>
-                <th>PO Pending Amount</th>
-                <th class="text-right">Amount</th>
+                <th>PO Number</th> <!-- Added PO Number -->
+                <th>Amount</th>
+                <th>Pending Amount</th>
+                <th>Total Amount</th>
             </tr>
         </thead>
         <tbody>
@@ -74,10 +74,10 @@
                 <td>{{ forloop.counter }}</td> <!-- Serial Number -->
                 <td>{{ invoice.invoice_number }}</td>
                 <td>{{ invoice.invoice_date }}</td>
-                <td>{{ invoice.customer.name }}</td>
                 <td>{{ invoice.po_number }}</td> <!-- PO Number -->
+                <td class="text-right">{{ invoice.total_amount }}</td> <!-- Amount -->
                 <td>{{ invoice.po_pending_amount }}</td> <!-- PO Pending Amount -->
-                <td class="text-right">{{ invoice.total_amount }}</td>
+                <td class="text-right">{{ invoice.cumulative_total }}</td> <!-- Total Amount -->
             </tr>
             {% endfor %}
         </tbody>
