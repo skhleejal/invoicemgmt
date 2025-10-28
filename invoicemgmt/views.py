@@ -1218,8 +1218,8 @@ def generate_statement_pdf(request, customer_id, month):
     balance_due = opening_balance + invoiced_amount - amount_paid
 
     # Prepare statement entries
-    invoices = Invoice.objects.filter(customer=customer, invoice_date__month=month)
-
+    # invoices = Invoice.objects.filter(customer=customer, invoice_date__month=month)
+    invoices = Invoice.objects.filter(customer=customer, invoice_date__month=month).order_by('invoice_number')
     # Render the PDF
     template_path = 'invoicemgmt/customer_statement_pdf.html'
     context = {
