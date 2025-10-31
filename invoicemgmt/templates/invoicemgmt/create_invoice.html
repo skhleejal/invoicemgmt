@@ -41,7 +41,7 @@
 </div>
 </body>
 </html> -->
-
+<!-- 
 {% load static %}
 {% load crispy_forms_tags %}
 
@@ -69,30 +69,100 @@
     {% endif %}
 
     <form method="post">
-        {% csrf_token %}
-        {{ form|crispy }}
-        <hr>
-        <h4 class="mb-3">Line Items</h4>
-        {{ formset.management_form }}
-        {% for form in formset %}
-            <div class="mb-3 p-3 border rounded bg-light">
-                {% if form.product.errors %}
-                    <div class="text-danger mb-2">
-                        {{ form.product.errors }}
-                    </div>
-                {% endif %}
-                {{ form|crispy }}
-                {% if form.instance.pk %}
-                    <div class="form-check mt-2">
-                        {{ form.DELETE }} <label class="form-check-label">Delete</label>
-                    </div>
-                {% endif %}
-            </div>
-        {% endfor %}
-        <div class="text-center">
-            <button type="submit" class="btn btn-primary px-4 py-2">Save {{ document_type|title }}</button>
+    {% csrf_token %}
+    {{ form|crispy }}
+    <hr>
+    <h4 class="mb-3">Line Items</h4>
+    {{ formset.management_form }}
+    {% for form in formset %}
+        <div class="mb-3 p-3 border rounded bg-light">
+            {% if form.description_fk.errors %}
+                <div class="text-danger mb-2">
+                    {{ form.description_fk.errors }}
+                </div>
+            {% endif %}
+            {{ form|crispy }}
+            {% if form.instance.pk %}
+                <div class="form-check mt-2">
+                    {{ form.DELETE }} <label class="form-check-label">Delete</label>
+                </div>
+            {% endif %}
         </div>
-    </form>
+    {% endfor %}
+    <div class="text-center">
+        <button type="submit" class="btn btn-primary px-4 py-2">Save {{ document_type|title }}</button>
+    </div>
+</form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+ -->
+
+ {% load static %}
+{% load crispy_forms_tags %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create {{ document_type|title }}</title>
+    <link rel="stylesheet" href="{% static 'css/stylesheet.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5 mb-5 p-4 shadow rounded bg-white" style="max-width: 800px;">
+    <h2 class="mb-4 text-center">Create {{ document_type|title }}</h2>
+
+    {% if messages %}
+        <div class="mb-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <hr>
+    <h4 class="mb-3">Line Items</h4>
+    {{ formset.management_form }}
+    {% for form in formset %}
+        <div class="mb-3 p-3 border rounded bg-light">
+            <!-- Handle errors for description -->
+            {% if form.description.errors %}
+                <div class="text-danger mb-2">
+                    {{ form.description.errors }}
+                </div>
+            {% endif %}
+
+            <!-- Handle errors for description_fk -->
+            {% if form.description_fk.errors %}
+                <div class="text-danger mb-2">
+                    {{ form.description_fk.errors }}
+                </div>
+            {% endif %}
+
+            <!-- Render the form fields -->
+            {{ form|crispy }}
+
+            <!-- Delete checkbox for existing line items -->
+            {% if form.instance.pk %}
+                <div class="form-check mt-2">
+                    {{ form.DELETE }} <label class="form-check-label">Delete</label>
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+    <div class="text-center">
+        <button type="submit" class="btn btn-primary px-4 py-2">Save {{ document_type|title }}</button>
+    </div>
+</form>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

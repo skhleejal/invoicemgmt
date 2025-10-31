@@ -1,4 +1,4 @@
-<!-- {% load crispy_forms_tags %}
+{% load crispy_forms_tags %}
 {% load static %}
 <!DOCTYPE html>
 <html>
@@ -13,9 +13,9 @@
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Add Product</button>
+        <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to add this product?')">Add Product</button>
         <a href="{% url 'invoice_list' %}" class="btn btn-secondary">Back</a>
     </form>
 </div>
 </body>
-</html> -->
+</html>

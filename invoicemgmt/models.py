@@ -187,9 +187,13 @@ class Invoice(models.Model):
 
 
 
+
 class InvoiceLineItem(models.Model):
     invoice = models.ForeignKey(Invoice, related_name='line_items', on_delete=models.CASCADE)
     description = models.TextField(blank=True, null=True)
+    description_fk = models.ForeignKey(
+        'Product', on_delete=models.SET_NULL, null=True, blank=True, related_name='description_fk_items'
+    )  
     product = models.CharField(max_length=255, blank=True, null=True)
     quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1.00)
     unit_price = models.DecimalField(max_digits=10, decimal_places=3, default=0.00)
@@ -218,8 +222,6 @@ class InvoiceLineItem(models.Model):
     def total_value(self):
         """Calculates the sum of taxable value and VAT amount."""
         return self.taxable_value + self.vat_amount
-
-
 # --- NEW: Signal to automatically update Invoice totals ---
 @receiver([post_save, post_delete], sender=InvoiceLineItem)
 def update_invoice_on_line_item_change(sender, instance, **kwargs):
@@ -307,3 +309,14 @@ class DeliveryNoteLineItem(models.Model):
     quantity = models.DecimalField(max_digits=10, decimal_places=2)  # Allow decimals for quantity
    
     complete = models.BooleanField(blank=True)
+
+
+from django.db import models
+
+class Product(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    vat_rate = models.DecimalField(max_digits=5, decimal_places=2, default=5.0)  # Default VAT rate
+
+    def __str__(self):
+        return self.name

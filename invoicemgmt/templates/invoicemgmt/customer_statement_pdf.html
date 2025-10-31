@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Statement for {{ customer.name }}</title>
+    <title>Statement</title>
     <style>
         @page {
             margin-top: 5cm; /* Restores space for the letterhead */
@@ -20,13 +20,14 @@
         h1 {
             text-align: center;
             font-size: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 10px; /* Reduced margin for better alignment */
         }
 
-        p {
-            text-align: center;
+        .to-section {
+            text-align: left; /* Align "To" section to the left */
             font-size: 14px;
             margin-bottom: 20px;
+            margin-left: 1cm; /* Add left margin for better positioning */
         }
 
         .statement-table {
@@ -49,11 +50,26 @@
         .text-right {
             text-align: right;
         }
+
+        .totals-section {
+            margin-top: 20px;
+            text-align: right;
+            font-size: 16px;
+            margin-right: 1cm; /* Add right margin for better positioning */
+        }
     </style>
 </head>
 <body>
-    <h1>Statement for {{ customer.name }}</h1>
-    <p>Month: {{ month }}</p>
+    <!-- Header Section -->
+    <h1>Statement</h1>
+
+    <!-- To Section -->
+    <div class="to-section">
+        <strong>To:</strong><br>
+        {{ customer.name }}<br>
+        {{ customer.city }}, {{ customer.country }}<br>
+        <strong>Month:</strong> {{ month }}
+    </div>
 
     <!-- Detailed Statement Section -->
     <table class="statement-table">
@@ -62,7 +78,7 @@
                 <th>Serial No</th>
                 <th>Invoice Number</th>
                 <th>Date</th>
-                <th>PO Number</th> <!-- Added PO Number -->
+                <th>PO Number</th>
                 <th>Amount</th>
                 <th>Pending Amount</th>
                 <th>Total Amount</th>
@@ -71,19 +87,22 @@
         <tbody>
             {% for invoice in invoices %}
             <tr>
-                <td>{{ forloop.counter }}</td> <!-- Serial Number -->
+                <td>{{ forloop.counter }}</td>
                 <td>{{ invoice.invoice_number }}</td>
-                <td>{{ invoice.invoice_date }}</td>
-                <td>{{ invoice.po_number }}</td> <!-- PO Number -->
-                <td class="text-right">{{ invoice.total_amount }}</td> <!-- Amount -->
-                <td>{{ invoice.po_pending_amount }}</td> <!-- PO Pending Amount -->
-                <td class="text-right">{{ invoice.cumulative_total }}</td> <!-- Total Amount -->
+                <td>{{ invoice.invoice_date|date:"M d, Y" }}</td>
+                <td>{{ invoice.po_number|default:"N/A" }}</td>
+                <td class="text-right">{{ invoice.total_amount|floatformat:2 }}</td>
+                <td class="text-right">{{ invoice.po_pending_amount|floatformat:2 }}</td>
+                <td class="text-right">{{ invoice.cumulative_total|floatformat:2 }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <!-- Balance Due Section -->
-    <h3 class="text-right">Total Balance: {{ balance_due }}</h3>
+    <!-- Totals Section -->
+    <div class="totals-section">
+        <p><strong>Total for the Month:</strong> {{ invoices.last.cumulative_total|floatformat:2 }}</p>
+        <p><strong>Total Balance:</strong> {{ balance_due|floatformat:2 }}</p>
+    </div>
 </body>
 </html>

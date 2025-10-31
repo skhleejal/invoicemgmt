@@ -175,8 +175,15 @@
             <tr>
                 <td class="center">{{ forloop.counter }}</td>
                 <td>
-                    {% if item.product %}<strong>{{ item.product }}</strong><br>{% endif %}
-                    {{ item.description }}
+                    {% if item.product %}
+                        <strong>{{ item.product }}</strong><br>
+                    {% endif %}
+                    {% if item.description_fk %}
+                        <strong>{{ item.description_fk.name }}</strong><br>
+                    {% endif %}
+                    {% if item.description %}
+                        {{ item.description }}
+                    {% endif %}
                 </td>
                 <td class="center">{{ item.quantity }}</td>
                 <td class="right">{{ item.unit_price }}</td>

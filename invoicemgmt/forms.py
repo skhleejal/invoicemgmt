@@ -1,5 +1,5 @@
 from django import forms
-from .models import  Invoice, InvoiceLineItem, Customer
+from .models import  Invoice, InvoiceLineItem, Customer,Product
 from .models import Purchase, PurchaseLineItem,DeliveryNoteLineItem,DeliveryNote
 
 class CustomerForm(forms.ModelForm):
@@ -90,17 +90,21 @@ class InvoiceForm(forms.ModelForm):
             raise forms.ValidationError("Customer country is required for currency detection.")
         return customer
 
+        return customer
+
 class InvoiceLineItemForm(forms.ModelForm):
     class Meta:
         model = InvoiceLineItem
-        fields = ['product','description', 'quantity', 'unit_price', 'vat_rate', 'is_discount']
+        fields = ['product','description_fk','description', 'quantity', 'unit_price', 'vat_rate', 'is_discount']
         widgets = {
+            'description_fk': forms.Select(attrs={'class': 'form-control'}), 
             'description': forms.TextInput(attrs={'placeholder': 'Enter description'}),
             'unit_price': forms.NumberInput(attrs={'placeholder': 'Enter amount'}),
             'is_discount': forms.NumberInput(attrs={'placeholder': 'Enter discount amount', 'class': 'form-control'}),  # Change to numeric input
         }
         labels = {
             'product': 'Product*',
+            'description_fk': 'Product Description',
             'description': 'Description',
             'quantity': 'Quantity*',
             'unit_price': 'Unit Price*',
@@ -108,6 +112,7 @@ class InvoiceLineItemForm(forms.ModelForm):
             'is_discount': 'Discount Amount',  # Update label
         }
         help_texts = {
+            'description_fk': 'Select a product from the dropdown.',
             'description': 'Describe the item briefly.',
             'quantity': 'Quantity of the product.',
             'unit_price': 'Rate per unit.',
@@ -164,7 +169,11 @@ class DeliveryNoteForm(forms.ModelForm):
             'delivery_to_name', 'delivery_to_address', 'date', 'due_date',
             'terms', 'signature', 'signature_date'
         ]
-
+        widgets = {
+            'company_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'company_address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }
 
 DeliveryNoteLineItemFormSet = forms.inlineformset_factory(
     DeliveryNote,
@@ -173,3 +182,16 @@ DeliveryNoteLineItemFormSet = forms.inlineformset_factory(
     extra=20,
     can_delete=True
 )
+
+from django import forms
+from .models import Product
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = ['name', 'price', 'vat_rate']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control'}),
+            'vat_rate': forms.NumberInput(attrs={'class': 'form-control'}),
+        }

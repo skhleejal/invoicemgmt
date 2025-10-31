@@ -32,6 +32,15 @@ urlpatterns = [
     # path('products/<int:pk>/restock/', views.restock_product, name='restock_product'),
     # path('products/<int:pk>/delete/', views.delete_product, name='product_delete'),
     
+    # Other URLs...
+    path('products/', views.product_list, name='product_list'),
+    path('products/add/', views.add_product, name='add_products'),
+    path('products/<int:pk>/restock/', views.restock_product, name='restock_product'),
+    path('products/<int:pk>/delete/', views.delete_product, name='product_delete'),
+    path('products/<int:pk>/edit/', views.update_product, name='product_update'),  
+    # path('products/<int:pk>/edit/', views.edit_product, name='edit_product'),
+
+    
     path('purchases/create/', views.purchase_create, name='create_purchase'),
     path('purchases/<int:pk>/summary/', views.purchase_summary, name='purchase_summary'),
     path('purchases/', views.purchase_list, name='purchase_list'),

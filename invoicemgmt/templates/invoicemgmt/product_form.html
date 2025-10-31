@@ -1,4 +1,4 @@
-<!-- {% load crispy_forms_tags %}
+{% load crispy_forms_tags %}
 
 {% block title %}Edit Product{% endblock %}
 
@@ -7,9 +7,9 @@
     <h2>Edit Product</h2>
     <form method="post">
         {% csrf_token %}
-        {{ form|crispy }}
+        {{ form.as_p }}
         <button type="submit" class="btn btn-primary">Save Changes</button>
         <a href="{% url 'product_list' %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
-{% endblock %} -->
+{% endblock %}

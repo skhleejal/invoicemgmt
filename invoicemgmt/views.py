@@ -36,7 +36,7 @@ from .models import Invoice,  Customer
 from .models import Purchase
 from .forms import PurchaseForm
 from django.db.models import Q
-
+from .models import Product
 from .models import Purchase,PurchaseLineItem
 from .forms import PurchaseForm, PurchaseLineItemForm
 from django.core.mail import EmailMessage
@@ -1166,10 +1166,15 @@ def customer_total_statement(request, customer_id):
     invoices = Invoice.objects.filter(customer=customer)
     monthly_totals = invoices.annotate(month=TruncMonth('invoice_date')).values('month').annotate(
         total_amount=Sum('total_amount')
+
+    
     )
+    
+    current_month = datetime.now().month
+    total_for_month = invoices.filter(invoice_date__month=current_month).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
     return render(request, 'invoicemgmt/customer_total_statement.html', {
         'customer': customer,
-        'invoices': invoices,
+        'invoices': invoices,'total_for_month': total_for_month,
         'monthly_totals': monthly_totals,
     })
 
@@ -1251,3 +1256,73 @@ def generate_statement_pdf(request, customer_id, month):
     if pisa_status.err:
         return HttpResponse('PDF generation failed', status=500)
     return response
+
+from .models import Product
+from .forms import ProductForm
+from django.contrib.auth.decorators import login_required, permission_required
+
+@permission_required('invoicemgmt.view_product', raise_exception=True)
+@login_required
+def product_list(request):
+    products = Product.objects.all()
+    return render(request, 'invoicemgmt/product_list.html', {'products': products})
+
+@permission_required('invoicemgmt.add_product', raise_exception=True)
+@login_required
+def add_product(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Product added successfully.")
+            return redirect('product_list')
+    else:
+        form = ProductForm()
+    return render(request, 'invoicemgmt/add_products.html', {'form': form})
+
+@permission_required('invoicemgmt.change_product', raise_exception=True)
+@login_required
+def edit_product(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, instance=product)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Product updated successfully.")
+            return redirect('product_list')
+    else:
+        form = ProductForm(instance=product)
+    return render(request, 'invoicemgmt/edit_product.html', {'form': form, 'product': product})
+
+@login_required
+def restock_product(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        quantity = int(request.POST.get('quantity', 0))
+        if quantity > 0:
+            product.stock += quantity
+            product.save()
+            messages.success(request, f"{quantity} units added to {product.name}.")
+        else:
+            messages.error(request, "Invalid quantity.")
+    return redirect('product_list')
+
+@login_required
+def delete_product(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        product.delete()
+        messages.success(request, f"{product.name} has been deleted.")
+    return redirect('product_list')
+
+
+def update_product(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, instance=product)
+        if form.is_valid():
+            form.save()
+            return redirect('product_list')
+    else:
+        form = ProductForm(instance=product)
+    return render(request, 'invoicemgmt/product_form.html', {'form': form})
