@@ -1215,6 +1215,70 @@ def customer_unpaid_statement(request, customer_id):
         'monthly_totals': monthly_totals,
     })
 
+# def generate_statement_pdf(request, customer_id, month):
+#     customer = get_object_or_404(Customer, pk=customer_id)
+
+#     # Calculate opening balance (sum of payments before the month)
+#     opening_balance = Invoice.objects.filter(customer=customer, invoice_date__lt=f"2025-{month}-01").aggregate(
+#         total_paid=Sum('total_amount')
+#     )['total_paid'] or 0
+
+
+#     # Prepare statement entries (ordered by invoice number in ascending order)
+#     invoices = Invoice.objects.filter(customer=customer, invoice_date__month=month).select_related('customer').order_by('invoice_number')
+
+
+#     # Calculate invoiced amount for the month
+#     # invoiced_amount = Invoice.objects.filter(customer=customer, invoice_date__month=month).aggregate(
+#     #     total_invoiced=Sum('total_amount')
+#     # )['total_invoiced'] or 0
+# # FIX: Calculate invoiced_amount directly from the fetched invoices list
+#     invoiced_amount = sum((invoice.total_amount for invoice in invoices), Decimal(0)) or Decimal(0)
+#     # Calculate amount paid for the month
+#     amount_paid = Invoice.objects.filter(customer=customer, invoice_date__month=month, status='paid').aggregate(
+#         total_paid=Sum('total_amount')
+#     )['total_paid'] or 0
+
+#     # Calculate balance due
+#     balance_due = opening_balance + invoiced_amount - amount_paid
+
+#     # Add PO Pending Amount, PO Number, and cumulative total dynamically
+#     cumulative_total = 0
+#     total_for_month = 0
+#     for invoice in invoices:
+#         invoice.amount_paid = invoice.total_amount if invoice.status == 'paid' else 0
+#         invoice.po_pending_amount = invoice.total_amount - invoice.amount_paid
+#         invoice.po_number = invoice.po_number if invoice.po_number else "N/A"  # Handle missing PO Number
+#         cumulative_total += invoice.total_amount
+#         invoice.cumulative_total = cumulative_total
+#         total_for_month += invoice.total_amount
+#         # Only add unpaid invoices to the cumulative total
+#         if invoice.status != 'paid':
+#             cumulative_total += invoice.total_amount
+#         invoice.cumulative_total = cumulative_total  # Add cumulative total to each invoice
+#     issued_on = now().strftime("%d/%m/%Y")
+#     # Render the PDF
+#     template_path = 'invoicemgmt/customer_statement_pdf.html'
+#     context = {
+#         'customer': customer,
+#         'month': month,
+#         'issued_on': issued_on,
+#         'opening_balance': opening_balance,
+#         'invoices': invoices,
+#         'invoiced_amount': invoiced_amount,
+#         'amount_paid': amount_paid,
+#         'balance_due': balance_due,
+        
+#     }
+#     response = HttpResponse(content_type='application/pdf')
+#     response['Content-Disposition'] = f'attachment; filename="statement_{customer.name}_{month}.pdf"'
+#     template = get_template(template_path)
+#     html = template.render(context)
+#     pisa_status = pisa.CreatePDF(html, dest=response)
+#     if pisa_status.err:
+#         return HttpResponse('PDF generation failed', status=500)
+#     return response
+
 def generate_statement_pdf(request, customer_id, month):
     customer = get_object_or_404(Customer, pk=customer_id)
 
@@ -1223,17 +1287,12 @@ def generate_statement_pdf(request, customer_id, month):
         total_paid=Sum('total_amount')
     )['total_paid'] or 0
 
-
     # Prepare statement entries (ordered by invoice number in ascending order)
     invoices = Invoice.objects.filter(customer=customer, invoice_date__month=month).select_related('customer').order_by('invoice_number')
 
-
     # Calculate invoiced amount for the month
-    # invoiced_amount = Invoice.objects.filter(customer=customer, invoice_date__month=month).aggregate(
-    #     total_invoiced=Sum('total_amount')
-    # )['total_invoiced'] or 0
-# FIX: Calculate invoiced_amount directly from the fetched invoices list
     invoiced_amount = sum((invoice.total_amount for invoice in invoices), Decimal(0)) or Decimal(0)
+
     # Calculate amount paid for the month
     amount_paid = Invoice.objects.filter(customer=customer, invoice_date__month=month, status='paid').aggregate(
         total_paid=Sum('total_amount')
@@ -1244,27 +1303,36 @@ def generate_statement_pdf(request, customer_id, month):
 
     # Add PO Pending Amount, PO Number, and cumulative total dynamically
     cumulative_total = 0
+    total_for_month = 0
     for invoice in invoices:
         invoice.amount_paid = invoice.total_amount if invoice.status == 'paid' else 0
         invoice.po_pending_amount = invoice.total_amount - invoice.amount_paid
         invoice.po_number = invoice.po_number if invoice.po_number else "N/A"  # Handle missing PO Number
-        # Only add unpaid invoices to the cumulative total
-        if invoice.status != 'paid':
+
+        # Update cumulative total only for invoices with non-zero pending amounts
+        if invoice.po_pending_amount > 0:
             cumulative_total += invoice.total_amount
-        invoice.cumulative_total = cumulative_total  # Add cumulative total to each invoice
+
+        invoice.cumulative_total = cumulative_total
+
+        # Include only invoices with valid amounts in the total for the month
+        if invoice.total_amount > 0 and invoice.po_pending_amount > 0:
+            total_for_month += invoice.total_amount
+
+    # Current date for "Issued on"
     issued_on = now().strftime("%d/%m/%Y")
+
     # Render the PDF
     template_path = 'invoicemgmt/customer_statement_pdf.html'
     context = {
         'customer': customer,
-        'month': month,
         'issued_on': issued_on,
         'opening_balance': opening_balance,
         'invoices': invoices,
         'invoiced_amount': invoiced_amount,
         'amount_paid': amount_paid,
         'balance_due': balance_due,
-        
+        'total_for_month': total_for_month,  # Pass total for the month to the template
     }
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="statement_{customer.name}_{month}.pdf"'
@@ -1272,7 +1340,7 @@ def generate_statement_pdf(request, customer_id, month):
     html = template.render(context)
     pisa_status = pisa.CreatePDF(html, dest=response)
     if pisa_status.err:
-        return HttpResponse('PDF generation failed', status=500)
+        return HttpResponse('PDF generation failed due to an error in rendering.', status=500)
     return response
 
 from .models import Product

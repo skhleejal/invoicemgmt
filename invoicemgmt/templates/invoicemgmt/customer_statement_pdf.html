@@ -67,7 +67,7 @@
     <div class="to-section">
         <strong>To:</strong><br>
         {{ customer.name }}<br>
-        {{ customer.city }}, {{ customer.country }}{{customer.phone}}<br>
+        {{ customer.city }},{{customer.phone}}<br>
         
         <strong>Issued on:</strong> {{ issued_on }}
     </div>
@@ -102,7 +102,7 @@
 
     <!-- Totals Section -->
     <div class="totals-section">
-        <p><strong>Total for the Month:</strong> </p>   
+        <p><strong>Total for the Month:</strong> {{ total_for_month|floatformat:2 }}</p>
         <p><strong>Total Balance:</strong> {{ balance_due|floatformat:2 }}</p>
     </div>  
 </body>
