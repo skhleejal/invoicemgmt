@@ -20,6 +20,7 @@
                 <div>
                     <a href="{% url 'customer_detail' customer.pk %}" class="btn btn-info btn-sm me-2">View</a>
                     <a href="{% url 'delete_customer' customer.pk %}" class="btn btn-danger btn-sm">Delete</a>
+                     <a href="{% url 'edit_customer' customer.id %}" class="button edit-button">Edit</a>
                                     <a href="{% url 'customer_total_statement' customer.id %}" class="btn btn-info">Total</a>
                 <a href="{% url 'customer_paid_statement' customer.id %}" class="btn btn-success">Paid</a>
                 <a href="{% url 'customer_unpaid_statement' customer.id %}" class="btn btn-warning">Unpaid</a>

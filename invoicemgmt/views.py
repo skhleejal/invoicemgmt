@@ -481,6 +481,19 @@ def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     return render(request, 'invoicemgmt/customer_detail.html', {'customer': customer})
 
+
+@login_required
+def edit_customer(request, customer_id):
+    customer = get_object_or_404(Customer, pk=customer_id)
+    if request.method == 'POST':
+        form = CustomerForm(request.POST, instance=customer)
+        if form.is_valid():
+            form.save()
+            return redirect('customer_list')  # Redirect to the customer list after saving
+    else:
+        form = CustomerForm(instance=customer)
+    return render(request, 'invoicemgmt/edit_customer.html', {'form': form, 'customer': customer})
+
 @permission_required('invoicemgmt.change_product', raise_exception=True)
 @login_required
 def update_invoice(request, pk):
@@ -1210,11 +1223,17 @@ def generate_statement_pdf(request, customer_id, month):
         total_paid=Sum('total_amount')
     )['total_paid'] or 0
 
-    # Calculate invoiced amount for the month
-    invoiced_amount = Invoice.objects.filter(customer=customer, invoice_date__month=month).aggregate(
-        total_invoiced=Sum('total_amount')
-    )['total_invoiced'] or 0
 
+    # Prepare statement entries (ordered by invoice number in ascending order)
+    invoices = Invoice.objects.filter(customer=customer, invoice_date__month=month).select_related('customer').order_by('invoice_number')
+
+
+    # Calculate invoiced amount for the month
+    # invoiced_amount = Invoice.objects.filter(customer=customer, invoice_date__month=month).aggregate(
+    #     total_invoiced=Sum('total_amount')
+    # )['total_invoiced'] or 0
+# FIX: Calculate invoiced_amount directly from the fetched invoices list
+    invoiced_amount = sum((invoice.total_amount for invoice in invoices), Decimal(0)) or Decimal(0)
     # Calculate amount paid for the month
     amount_paid = Invoice.objects.filter(customer=customer, invoice_date__month=month, status='paid').aggregate(
         total_paid=Sum('total_amount')
@@ -1222,9 +1241,6 @@ def generate_statement_pdf(request, customer_id, month):
 
     # Calculate balance due
     balance_due = opening_balance + invoiced_amount - amount_paid
-
-    # Prepare statement entries (ordered by invoice number in ascending order)
-    invoices = Invoice.objects.filter(customer=customer, invoice_date__month=month).select_related('customer').order_by('invoice_number')
 
     # Add PO Pending Amount, PO Number, and cumulative total dynamically
     cumulative_total = 0
@@ -1236,17 +1252,19 @@ def generate_statement_pdf(request, customer_id, month):
         if invoice.status != 'paid':
             cumulative_total += invoice.total_amount
         invoice.cumulative_total = cumulative_total  # Add cumulative total to each invoice
-
+    issued_on = now().strftime("%d/%m/%Y")
     # Render the PDF
     template_path = 'invoicemgmt/customer_statement_pdf.html'
     context = {
         'customer': customer,
         'month': month,
+        'issued_on': issued_on,
         'opening_balance': opening_balance,
+        'invoices': invoices,
         'invoiced_amount': invoiced_amount,
         'amount_paid': amount_paid,
         'balance_due': balance_due,
-        'invoices': invoices,
+        
     }
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="statement_{customer.name}_{month}.pdf"'

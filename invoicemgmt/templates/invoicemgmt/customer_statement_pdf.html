@@ -67,8 +67,9 @@
     <div class="to-section">
         <strong>To:</strong><br>
         {{ customer.name }}<br>
-        {{ customer.city }}, {{ customer.country }}<br>
-        <strong>Month:</strong> {{ month }}
+        {{ customer.city }}, {{ customer.country }}{{customer.phone}}<br>
+        
+        <strong>Issued on:</strong> {{ issued_on }}
     </div>
 
     <!-- Detailed Statement Section -->
@@ -101,8 +102,8 @@
 
     <!-- Totals Section -->
     <div class="totals-section">
-        <p><strong>Total for the Month:</strong> {{ invoices.last.cumulative_total|floatformat:2 }}</p>
+        <p><strong>Total for the Month:</strong> </p>   
         <p><strong>Total Balance:</strong> {{ balance_due|floatformat:2 }}</p>
-    </div>
+    </div>  
 </body>
 </html>
