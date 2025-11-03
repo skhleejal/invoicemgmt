@@ -23,11 +23,25 @@
             margin-bottom: 10px; /* Reduced margin for better alignment */
         }
 
+        .header-table {
+            width: 100%;
+            margin-bottom: 0; /* Remove extra space below */
+        }
+
+        .header-table td {
+            vertical-align: top;
+            padding: 0;
+        }
+
         .to-section {
             text-align: left; /* Align "To" section to the left */
             font-size: 14px;
-            margin-bottom: 20px;
-            margin-left: 1cm; /* Add left margin for better positioning */
+            line-height: 1.5; /* Adjust line spacing for better readability */
+        }
+
+        .date-section {
+            text-align: right; /* Align "Date" section to the right */
+            font-size: 14px;
         }
 
         .statement-table {
@@ -57,25 +71,34 @@
             font-size: 16px;
             margin-right: 1cm; /* Add right margin for better positioning */
         }
+
+        .payment-instructions {
+            font-weight: bold;
+        }
+
+        .signature-section {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <!-- Header Section -->
     <h1>Statement</h1>
 
-    <!-- To Section -->
-    <div class="to-section" style="margin-bottom: 0px;"> <!-- Reduced margin-bottom -->
-        <strong>To:</strong><br>
-        {{ customer.name }}<br>
-        {{ customer.city }}<br>
-        <strong>Phone No:</strong> {{ customer.phone }}<br>
-        <strong>Fax:</strong>{{customer.fax}}
-    </div>
-
-     <!-- Date Section -->
-    <div style="text-align: right; margin-right: 1cm; margin-top: -10px; font-size: 14px;"> <!-- Adjusted margin-top -->
-        <strong>Date:</strong> {{ issued_on }}
-    </div>
+    <table class="header-table">
+        <tr>
+            <td class="to-section">
+                <strong>To:</strong><br>
+                {{ customer.name }}<br>
+                {{ customer.city }}<br>
+                <strong>Phone No:</strong> {{ customer.phone }}<br>
+                <strong>Fax:</strong> {{ customer.fax }}
+            </td>
+            <td class="date-section">
+                <strong>Date:</strong> {{ issued_on }}
+            </td>
+        </tr>
+    </table>
 
     <!-- Detailed Statement Section -->
     <table class="statement-table">
@@ -109,14 +132,16 @@
     <div class="totals-section">
         <p><strong>Total for the Month:</strong> {{ total_for_month|floatformat:2 }}</p>
         <p><strong>Total Balance:</strong> {{ balance_due|floatformat:2 }}</p>
-    </div>  
-        <div class="payment-instructions" style="font-weight: bold;">
+    </div>
+
+    <!-- Payment Instructions -->
+    <div class="payment-instructions">
         <p>You may please issue the cheque for due amount at the earliest.</p>
         <p>Payment by cheque in the favor of "<strong>HIGH SPEED GRAPHICS</strong>".</p>
     </div>
 
     <!-- Signature Section -->
-    <div class="signature-section" style="font-weight: bold;">
+    <div class="signature-section">
         <p>For HIGH SPEED GRAPHICS</p>
         <p>....................................................</p>
         <p>Accounts Manager</p>
