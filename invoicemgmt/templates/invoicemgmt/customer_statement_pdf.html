@@ -64,11 +64,12 @@
     <h1>Statement</h1>
 
     <!-- To Section -->
-    <div class="to-section" style="margin-bottom: 5px;"> <!-- Reduced margin-bottom -->
+    <div class="to-section" style="margin-bottom: 0px;"> <!-- Reduced margin-bottom -->
         <strong>To:</strong><br>
         {{ customer.name }}<br>
         {{ customer.city }}<br>
-        <strong>Phone No:</strong> {{ customer.phone }}
+        <strong>Phone No:</strong> {{ customer.phone }}<br>
+        <strong>Fax:</strong>{{customer.fax}}
     </div>
 
      <!-- Date Section -->
