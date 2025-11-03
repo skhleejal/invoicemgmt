@@ -36,7 +36,8 @@
         .to-section {
             text-align: left; /* Align "To" section to the left */
             font-size: 14px;
-            line-height: 1.5; /* Adjust line spacing for better readability */
+            line-height: 1.5;
+            margin-left: 1cm; /* Adjust line spacing for better readability */
         }
 
         .date-section {
@@ -88,11 +89,13 @@
     <table class="header-table">
         <tr>
             <td class="to-section">
-                <strong>To:</strong><br>
+                <strong>To:</strong>
                 {{ customer.name }}<br>
-                {{ customer.city }}<br>
+                <strong>Address:</strong>{{ customer.city }},{{customer.po_box}}<br>
                 <strong>Phone No:</strong> {{ customer.phone }}<br>
-                <strong>Fax:</strong> {{ customer.fax }}
+                <strong>Fax:</strong> {{ customer.fax }}<br><br>
+
+                   <strong>Attn:</strong> Accounts Department
             </td>
             <td class="date-section">
                 <strong>Date:</strong> {{ issued_on }}
