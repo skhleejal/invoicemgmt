@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title> Statement</title>
+    <style>
+        @page {
+            margin-top: 5cm; 
+            margin-left: 1cm;
+            margin-right: 1cm;
+            margin-bottom: 1cm;
+            size: a4;
+        }
+        /* ... (Keep all existing CSS for header, table, and footer from the last successful attempt) ... */
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            font-size: 10pt;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 18px; 
+            margin-bottom: 20px;
+        }
+
+        .header-table {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .header-table td {
+            vertical-align: top;
+            padding: 0;
+        }
+
+        .to-section {
+            text-align: left;
+            font-size: 11pt;
+            line-height: 1.5;
+        }
+
+        .date-section {
+            text-align: right;
+            font-size: 11pt;
+        }
+
+        /* --- Statement Table Styling (CRITICAL) --- */
+        .statement-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .statement-table th, .statement-table td {
+            border: 1px solid #ddd;
+            padding: 6px 4px; 
+            text-align: left;
+            word-wrap: break-word;
+        }
+
+        .statement-table th {
+            background-color: #f2f2f2;
+            text-align: center;
+            font-size: 10pt;
+        }
+        
+        .statement-table td {
+            font-size: 9pt;
+        }
+
+        /* Adjusted widths for 6 columns, totaling 100% */
+        .statement-table th:nth-child(1), .statement-table td:nth-child(1) {
+            width: 8%; /* Serial No */
+            text-align: center;
+        }
+
+        .statement-table th:nth-child(2), .statement-table td:nth-child(2) {
+            width: 18%; /* Invoice Number */
+        }
+
+        .statement-table th:nth-child(3), .statement-table td:nth-child(3) {
+            width: 18%; /* Date */
+        }
+
+        .statement-table th:nth-child(4), .statement-table td:nth-child(4) {
+            width: 21%; /* PO Number */
+        }
+
+        .statement-table th:nth-child(5), .statement-table td:nth-child(5) {
+            width: 17%; /* Pending Amount */
+        }
+
+        .statement-table th:nth-child(6), .statement-table td:nth-child(6) {
+            width: 18%; /* Total Amount (Running Balance) */
+        }
+        
+        .text-right {
+            text-align: right !important;
+        }
+
+        .totals-section {
+            margin-top: 20px;
+            text-align: right;
+            font-size: 12pt;
+            font-weight: bold;
+        }
+        .footer-details {
+            margin-top: 40px;
+            font-size: 10pt;
+        }
+        .payment-instructions {
+            font-weight: normal;
+        }
+        
+        .signature-section {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+    <h1> Statement </h1>
+
+    <table class="header-table">
+        <tr>
+            <td class="to-section">
+                <strong>To:</strong> {{ customer.name|default:"[Customer Name]" }}<br>
+                <strong>Address:</strong> {{ customer.city|default:"[City]" }}, {{customer.po_box|default:"[PO Box]"}}<br>
+                <strong>Tel :</strong> {{ customer.phone|default:"[Phone]" }}, 
+                <strong>Fax:</strong> {{ customer.fax |default:"none"}}<br><br>
+                <strong>Attn:</strong> Accounts Department
+            </td>
+            <td class="date-section">
+                <strong>Date:</strong> {{ issued_on }}
+            </td>
+        </tr>
+    </table>
+
+    <table class="statement-table">
+        <thead>
+            <tr>
+                <th>Serial No</th>
+                <th>Invoice Number</th>
+                <th>Date</th>
+                <th>PO Number</th>
+                <th>Pending Amount</th>
+                <th>Total Amount </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if opening_balance > 0 %}
+            <tr style="font-weight: bold;">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>Opening Balance</td>
+                <td class="text-right">{{ opening_balance|floatformat:2 }}</td>
+            </tr>
+            {% endif %}
+
+            {% for invoice in all_invoices %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ invoice.invoice_number }}</td>
+                <td>{{ invoice.invoice_date|date:"d-m-Y" }}</td> 
+                <td>{{ invoice.po_number|default:"N/A" }}</td>
+                <td class="text-right">{{ invoice.pending_amount|floatformat:2 }}</td>
+                <td class="text-right">{{ invoice.cumulative_total|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center;">No invoices found for this customer.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="totals-section">
+        <p><strong>Total Balance Due:</strong> {{ final_balance_due|floatformat:2 }}</p>
+    </div>
+
+    <div class="footer-details">
+        <div class="payment-instructions">
+            <p>You may please issue the cheque for the due amount at the earliest.</p>
+            <p>Payment by cheque in the favor of "<strong>HIGH SPEED GRAPHICS</strong>".</p>
+        </div>
+
+        <div class="signature-section">
+            <p>For HIGH SPEED GRAPHICS</p>
+            <p>....................................................</p>
+            <p>Accounts Manager</p>
+        </div>
+    </div>
+</body>
+</html>

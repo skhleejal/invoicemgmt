@@ -1343,6 +1343,86 @@ def generate_statement_pdf(request, customer_id, month):
         return HttpResponse('PDF generation failed due to an error in rendering.', status=500)
     return response
 
+from django.db.models import Min
+
+def generate_combined_statement_pdf(request, customer_id):
+    customer = get_object_or_404(Customer, id=customer_id)
+
+    # 1. Determine the earliest invoice date for this customer
+    # Min is now correctly imported
+    min_date_result = Invoice.objects.filter(customer=customer).aggregate(min_date=Min('invoice_date'))
+    min_invoice_date = min_date_result['min_date']
+
+    # 2. Calculate Opening Balance (Total amount DUE before the earliest invoice date)
+    if min_invoice_date:
+        opening_invoices = Invoice.objects.filter(customer=customer, invoice_date__lt=min_invoice_date)
+        
+        opening_balance = Decimal(0)
+        for inv in opening_invoices:
+            # Calculate the amount paid (assuming 'status' determines if it's fully paid)
+            amount_paid = inv.total_amount if inv.status == 'paid' else Decimal(0)
+            
+            # Add the pending portion of the invoice to the opening balance
+            opening_balance += (inv.total_amount - amount_paid)
+            
+    else:
+        opening_balance = Decimal(0)
+    
+    # 3. Fetch all invoices for the statement period, ordered chronologically
+    all_invoices = Invoice.objects.filter(customer=customer).order_by('invoice_date')
+
+    # 4. Prepare statement data with running cumulative total (CRITICAL FIX)
+    invoice_list = []
+    current_running_balance = opening_balance
+    
+    for invoice in all_invoices:
+        # Calculate amount paid (based on status or a dedicated field)
+        amount_paid = invoice.total_amount if invoice.status == 'paid' else Decimal(0)
+        
+        # Calculate the pending amount (this is what was missing previously)
+        pending_amount_on_invoice = invoice.total_amount - amount_paid
+        
+        # Update running balance
+        current_running_balance += pending_amount_on_invoice
+        
+        invoice_list.append({
+            'invoice_number': invoice.invoice_number,
+            'invoice_date': invoice.invoice_date,
+            'po_number': invoice.po_number if invoice.po_number else 'N/A',
+            'amount': invoice.total_amount, # Total amount of the invoice
+            'pending_amount': pending_amount_on_invoice, 
+            'cumulative_total': current_running_balance, 
+        })
+
+    # The Final Balance Due 
+    final_balance_due = current_running_balance 
+    # fax_value = customer.fax if customer.fax else "None"
+    # Prepare the context for the template
+    context = {
+        'customer': customer,
+        
+        'all_invoices': invoice_list,
+        'opening_balance': opening_balance,
+        'final_balance_due': final_balance_due, 
+        'grand_total_invoiced': all_invoices.aggregate(total=Sum('total_amount'))['total'] or Decimal(0),
+        'issued_on': now().strftime("%B %d, %Y"), 
+    }
+
+    # Generate the PDF
+    template_path = 'invoicemgmt/combined_statement_pdf.html' 
+    template = get_template(template_path)
+    html = template.render(context)
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="{customer.name.replace(' ', '_')}_combined_statement_{now().strftime('%Y%m%d')}.pdf"'
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    if pisa_status.err:
+        return HttpResponse('Error generating PDF: {}'.format(pisa_status.err), status=500)
+    return response
+
+
 from .models import Product
 from .forms import ProductForm
 from django.contrib.auth.decorators import login_required, permission_required

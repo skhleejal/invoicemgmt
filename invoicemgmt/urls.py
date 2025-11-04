@@ -81,4 +81,5 @@ urlpatterns += [
     path('customer/<int:customer_id>/paid/', views.customer_paid_statement, name='customer_paid_statement'),
     path('customer/<int:customer_id>/unpaid/', views.customer_unpaid_statement, name='customer_unpaid_statement'),
     path('customer/<int:customer_id>/statement/<int:month>/pdf/', views.generate_statement_pdf, name='generate_statement_pdf'),
+     path('generate_combined_statement_pdf/<int:customer_id>/', views.generate_combined_statement_pdf, name='generate_combined_statement_pdf'),
 ]

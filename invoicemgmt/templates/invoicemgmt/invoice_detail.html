@@ -1,62 +1,234 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>Invoice #{{ invoice.invoice_number }}</title>
-    <link rel="stylesheet" href="{% static 'css/stylesheet.css' %}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <title>Invoice PDF</title>
+    <style>
+        @page {
+            margin-top: 5cm;
+            margin-left: 1cm;
+            margin-right: 1cm;
+            margin-bottom: 1cm;
+        }
+        
+        body { 
+            font-family: Arial, sans-serif; 
+            font-size: 12px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header { 
+            text-align: center; 
+            border-bottom: 2px solid #000; 
+            padding-bottom: 10px; 
+        }
+        .header img { 
+            max-width: 100%; 
+            height: auto; 
+            max-height: 150px; 
+        }
+        .company-details { 
+            font-size: 14px; 
+            font-weight: bold; 
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 10px; 
+        }
+        th, td { 
+            border: 1px solid #000; 
+            padding: 6px; 
+        }
+        th { 
+            background-color: #f0f0f0; 
+        }
+
+        .no-border td { 
+            border: none; 
+        }
+        .bold { 
+            font-weight: bold; 
+        }
+        .right { 
+            text-align: right; 
+        }
+        .center { 
+            text-align: center; 
+        }
+        .footer { 
+            margin-top: 30px; 
+            font-size: 10px; 
+        }
+        table { 
+                width: 100%; 
+                border-collapse: collapse; 
+                margin-top: 10px; 
+                table-layout: fixed;
+            }
+            th, td { 
+                border: 1px solid #000; 
+                padding: 6px; /* This is your default style */
+                word-wrap: break-word;
+            }
+            th { 
+                background-color: #f0f0f0; 
+            }
+
+            /* --- PASTE THE NEW DYNAMIC CODE HERE --- */
+            {% if invoice.line_items.all|length > 4 %}
+            /* This style will ONLY apply if you have 5 or more items */
+            th, td {
+                padding: 3px;    /* Makes rows shorter */
+                font-size: 10px; /* Makes text smaller */
+            }
+            {% endif %}
+            /* --- END OF NEW CODE --- */
+
+            .no-border td { 
+                border: none; 
+            }
+
+
+        /* Correct Signature Styles */
+        .signature-container {
+            display: flex;
+            justify-content: space-between; /* Aligns items to opposite ends */
+            margin-top: 50px;
+            width: 100%;
+        }
+
+        .signature-box {
+            width: 45%; /* Give each box roughly half the space */
+        }
+
+        .signature-sender {
+            text-align: left;
+        }
+
+        .signature-receiver {
+            text-align: right;
+        }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 5px;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h1>Invoice #{{ invoice.invoice_number }}</h1>
-    <p><strong>Date:</strong> {{ invoice.invoice_date }}</p>
-    <p><strong>Customer:</strong> {{ invoice.customer.name }}</p>
-    <p><strong>Total Amount:</strong> {{ invoice.total_amount }}</p>
-    <p><strong>Amount in Words:</strong> {{ invoice.amount_in_words }}</p>
-    <p><strong>Total Invoices in System:</strong> {{ invoice_count }}</p>
 
-    <h2 class="mt-4">Line Items</h2>
-    <table class="table table-bordered">
+    <div class="header">
+        <!-- <img src="{% static 'img/WhatsApp Image 2025-09-29 at 5.48.43 AM.jpeg' %}" alt="High Speed Graphics Logo"> -->
+    </div>
+
+    <h2 class="center">TAX INVOICE</h2>
+    
+    <table class="no-border">
+        <tr>
+            <td width="50%">
+                <strong>BILL TO:</strong><br>
+                {{ invoice.customer.name }}<br>
+                P.O. Box: {{ invoice.customer.po_box|default:"-" }}<br>
+                {{ invoice.customer.city }}<br>
+                Tel: {{ invoice.customer.phone }} | Fax: {{ invoice.customer.fax }}<br>
+                VAT NO: {{ invoice.customer.vat_number }}
+            </td>
+            <td>
+                <strong>DATE:</strong> {{ invoice.invoice_date }}<br>
+                <strong>INVOICE NO.:</strong> {{ invoice.invoice_number }}<br>
+                <strong>VAT NO.:</strong> {{ invoice.vat_number }}
+            </td>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <td><strong>P.O. NUMBER</strong><br>{{ invoice.po_number }}</td>
+            <td><strong>P.O. DATE</strong><br>{{ invoice.po_date }}</td>
+            <td><strong>DELIVERY NOTE</strong><br>{{ invoice.delivery_note }}</td>
+            <td><strong>D.O. DATE</strong><br>{{ invoice.do_date }}</td>
+            <td><strong>SHIP TO</strong><br>{{ invoice.ship_to }}</td>
+        </tr>
+    </table>
+
+    <table>
         <thead>
             <tr>
-                <th>Product</th>
-                <th>Quantity</th>
-                <th>Unit Price</th>
-                <th>VAT Amount</th>
-                <th>Total Amount (Including VAT)</th>
+                <th style="width: 5%;">SL</th>
+                <th style="width: 25%;">PRODUCT / DESCRIPTION</th>
+                <th style="width: 8%;">QTY</th>
+                <th style="width: 12%;">U/PRICE</th>
+                <th style="width: 13%;">TAXABLE VALUE</th>
+                <th style="width: 10%;">VAT RATE</th>
+                <th style="width: 15%;">VAT AMOUNT</th>
+                
+                <th style="width: 10%;">TOTAL AED</th>
             </tr>
         </thead>
         <tbody>
-        {% for item in invoice.line_items.all %}
+            {% for item in invoice.line_items.all %}
             <tr>
-                <td>{{ item.product }}</td>
-                <td>{{ item.quantity }}</td>
-                <td>{{ item.unit_price }}</td>
-                <td>{{ item.vat_amount }}</td>
+                <td class="center">{{ forloop.counter }}</td>
                 <td>
-                    {% if item.total_with_vat %}
-                        {{ item.total_with_vat }}
-                    {% else %}
-                        {{ item.unit_price|floatformat:2|add:item.vat_amount|floatformat:2 }}
+                    {% if item.product %}
+                        <strong>{{ item.product }}</strong><br>
+                    {% endif %}
+                    {% if item.description_fk %}
+                        <strong>{{ item.description_fk.name }}</strong><br>
+                    {% endif %}
+                    {% if item.description %}
+                        {{ item.description }}
                     {% endif %}
                 </td>
+                <td class="center">{{ item.quantity }}</td>
+                <td class="right">{{ item.unit_price }}</td>
+                <td class="right">{{ item.amount }}</td>
+                <td class="center">{{ item.vat_rate }}%</td>
+                <td class="right">{{ item.vat_amount }}</td>
+                <td class="right">{{ item.total_value|floatformat:2 }}</td> 
+                
             </tr>
-        {% empty %}
+            {% endfor %}
             <tr>
-                <td colspan="5">No line items found.</td>
+                <td colspan="4" class="right bold">TOTAL</td>
+                <td class="right bold">{{ invoice.total_taxable|floatformat:2 }}</td>
+                <td class="center bold"> </td>
+                <td class="right bold">{{ invoice.total_vat|floatformat:2 }}</td>
+                <td class="right bold">{{ invoice.total_amount|floatformat:2 }}</td>
             </tr>
-        {% endfor %}
         </tbody>
     </table>
 
-    <h3>Total VAT: {{ invoice.total_vat }}</h3>
-    <h3>Grand Total (Including VAT): {{ invoice.total_amount }}</h3>
+    <table>
+        <tr>
+            <td style="width: 75%;"><strong>TOTAL AMOUNT AED (IN WORDS):</strong><br>{{ amount_in_words }}</td>
+            <td class="center bold" style="font-size: 16px;">{{ invoice.total_amount }}</td>
+        </tr>
+    </table>
 
+    <div class="footer">
+        
+        <p>Make all cheques payable to "HIGH SPEED GRAPHICS"</p>
+        <p>Payment Method: {{ invoice.payment_method }}</p>
+        
+    </div>
+    
+    <div class="signature-container">
+        <div class="signature-box signature-sender">
+             Receiver Signature
+            <div class="signature-line"></div>
+        </div>
 
+        <div class="signature-box signature-receiver">
+            For High Speed Graphics
+            <div class="signature-line"></div>
+        </div>
+    </div>
 
-
-    <a href="{% url 'invoice_list' %}" class="btn btn-secondary mt-3">Back to Invoice List</a>
-</div>
 </body>
 </html>

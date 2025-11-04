@@ -19,3 +19,5 @@
         {% endfor %}
     </tbody>
 </table>
+
+<a href="{% url 'generate_combined_statement_pdf' customer.id %}" class="btn btn-success">Generate Combined PDF</a>
