@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title> Statement</title>
+    <title>Statement</title>
     <style>
         @page {
             margin-top: 5cm; 
@@ -11,7 +11,6 @@
             margin-bottom: 1cm;
             size: a4;
         }
-        /* ... (Keep all existing CSS for header, table, and footer from the last successful attempt) ... */
 
         body {
             font-family: Arial, sans-serif;
@@ -47,7 +46,7 @@
             font-size: 11pt;
         }
 
-        /* --- Statement Table Styling (CRITICAL) --- */
+        /* --- Statement Table Styling (7 Columns Optimized) --- */
         .statement-table {
             width: 100%;
             border-collapse: collapse;
@@ -71,30 +70,34 @@
             font-size: 9pt;
         }
 
-        /* Adjusted widths for 6 columns, totaling 100% */
+        /* Adjusted widths for 7 columns (Serial No + 6 Data Columns) */
         .statement-table th:nth-child(1), .statement-table td:nth-child(1) {
-            width: 8%; /* Serial No */
+            width: 7%; /* Serial No */
             text-align: center;
         }
 
         .statement-table th:nth-child(2), .statement-table td:nth-child(2) {
-            width: 18%; /* Invoice Number */
+            width: 14%; /* Invoice Number */
         }
 
         .statement-table th:nth-child(3), .statement-table td:nth-child(3) {
-            width: 18%; /* Date */
+            width: 14%; /* Date */
         }
 
         .statement-table th:nth-child(4), .statement-table td:nth-child(4) {
-            width: 21%; /* PO Number */
+            width: 16%; /* PO Number */
         }
 
         .statement-table th:nth-child(5), .statement-table td:nth-child(5) {
-            width: 17%; /* Pending Amount */
+            width: 14%; /* Invoice Amount */
         }
 
         .statement-table th:nth-child(6), .statement-table td:nth-child(6) {
-            width: 18%; /* Total Amount (Running Balance) */
+            width: 17%; /* Pending Amount */
+        }
+        
+        .statement-table th:nth-child(7), .statement-table td:nth-child(7) {
+            width: 14%; /* Running Balance */
         }
         
         .text-right {
@@ -147,17 +150,15 @@
                 <th>Invoice Number</th>
                 <th>Date</th>
                 <th>PO Number</th>
+                <th>Amount</th> 
                 <th>Pending Amount</th>
-                <th>Total Amount </th>
+                <th>Total Amount (Running Balance)</th>
             </tr>
         </thead>
         <tbody>
             {% if opening_balance > 0 %}
             <tr style="font-weight: bold;">
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td colspan="5"></td>
                 <td>Opening Balance</td>
                 <td class="text-right">{{ opening_balance|floatformat:2 }}</td>
             </tr>
@@ -169,12 +170,13 @@
                 <td>{{ invoice.invoice_number }}</td>
                 <td>{{ invoice.invoice_date|date:"d-m-Y" }}</td> 
                 <td>{{ invoice.po_number|default:"N/A" }}</td>
+                <td class="text-right">{{ invoice.amount|floatformat:2 }}</td>
                 <td class="text-right">{{ invoice.pending_amount|floatformat:2 }}</td>
                 <td class="text-right">{{ invoice.cumulative_total|floatformat:2 }}</td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" style="text-align: center;">No invoices found for this customer.</td>
+                <td colspan="7" style="text-align: center;">No invoices found for this customer.</td>
             </tr>
             {% endfor %}
         </tbody>
