@@ -48,12 +48,12 @@ COUNTRY_PHONE_CODES = {
 COUNTRY_CHOICES = [(c, c) for c in COUNTRY_CURRENCY.keys()]
 
 # ----- Utils -----
+
 def number_to_words(n, currency='AED'):
     try:
         integer_part = int(n)
         fractional_part = round((n - integer_part) * 100)  # Round fractional part to two decimal places
         
-        # Use num2words with `to_words` and remove "and" from the output
         words = num2words(integer_part, lang='en').replace(" and ", " ").title() + " Dirhams"
         
         if fractional_part > 0:
@@ -159,7 +159,7 @@ class Invoice(models.Model):
 
         # Use the number_to_words function to format the amount in words
         if self.total_amount > 0:
-            self.amount_in_words = number_to_words(self.total_amount, currency='AED')
+            self.amount_in_words = number_to_words(self.total_amount, currency='Dirhams')
         else:
             self.amount_in_words = "Zero Dirhams"
 
