@@ -1,6 +1,6 @@
 from django import forms
 from .models import  Invoice, InvoiceLineItem, Customer,Product
-from .models import Purchase, PurchaseLineItem,DeliveryNoteLineItem,DeliveryNote
+from .models import Purchase, PurchaseLineItem,DeliveryNote,DeliveryNoteItem
 
 class CustomerForm(forms.ModelForm):
     class Meta:
@@ -161,28 +161,58 @@ class PurchaseLineItemForm(forms.ModelForm):
 
 
     
+# class DeliveryNoteForm(forms.ModelForm):
+#     class Meta:
+#         model = DeliveryNote
+#         fields = [
+#             'company_name', 'company_address', 'company_phone',s
+#             'delivery_to_name', 'delivery_to_address', 'date', 'due_date',
+#             'terms', 'signature', 'signature_date'
+#         ]
+#         widgets = {
+#             'company_name': forms.TextInput(attrs={'class': 'form-control'}),
+#             'company_address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+#             'date': forms.DateInput(attrs={'type': 'date'}),
+#         }
+
+# DeliveryNoteLineItemFormSet = forms.inlineformset_factory(
+#     DeliveryNote,
+#     DeliveryNoteLineItem,
+#     fields=['product_name', 'description', 'quantity', 'complete'],
+#     extra=20,
+#     can_delete=True
+# )
 class DeliveryNoteForm(forms.ModelForm):
     class Meta:
         model = DeliveryNote
         fields = [
-            'company_name', 'company_address', 'company_email', 'company_phone',
-            'delivery_to_name', 'delivery_to_address', 'date', 'due_date',
-            'terms', 'signature', 'signature_date'
+            'company_name', 'company_address', 'company_phone',
+            'delivery_to_name', 'delivery_to_address', 
+            'lpo_number', 'delivery_to_phone', 'delivery_to_fax', 
+            'date', 'due_date',
         ]
         widgets = {
             'company_name': forms.TextInput(attrs={'class': 'form-control'}),
             'company_address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'company_phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'delivery_to_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'delivery_to_address': forms.TextInput(attrs={'class': 'form-control'}),
+            'lpo_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'delivery_to_phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'delivery_to_fax': forms.TextInput(attrs={'class': 'form-control'}),
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control', 'placeholder': 'yyyy-mm-dd'}),
+            'due_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control', 'placeholder': 'yyyy-mm-dd'}),
         }
 
-DeliveryNoteLineItemFormSet = forms.inlineformset_factory(
+# CRITICAL: Renamed formset to match the Item model
+DeliveryNoteItemFormSet = forms.inlineformset_factory(
     DeliveryNote,
-    DeliveryNoteLineItem,
-    fields=['product_name', 'description', 'quantity', 'complete'],
-    extra=20,
+    DeliveryNoteItem,
+    fields=['description', 'unit', 'quantity', 'completed_value'], 
+    fk_name='note', 
+    extra=5, # Reduced from 20 for cleaner UI/testing
     can_delete=True
 )
-
 from django import forms
 from .models import Product
 

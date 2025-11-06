@@ -75,6 +75,7 @@ urlpatterns += [
     path('delivery-notes/<int:pk>/', views.delivery_note_detail, name='delivery_note_detail'),
     path('delivery-notes/<int:pk>/pdf/', views.delivery_note_pdf, name='delivery_note_pdf'),
     path('delivery-notes/<int:pk>/pdf/', views.delivery_note_pdf, name='delivery_note_pdf'),
+    path('delivery-notes/<int:pk>/delete/', views.delete_delivery_note, name='delete_delivery_note'),
     
     path('customers/<int:customer_id>/edit/', views.edit_customer, name='edit_customer'),
     path('customer/<int:customer_id>/total/', views.customer_total_statement, name='customer_total_statement'),

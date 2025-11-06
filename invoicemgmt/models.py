@@ -272,43 +272,88 @@ class PurchaseLineItem(models.Model):
 
 
 
+# class DeliveryNote(models.Model):
+#     delivery_note_number = models.PositiveIntegerField(unique=True, blank=True, null=True)
+#     company_name = models.CharField(max_length=255)
+#     company_address = models.TextField()
+#     # company_email = models.EmailField()
+#     company_phone = models.CharField(max_length=50)
+#     delivery_to_name = models.CharField(max_length=255)
+#     delivery_to_address = models.TextField()
+#     date = models.DateField(null=False, blank=False)
+#     due_date = models.DateField(default=now,blank=True, null=True)
+#     # # You can use a related model for line items if needed
+#     # terms = models.TextField(blank=True, null=True)
+#     # signature = models.CharField(max_length=255, blank=True, null=True)
+#     # signature_date = models.DateField(blank=True, null=True)
+
+#     def save(self, *args, **kwargs):
+#         if not self.delivery_note_number:
+#             # Start numbering at 107
+#             last_note = DeliveryNote.objects.aggregate(max_number=models.Max('delivery_note_number'))
+#             self.delivery_note_number = (last_note['max_number'] or 127) + 1
+#         super().save(*args, **kwargs)
+
+
+#     def __str__(self):
+#         return f"Delivery Note to {self.delivery_to_name} on {self.date}"
+    
+
+from django.db import models
+from django.utils.timezone import now
+from django.db.models import Max
+
 class DeliveryNote(models.Model):
+    # Note Details
     delivery_note_number = models.PositiveIntegerField(unique=True, blank=True, null=True)
+    date = models.DateField(null=False, blank=False)
+    due_date = models.DateField(default=now, blank=True, null=True)
+    lpo_number = models.CharField(max_length=100, blank=True, null=True)
+
+    # Recipient Details (Matching "To:" section in the PDF)
     company_name = models.CharField(max_length=255)
     company_address = models.TextField()
-    company_email = models.EmailField()
-    company_phone = models.CharField(max_length=50)
+    company_phone = models.CharField(max_length=50) # Retained for consistency
+    
+    # Contact fields used by the HTML template
+    delivery_to_phone = models.CharField(max_length=50, blank=True, null=True) 
+    delivery_to_fax = models.CharField(max_length=50, blank=True, null=True) 
+    
+    # Keeping original fields 
     delivery_to_name = models.CharField(max_length=255)
     delivery_to_address = models.TextField()
-    date = models.DateField(default=now)
-    due_date = models.DateField(default=now,blank=True, null=True)
-    # You can use a related model for line items if needed
-    terms = models.TextField(blank=True, null=True)
-    signature = models.CharField(max_length=255, blank=True, null=True)
-    signature_date = models.DateField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.delivery_note_number:
-            # Start numbering at 107
-            last_note = DeliveryNote.objects.aggregate(max_number=models.Max('delivery_note_number'))
-            self.delivery_note_number = (last_note['max_number'] or 106) + 1
+            # Ensures numbering starts at 128 if no notes exist
+            last_note = DeliveryNote.objects.aggregate(max_number=Max('delivery_note_number'))
+            self.delivery_note_number = (last_note['max_number'] or 127) + 1
+            
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        return f"Delivery Note #{self.delivery_note_number} to {self.company_name}"
+
+class DeliveryNoteItem(models.Model):
+    # CRITICAL: related_name='items' is used by the HTML template loop
+    note = models.ForeignKey(DeliveryNote, related_name='items', on_delete=models.CASCADE)
+    description = models.CharField(max_length=500) 
+    unit = models.CharField(max_length=50, blank=True, null=True)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    # Maps to the 'Completed' column (which can hold numbers or text like 'None' or '-')
+    completed_value = models.CharField(max_length=50, blank=True, null=True) 
 
     def __str__(self):
-        return f"Delivery Note to {self.delivery_to_name} on {self.date}"
-    
-
-
-class DeliveryNoteLineItem(models.Model):
-    delivery_note = models.ForeignKey(DeliveryNote, on_delete=models.CASCADE, related_name='items')
-    product_name = models.CharField(max_length=255, blank=True, null=True)  # Product name field
-    description = models.CharField(max_length=255, blank=True)
-    quantity = models.PositiveIntegerField()
-    unit = models.CharField(max_length=50, blank=True, null=True)  # Unit field
-    quantity = models.DecimalField(max_digits=10, decimal_places=2)  # Allow decimals for quantity
+        return f"{self.quantity} x {self.description}"
+# class DeliveryNoteLineItem(models.Model):
+#     delivery_note = models.ForeignKey(DeliveryNote, on_delete=models.CASCADE, related_name='items')
+#     product_name = models.CharField(max_length=255, blank=True, null=True)  # Product name field
+#     description = models.CharField(max_length=255, blank=True)
+#     quantity = models.PositiveIntegerField()
+#     unit = models.CharField(max_length=50, blank=True, null=True)  # Unit field
+#     quantity = models.DecimalField(max_digits=10, decimal_places=2)  # Allow decimals for quantity
    
-    complete = models.BooleanField(blank=True)
+#     complete = models.BooleanField(blank=True)
 
 
 from django.db import models

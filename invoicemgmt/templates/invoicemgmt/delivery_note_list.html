@@ -24,6 +24,7 @@
                 <td>
                     <a href="{% url 'delivery_note_detail' note.id %}" class="btn btn-info btn-sm">View</a>
                     <a href="{% url 'delivery_note_pdf' note.id %}" class="btn btn-info btn-sm">Download PDF</a>
+                    <a href="{% url 'delete_delivery_note' note.pk %}" class="btn btn-danger">Delete</a>
                 </td>
             </tr>
             {% empty %}

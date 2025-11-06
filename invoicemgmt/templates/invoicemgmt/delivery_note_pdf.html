@@ -3,10 +3,11 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Delivery Note PDF</title>
+    <title>Delivery Note #{{ note.delivery_note_number }}</title>
     <style>
         @page {
-            margin-top: 5cm;
+            /* Standard margins, adjusted for your layout */
+            margin-top: 3cm; 
             margin-left: 1cm;
             margin-right: 1cm;
             margin-bottom: 1cm;
@@ -19,158 +20,157 @@
             padding: 0;
         }
 
+        /* Styling for the header area (Logo placeholder) */
         .header {
             text-align: center;
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
+            padding-bottom: 5px;
+            /* Added padding for the title area */
+            margin-bottom: 20px; 
         }
 
         .header img {
             max-width: 100%;
             height: auto;
-            max-height: 150px;
+            max-height: 80px;
         }
 
-        .company-details {
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        table {
+        /* Layout table for the To: section and the Note Details */
+        .note-details-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
-        th, td {
-            border: 1px solid #000;
-            padding: 6px;
-        }
-
-        th {
-            background-color: #f0f0f0;
-        }
-
-        .no-border td {
+        .note-details-table td {
+            padding: 2px 0;
+            vertical-align: top;
             border: none;
         }
 
-        .bold {
+        .recipient-box {
+            line-height: 1.4;
+        }
+        
+        .right-aligned-note-details {
+            text-align: right;
+            line-height: 1.6;
+            font-size: 13px;
+        }
+
+        /* Item Table Styling */
+        .item-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            table-layout: fixed; /* Helps control column widths */
+        }
+
+        .item-table th, .item-table td {
+            border: 1px solid #000;
+            padding: 6px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .item-table th {
+            background-color: #f0f0f0;
+            text-align: center;
             font-weight: bold;
         }
 
-        .right {
-            text-align: right;
-        }
-
         .center {
-            text-align: center;
+            text-align: center !important;
         }
 
-        .footer {
+        .footer-text {
             margin-top: 30px;
-            font-size: 10px;
+            font-size: 12px;
+            line-height: 1.6;
         }
-
-        .signature-container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 50px;
+        
+        /* Signature Layout */
+        .signature-table {
             width: 100%;
+            margin-top: 50px;
         }
 
-        .signature-box {
-            width: 45%;
-        }
-
-        .signature-sender {
-            text-align: left;
-        }
-
-        .signature-receiver {
-            text-align: right;
+        .signature-table td {
+            border: none;
+            padding: 0;
         }
 
         .signature-line {
             border-top: 1px solid #000;
             margin-top: 5px;
-            width: 100%;
         }
     </style>
 </head>
 <body>
 
-    <!-- Header Section -->
     <div class="header">
         <img src="{% static 'img/company_logo.png' %}" alt="Company Logo">
+        <h2 class="center">DELIVERY NOTE</h2>
     </div>
 
-    <!-- Delivery Note Title -->
-    <h2 class="center">DELIVERY NOTE</h2>
-
-    <!-- Delivery Note Details -->
-    <table class="no-border">
+    <table class="note-details-table">
         <tr>
-            <td width="50%">
+            <td width="50%" class="recipient-box">
                 <strong>To:</strong><br>
                 {{ note.company_name }}<br> 
-                <!-- {{ note.delivery_to_name }}<br> -->
-                {{ note.delivery_to_address }}<br>
+                {{ note.company_address|linebreaksbr }}<br>
                 Tel: {{ note.delivery_to_phone|default:"-" }} | Fax: {{ note.delivery_to_fax|default:"-" }}
             </td>
-            <td>
+            <td class="right-aligned-note-details">
                 <strong>No.:</strong> {{ note.delivery_note_number }}<br>
-                <strong>Date:</strong> {{ note.date }}<br>
+                <strong>Date:</strong> {{ note.date|date:"M. j, Y" }}<br> 
                 <strong>LPO No.:</strong> {{ note.lpo_number|default:"-" }}
             </td>
         </tr>
     </table>
 
-    <!-- Items Table -->
-    <table>
+    <table class="item-table">
         <thead>
             <tr>
-                <th style="width: 5%;">S/No</th>
-                <th style="width: 50%;">Description</th>
-                <th style="width: 15%;">Unit</th>
+                <th style="width: 5%;">S.no</th>
+                <th style="width: 50%;">Unit/Description</th> 
                 <th style="width: 15%;">Quantity</th>
-                <th style="width: 15%;">Completed</th> <!-- Added Completed Column -->
+                <th style="width: 30%;">Completed</th>
             </tr>
         </thead>
         <tbody>
             {% for item in note.items.all %}
             <tr>
-                <td class="center">{{ forloop.counter }}</td>
-                <td>{{ item.description }}</td>
-                <td class="center">{{ item.unit }}</td> <!-- Unit Column -->
+                <td class="center">{{ forloop.counter }}</td> 
+                <td>
+                    {{ item.description }}
+                    {% if item.unit %} <br> <small>({{ item.unit }})</small> {% endif %}
+                </td> 
                 <td class="center">{{ item.quantity }}</td>
-                <td class="center">{% if item.complete %} {% else %} {% endif %}</td> <!-- Completed Column -->
+                <td class="center">{{ item.completed_value|default:"-" }}</td> 
             </tr>
             {% empty %}
-            <tr><td colspan="5" class="center">No items delivered.</td></tr>
+            <tr><td colspan="4" class="center">No items delivered.</td></tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <!-- Footer Section -->
-    <div class="footer">
+    <div class="footer-text">
         <p>Materials Delivered To Your Store</p>
-        <!-- <p>For {{ note.company_name }}</p> -->
         <p>We have received the goods in good order and condition.</p>
     </div>
 
-    <!-- Signature Section -->
-    <div class="signature-container">
-        <div class="signature-box signature-sender">
-            <p>Receiver Signature</p>
-            <div class="signature-line"></div>
-        </div>
-
-        <div class="signature-box signature-receiver">
-            <p>For {{ note.company_name }}</p>
-            <div class="signature-line"></div>
-        </div>
-    </div>
+    <table class="signature-table">
+        <tr>
+            <td width="50%">
+                Receiver Signature
+                <div class="signature-line" style="width: 80%;"></div>
+            </td>
+            <td width="50%" style="text-align: right;">
+                For High Speed Graphics
+                <div class="signature-line" style="width: 80%; margin-left: auto;"></div>
+            </td>
+        </tr>
+    </table>
 
 </body>
 </html>

@@ -1,0 +1,7 @@
+<h2>Delete Delivery Note</h2>
+<p>Are you sure you want to delete Delivery Note #{{ note.delivery_note_number }}?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+    <a href="{% url 'delivery_note_list' %}" class="btn btn-secondary">Cancel</a>
+</form>

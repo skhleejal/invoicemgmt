@@ -388,7 +388,7 @@ def create_invoice(request):
     InvoiceLineItemFormSet = inlineformset_factory(
         Invoice, InvoiceLineItem,
         form=InvoiceLineItemForm,
-        extra=20, can_delete=True
+        extra=38, can_delete=True
     )
 
     if request.method == 'POST':
@@ -725,15 +725,62 @@ def purchase_pdf(request, pk):
     response['Content-Disposition'] = f'attachment; filename="Purchase_{purchase.pk}.pdf"'
     return response
 
+# @login_required
+# def purchase_list(request):
+#     query = request.GET.get("q", "")
+#     purchases = Purchase.objects.all()
+#     if query:
+#         purchases = purchases.filter(
+#             Q(purchase_number__icontains=query) |
+#             Q(supplier_name__icontains=query)
+#         )
+#     # Recalculate totals dynamically
+#     for purchase in purchases:
+#         total = Decimal('0.00')
+#         vat = Decimal('0.00')
+#         for item in purchase.line_items.all():
+#             total += item.amount
+#             vat += item.vat_amount
+#         purchase.total_amount = total + vat
+#         purchase.vat_amount = vat
+#     return render(request, "invoicemgmt/purchase_list.html", {
+#         "purchases": purchases,
+#         "query": query,
+#     })
+from django.utils import timezone
+from decimal import Decimal
+import calendar
+from django.db.models import Q
+
 @login_required
 def purchase_list(request):
+    today = timezone.now()
+    month = request.GET.get('month')
+    year = request.GET.get('year')
     query = request.GET.get("q", "")
+
     purchases = Purchase.objects.all()
+
+    # Filter by month/year if provided
+    if month and year:
+        purchases = purchases.filter(date__month=int(month), date__year=int(year))
+    elif month:
+        purchases = purchases.filter(date__month=int(month), date__year=today.year)
+    elif year:
+        purchases = purchases.filter(date__year=int(year))
+    
+    month = int(month) if month else None
+    year = int(year) if year else None
+    # Apply search query
     if query:
         purchases = purchases.filter(
             Q(purchase_number__icontains=query) |
             Q(supplier_name__icontains=query)
         )
+
+    # Get month name for display (if month is set)
+    month_name = calendar.month_name[int(month)] if month else None
+
     # Recalculate totals dynamically
     for purchase in purchases:
         total = Decimal('0.00')
@@ -743,10 +790,17 @@ def purchase_list(request):
             vat += item.vat_amount
         purchase.total_amount = total + vat
         purchase.vat_amount = vat
-    return render(request, "invoicemgmt/purchase_list.html", {
-        "purchases": purchases,
-        "query": query,
-    })
+
+    context = {
+        'purchases': purchases,
+        'query': query,
+        'month_name': month_name,
+        'month': month,
+        'year': year,  
+
+    
+    }
+    return render(request, "invoicemgmt/purchase_list.html", context)
 
 @login_required
 def purchase_detail(request, pk):
@@ -1100,7 +1154,7 @@ def test_email(request):
 def create_delivery_note(request):
     if request.method == 'POST':
         form = DeliveryNoteForm(request.POST)
-        formset = DeliveryNoteLineItemFormSet(request.POST)
+        formset = DeliveryNoteItemFormSet(request.POST)
         if form.is_valid() and formset.is_valid():
             # Save the main delivery note
             note = form.save()
@@ -1112,7 +1166,7 @@ def create_delivery_note(request):
             return redirect('delivery_note_detail', pk=note.pk)
     else:
         form = DeliveryNoteForm()
-        formset = DeliveryNoteLineItemFormSet()
+        formset = DeliveryNoteItemFormSet()
 
     return render(request, 'invoicemgmt/delivery_note_form.html', {
         'form': form,
@@ -1121,7 +1175,7 @@ def create_delivery_note(request):
 
 
 from .models import DeliveryNote
-from .forms import DeliveryNoteForm,DeliveryNoteLineItemFormSet
+from .forms import DeliveryNoteForm,DeliveryNoteItemFormSet
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 
@@ -1133,21 +1187,32 @@ def delivery_note_list(request):
 @login_required
 def create_delivery_note(request):
     if request.method == 'POST':
+        # NOTE: Formset instantiation for POST is correct
         form = DeliveryNoteForm(request.POST)
-        formset = DeliveryNoteLineItemFormSet(request.POST)
+        formset = DeliveryNoteItemFormSet(request.POST) 
         if form.is_valid() and formset.is_valid():
             note = form.save()
             formset.instance = note
             formset.save()
             return redirect('delivery_note_detail', pk=note.pk)
     else:
+        # 1. CORRECTED: Use the correct name for the empty formset (GET request)
         form = DeliveryNoteForm()
-        formset = DeliveryNoteLineItemFormSet()
+        formset = DeliveryNoteItemFormSet() # <-- FIX IS HERE
 
     return render(request, 'invoicemgmt/delivery_note_form.html', {
         'form': form,
         'formset': formset
     })
+
+
+def delete_delivery_note(request, pk):
+    note = get_object_or_404(DeliveryNote, pk=pk)
+    if request.method == "POST":
+        note.delete()
+        messages.success(request, "Delivery Note deleted successfully.")
+        return redirect('delivery_note_list')  # Change to your list view name
+    return render(request, "invoicemgmt/delivery_note_confirm_delete.html", {"note": note})
 
 @login_required
 def delivery_note_detail(request, pk):
