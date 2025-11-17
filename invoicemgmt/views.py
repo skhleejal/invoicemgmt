@@ -232,6 +232,7 @@ def home(request):
     due_amount = invoice_qs.filter(status="open").aggregate(total=Sum('total_amount'))['total'] or 0
     paid_bills = invoice_qs.filter(status="paid").count()
     recent_invoices = invoice_qs.order_by('-invoice_date')[:5]
+    purchase_count = Purchase.objects.count()
     # total_products = Product.objects.count()
     # low_stock_products = Product.objects.filter(stock__lt=5)
 
@@ -264,6 +265,7 @@ def home(request):
         'due_amount': due_amount,
         # 'total_products': total_products,
         'total_customers': total_customers,
+        'purchase_count': purchase_count,
         'paid_bills': paid_bills,
         'recent_invoices': recent_invoices,
         # 'low_stock_products': low_stock_products,
@@ -425,6 +427,25 @@ def create_invoice(request):
         'document_type': 'invoice'
     })
 
+from django.db.models import Sum
+
+@login_required
+def invoice_total(request):
+    invoices = Invoice.objects.all()
+    total_amount = invoices.aggregate(total=Sum('total_amount'))['total'] or 0
+
+    # Month-wise totals
+    from django.db.models.functions import TruncMonth
+    monthly_totals = invoices.annotate(month=TruncMonth('invoice_date')).values('month').annotate(
+        total=Sum('total_amount')
+    ).order_by('month')
+
+    return render(request, 'invoicemgmt/invoice_total.html', {
+        'total_amount': total_amount,
+        'invoices': invoices,
+        'monthly_totals': monthly_totals,
+    })
+
 @permission_required('invoicemgmt.view_invoice', raise_exception=True)
 @login_required
 def invoice_detail(request, pk):
@@ -455,9 +476,9 @@ def invoice_list(request):
     query = request.GET.get('q')
     
     if request.user.is_superuser:  
-        invoices = Invoice.objects.all()
+        invoices = Invoice.objects.filter(status__in=['open', 'paid', 'cancelled'])
     else:
-        invoices = Invoice.objects.filter(created_by=request.user)
+        invoices = Invoice.objects.filter(created_by=request.user, status__in=['open', 'paid', 'cancelled'])
     
     if query:
         invoices = invoices.filter(
@@ -473,7 +494,6 @@ def invoice_list(request):
     invoices = invoices.order_by('-invoice_number')  # Apply ordering to the filtered queryset
     
     return render(request, 'invoicemgmt/invoice_list.html', {'invoices': invoices, 'query': query})
-
 
 @permission_required('invoicemgmt.view_customer', raise_exception=True)
 @login_required
@@ -501,7 +521,7 @@ def update_invoice(request, pk):
     InvoiceLineItemFormSet = inlineformset_factory(
         Invoice, InvoiceLineItem,
         form=InvoiceLineItemForm,
-        extra=0, can_delete=True
+        extra=10, can_delete=True
     )
 
     if request.method == 'POST':
@@ -522,6 +542,13 @@ def update_invoice(request, pk):
         'invoice': invoice
     })
 
+@login_required
+def cancel_invoice(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+    invoice.status = 'cancelled'
+    invoice.save()
+    messages.success(request, f"Invoice #{invoice.invoice_number} has been cancelled.")
+    return redirect('invoice_list')
 
 # @permission_required('invoicemgmt.add_product', raise_exception=True)
 # @login_required
@@ -759,7 +786,9 @@ def purchase_list(request):
     year = request.GET.get('year')
     query = request.GET.get("q", "")
 
-    purchases = Purchase.objects.all()
+   
+    
+    purchases = Purchase.objects.all().order_by('-date')
 
     # Filter by month/year if provided
     if month and year:
@@ -827,6 +856,50 @@ def purchase_pdf(request, pk):
     response['Content-Disposition'] = f'attachment; filename="Purchase_{purchase.pk}.pdf"'
     return response
 
+# @permission_required('invoicemgmt.add_purchase', raise_exception=True)
+# @login_required
+# def purchase_create(request):
+#     PurchaseLineItemFormSet = inlineformset_factory(
+#         Purchase, PurchaseLineItem,
+#         form=PurchaseLineItemForm,
+#         extra=4, can_delete=True
+#     )
+#     if request.method == 'POST':
+#         form = PurchaseForm(request.POST, request.FILES, instance=purchase) 
+#         purchase_form = PurchaseForm(request.POST, request.FILES)
+#         formset = PurchaseLineItemFormSet(request.POST)
+#         if purchase_form.is_valid() and formset.is_valid():
+#             purchase = purchase_form.save(commit=False)
+#             purchase.created_by = request.user
+#             purchase.save()
+#             if 'attachment' in request.FILES:
+#                 purchase.attachment = request.FILES['attachment']
+#                 purchase.save()
+#             formset.instance = purchase
+#             formset.save()
+            # purchase.save()
+            # 
+            # 
+            #   # <-- Add this line to update totals!
+            # Update stock for each product
+            # for item in purchase.line_items.all():
+            #     item.product.stock += item.quantity
+            #     item.product.save()
+
+
+    #         messages.success(request, '✅ Purchase recorded and stock updated.')
+    #         return redirect('purchase_list')
+    #     else:
+    #         messages.error(request, 'Please correct the errors below.')
+    # else:
+    #     purchase_form = PurchaseForm()
+    #     formset = PurchaseLineItemFormSet()
+    # return render(request, 'invoicemgmt/purchase_form.html', {
+    #     'purchase_form': purchase_form,
+    #     'formset': formset,
+    #     'document_type': 'purchase'
+    # })
+
 @permission_required('invoicemgmt.add_purchase', raise_exception=True)
 @login_required
 def purchase_create(request):
@@ -836,32 +909,58 @@ def purchase_create(request):
         extra=4, can_delete=True
     )
     if request.method == 'POST':
-        purchase_form = PurchaseForm(request.POST)
+        form = PurchaseForm(request.POST, request.FILES)
         formset = PurchaseLineItemFormSet(request.POST)
-        if purchase_form.is_valid() and formset.is_valid():
-            purchase = purchase_form.save(commit=False)
+        if form.is_valid() and formset.is_valid():
+            purchase = form.save(commit=False)
             purchase.created_by = request.user
             purchase.save()
+            if 'attachment' in request.FILES:
+                purchase.attachment = request.FILES['attachment']
+                purchase.save()
             formset.instance = purchase
             formset.save()
-            purchase.save()  # <-- Add this line to update totals!
-            # Update stock for each product
-            # for item in purchase.line_items.all():
-            #     item.product.stock += item.quantity
-            #     item.product.save()
+            purchase.save()
             messages.success(request, '✅ Purchase recorded and stock updated.')
             return redirect('purchase_list')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
-        purchase_form = PurchaseForm()
+        form = PurchaseForm()
         formset = PurchaseLineItemFormSet()
     return render(request, 'invoicemgmt/purchase_form.html', {
-        'purchase_form': purchase_form,
+        'purchase_form': form,
         'formset': formset,
         'document_type': 'purchase'
     })
 
+from django import forms    
+@permission_required('invoicemgmt.change_purchase', raise_exception=True)
+@login_required
+def purchase_add_attachment(request, pk):
+    purchase = get_object_or_404(Purchase, pk=pk)
+
+    class AttachmentForm(forms.ModelForm):
+        class Meta:
+            model = Purchase
+            fields = ['attachment']
+            widgets = {
+                'attachment': forms.ClearableFileInput(),
+            }
+
+    if request.method == 'POST':
+        form = AttachmentForm(request.POST, request.FILES, instance=purchase) 
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Attachment added successfully.")
+            return redirect('purchase_list')
+    else:
+        form = AttachmentForm(instance=purchase)
+
+    return render(request, 'invoicemgmt/purchase_add_attachment.html', {
+        'form': form,
+        'purchase': purchase
+    })
 @login_required
 def purchase_delete(request, pk):
     purchase = get_object_or_404(Purchase, pk=pk)
@@ -870,6 +969,25 @@ def purchase_delete(request, pk):
         messages.success(request, "Purchase deleted successfully.")
         return redirect('purchase_list')
     return render(request, 'invoicemgmt/confirm_delete_purchase.html', {'purchase': purchase})
+
+from django.db.models.functions import TruncMonth
+from django.db.models import Sum
+
+@login_required
+def purchase_total(request):
+    purchases = Purchase.objects.all()
+    total_amount = purchases.aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
+
+    # Month-wise totals
+    monthly_totals = purchases.annotate(month=TruncMonth('date')).values('month').annotate(
+        total=Sum('total_amount')
+    ).order_by('month')
+
+    return render(request, 'invoicemgmt/purchase_total.html', {
+        'total_amount': total_amount,
+        'purchases': purchases,
+        'monthly_totals': monthly_totals,
+    })
 
 @permission_required('invoicemgmt.change_purchase', raise_exception=True)
 @login_required
@@ -965,6 +1083,24 @@ from django.forms import inlineformset_factory
 #     quotation.save()
 #     messages.success(request, "Quotation sent to client!")
 #     return redirect('quotation_list')
+
+@permission_required('invoicemgmt.view_invoice', raise_exception=True)
+@login_required
+def paid_bills_list(request):
+    invoices = Invoice.objects.filter(status='paid')
+    return render(request, 'invoicemgmt/paid_bills_list.html', {'invoices': invoices})
+
+@permission_required('invoicemgmt.view_invoice', raise_exception=True)
+@login_required
+def pending_bills_list(request):
+    invoices = Invoice.objects.filter(status='open')
+    return render(request, 'invoicemgmt/pending_bills_list.html', {'invoices': invoices})
+
+@permission_required('invoicemgmt.view_invoice', raise_exception=True)
+@login_required
+def due_amount_list(request):
+    invoices = Invoice.objects.filter(status='open')
+    return render(request, 'invoicemgmt/due_amount_list.html', {'invoices': invoices})
 
 @login_required
 def ai_support(request):
@@ -1557,3 +1693,76 @@ def update_product(request, pk):
     else:
         form = ProductForm(instance=product)
     return render(request, 'invoicemgmt/product_form.html', {'form': form})
+
+from django.core.mail import EmailMessage
+from django.conf import settings
+from .utils import send_mailjet_email
+
+def send_quotation_email(user, quotation, to_email):
+    from_email = settings.ROLE_EMAILS.get('sales', settings.DEFAULT_FROM_EMAIL)
+    subject = "Your Quotation"
+    body = "Quotation details..."
+    send_mailjet_email(from_email, to_email, subject, body)
+
+def send_invoice_email(user, invoice, to_email):
+    from_email = settings.ROLE_EMAILS.get('accounts', settings.DEFAULT_FROM_EMAIL)
+    subject = "Your Invoice"
+    body = "Invoice details..."
+    send_mailjet_email(from_email, to_email, subject, body)
+
+from django.contrib import messages
+
+@login_required
+def send_invoice_email_view(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+    to_email = invoice.customer.email
+    send_invoice_email(request.user, invoice, to_email)
+    messages.success(request, "Invoice email sent!")
+    return redirect('invoice_detail', pk=pk)
+
+from django.contrib import messages
+from .models import Quotation,QuotationLineItem
+@login_required
+def send_quotation_email_view(request, pk):
+    quotation = get_object_or_404(Quotation, pk=pk)
+    to_email = quotation.customer.email
+    send_quotation_email(request.user, quotation, to_email)
+    messages.success(request, "Quotation email sent!")
+    return redirect('quotation_detail', pk=pk)
+
+from .models import Quotation
+from .forms import QuotationForm,QuotationLineItemForm
+
+@login_required
+def quotation_list(request):
+    quotations = Quotation.objects.all().order_by('-quotation_date')
+    return render(request, 'invoicemgmt/quotation_list.html', {'quotations': quotations})
+
+# filepath: c:\Users\ASUS TUF\Desktop\management-main\management-main\invoicemgmt\views.py
+
+from django.forms import inlineformset_factory
+
+@login_required
+def quotation_create(request):
+    QuotationLineItemFormSet = inlineformset_factory(
+        Quotation, QuotationLineItem,
+        form=QuotationLineItemForm,
+        extra=1, can_delete=True
+    )
+    if request.method == 'POST':
+        form = QuotationForm(request.POST, request.FILES)
+        formset = QuotationLineItemFormSet(request.POST)
+        if form.is_valid() and formset.is_valid():
+            quotation = form.save()
+            formset.instance = quotation
+            formset.save()
+            return redirect('quotation_list')
+    else:
+        form = QuotationForm()
+        formset = QuotationLineItemFormSet()
+    return render(request, 'invoicemgmt/quotation_form.html', {'form': form, 'formset': formset})
+
+@login_required
+def quotation_detail(request, pk):
+    quotation = get_object_or_404(Quotation, pk=pk)
+    return render(request, 'invoicemgmt/quotation_detail.html', {'quotation': quotation})

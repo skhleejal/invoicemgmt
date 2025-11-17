@@ -3,6 +3,8 @@ from . import views
 from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView 
 from .views import InvoiceDeleteView
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -23,7 +25,11 @@ urlpatterns = [
     path('invoices/<int:pk>/pdf/', views.generate_invoice_pdf, name='generate_invoice_pdf'),
     path("import-invoices/", views.import_invoices_from_excel, name="import_invoices"),
     path('invoices/export/', views.export_invoices_to_excel, name='export_invoices_to_excel'),
-
+    path('invoices/<int:pk>/cancel/', views.cancel_invoice, name='cancel_invoice'),
+    path('invoices/paid/', views.paid_bills_list, name='paid_bills_list'),
+    path('invoices/pending/', views.pending_bills_list, name='pending_bills_list'),
+    path('invoices/due/', views.due_amount_list, name='due_amount_list'),
+    path('invoices/total/', views.invoice_total, name='invoice_total'),
 
     # Product-related URLs
     # path('products/', product_list, name='product_list'),
@@ -39,6 +45,12 @@ urlpatterns = [
     path('products/<int:pk>/delete/', views.delete_product, name='product_delete'),
     path('products/<int:pk>/edit/', views.update_product, name='product_update'),  
     # path('products/<int:pk>/edit/', views.edit_product, name='edit_product'),
+    path('invoices/<int:pk>/send/', views.send_invoice_email_view, name='send_invoice_email'),
+    path('quotations/<int:pk>/send/', views.send_quotation_email_view, name='send_quotation_email'),
+    path('quotations/', views.quotation_list, name='quotation_list'),
+    path('quotations/create/', views.quotation_create, name='quotation_create'),
+    path('quotations/<int:pk>/', views.quotation_detail, name='quotation_detail'),
+    
 
     
     path('purchases/create/', views.purchase_create, name='create_purchase'),
@@ -49,9 +61,15 @@ urlpatterns = [
     path('purchases/<int:pk>/delete/', views.purchase_delete, name='delete_purchase'),
     path('purchases/<int:pk>/update/', views.purchase_update, name='update_purchase'),
     path('purchases/<int:pk>/pdf/', views.purchase_pdf, name='purchase_pdf'),
+    
+    path('purchases/<int:pk>/add-attachment/', views.purchase_add_attachment, name='purchase_add_attachment'),
+    
+    path('purchases/total/', views.purchase_total, name='purchase_total'),  
     path('ai-support/', views.ai_support, name='ai_support'),
 
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
 # Other
@@ -84,3 +102,4 @@ urlpatterns += [
     path('customer/<int:customer_id>/statement/<int:month>/pdf/', views.generate_statement_pdf, name='generate_statement_pdf'),
      path('generate_combined_statement_pdf/<int:customer_id>/', views.generate_combined_statement_pdf, name='generate_combined_statement_pdf'),
 ]
+

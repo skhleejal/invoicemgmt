@@ -110,9 +110,13 @@ class Invoice(models.Model):
 
     invoice_type = models.CharField(max_length=50, choices=INVOICE_TYPE_CHOICES, blank=True, null=True, default='')
 
-    STATUS_CHOICES = [('open', 'Open'), ('paid', 'Paid')]
+    STATUS_CHOICES = [
+        ('open', 'Open'),
+        ('paid', 'Paid'),
+        ('cancelled', 'Cancelled'),
+        ('merged', 'Merged'),
+    ]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
-    
     # --- NEW: Central method to update totals ---
     # --- NEW: Central method to update totals ---
     def save(self, *args, **kwargs):
@@ -242,6 +246,7 @@ class Purchase(models.Model):
     purchased_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     purchase_number = models.CharField(max_length=50, unique=True) 
+    attachment = models.FileField(upload_to='purchase_attachments/', blank=True, null=True)
 
     def save(self, *args, **kwargs):
         # Calculate totals if purchase already exists (has line items)
@@ -365,3 +370,30 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+# models.py
+class Quotation(models.Model):
+    quotation_number = models.CharField(max_length=100, unique=True)
+    quotation_date = models.DateField()
+    customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    status = models.CharField(max_length=20, default='open')
+    created_at = models.DateTimeField(auto_now_add=True)
+    attachment = models.FileField(upload_to='quotation_attachments/', blank=True, null=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='quotations')
+
+    def __str__(self):
+        return f"Quotation #{self.quotation_number}"
+    
+class QuotationLineItem(models.Model):
+    quotation = models.ForeignKey(Quotation, related_name='line_items', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    description = models.CharField(max_length=255, blank=True)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1.00)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+    def save(self, *args, **kwargs):
+        self.amount = self.quantity * self.unit_price
+        super().save(*args, **kwargs)

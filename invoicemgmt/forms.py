@@ -123,16 +123,18 @@ class InvoiceLineItemForm(forms.ModelForm):
 class PurchaseForm(forms.ModelForm):
     class Meta:
         model = Purchase
-        fields = ['supplier_name', 'date', 'purchase_number']
+        fields = ['supplier_name', 'date', 'purchase_number','attachment']
         widgets = {
             'supplier_name': forms.TextInput(attrs={'placeholder': 'Enter supplier name', 'class': 'form-control'}),
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),  # Editable date field
             'purchase_number': forms.TextInput(attrs={'placeholder': 'Enter purchase number', 'class': 'form-control'}),
+            'attachment': forms.ClearableFileInput(attrs={'multiple': False}),
         }
         labels = {
             'supplier_name': 'Supplier Name*',
             'date': 'Date*',
             'purchase_number': 'Purchase Number*',
+            'attachment': 'Attachment',
         }
 
 class PurchaseLineItemForm(forms.ModelForm):
@@ -224,4 +226,56 @@ class ProductForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'price': forms.NumberInput(attrs={'class': 'form-control'}),
             'vat_rate': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
+from .models import Quotation
+
+class QuotationForm(forms.ModelForm):
+    class Meta:
+        model = Quotation
+        fields = ['quotation_number', 'quotation_date', 'customer', 'total_amount', 'status', 'attachment']
+        widgets = {
+            'quotation_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Quotation Number'}),
+            'quotation_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'customer': forms.Select(attrs={'class': 'form-control'}),
+            'total_amount': forms.NumberInput(attrs={'class': 'form-control'}),
+            'status': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Status'}),
+            'attachment': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'quotation_number': 'Quotation Number*',
+            'quotation_date': 'Quotation Date*',
+            'customer': 'Customer*',
+            'total_amount': 'Total Amount*',
+            'status': 'Status',
+            'attachment': 'Attachment (PDF or other file)',
+        }
+
+
+from .models import QuotationLineItem
+
+class QuotationLineItemForm(forms.ModelForm):
+    class Meta:
+        model = QuotationLineItem
+        fields = ['product', 'description', 'quantity', 'unit_price', 'amount']
+        widgets = {
+            'product': forms.Select(attrs={'class': 'form-control'}),
+            'description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Description'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+            'unit_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+        }
+        labels = {
+            'product': 'Product*',
+            'description': 'Description',
+            'quantity': 'Quantity*',
+            'unit_price': 'Unit Price*',
+            'amount': 'Amount',
+        }
+        help_texts = {
+            'product': 'Select a product.',
+            'description': 'Describe the item briefly.',
+            'quantity': 'Quantity of the product.',
+            'unit_price': 'Rate per unit.',
+            'amount': 'Calculated automatically.',
         }

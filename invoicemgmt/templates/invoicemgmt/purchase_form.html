@@ -28,7 +28,7 @@
       </div>
     {% endif %}
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="mb-3">
             <label for="id_supplier_name" class="form-label">Supplier Name*</label>
@@ -49,6 +49,13 @@
             {{ purchase_form.purchase_number }}
             {% if purchase_form.purchase_number.errors %}
                 <div class="text-danger">{{ purchase_form.purchase_number.errors }}</div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="id_attachment" class="form-label">Attachment</label>
+            {{ purchase_form.attachment }}
+            {% if purchase_form.attachment.errors %}
+                <div class="text-danger">{{ purchase_form.attachment.errors }}</div>
             {% endif %}
         </div>
         {{ formset.management_form }}

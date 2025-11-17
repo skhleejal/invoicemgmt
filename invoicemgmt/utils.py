@@ -88,3 +88,29 @@ def send_mailjet_email(subject, body, to_email, attachments=None):
     }
     result = mailjet.send.create(data=data)
     return result.status_code, result.json()
+
+from mailjet_rest import Client
+from django.conf import settings
+
+def send_mailjet_email(from_email, to_email, subject, body):
+    mailjet = Client(auth=(settings.MAILJET_API_KEY, settings.MAILJET_API_SECRET), version='v3.1')
+    data = {
+      'Messages': [
+        {
+          "From": {
+            "Email": from_email,
+            "Name": "High Speed Graphics"
+          },
+          "To": [
+            {
+              "Email": to_email,
+              "Name": "Customer"
+            }
+          ],
+          "Subject": subject,
+          "TextPart": body,
+        }
+      ]
+    }
+    result = mailjet.send.create(data=data)
+    return result.status_code == 200

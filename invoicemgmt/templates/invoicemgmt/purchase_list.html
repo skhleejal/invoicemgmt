@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="{% static 'css/stylesheet.css' %}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
+
+
 <body>
 <div class="container mt-5">
     {% if messages %}
@@ -50,11 +52,25 @@
     </form>
     <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Purchases</h2>
+        <!-- <h2>Purchases</h2> -->
        
-        <a href="{% url 'create_purchase' %}" class="btn btn-success">
-            ➕ Create Purchase
-        </a>
+        <ul class="nav nav-pills nav-fill gap-2 p-1 small bg-dark rounded-5 shadow-sm mb-4" role="tablist"
+            style="--bs-nav-link-color: var(--bs-white); --bs-nav-pills-link-active-color: var(--bs-primary); --bs-nav-pills-link-active-bg: var(--bs-white);">
+          <li class="nav-item" role="presentation">
+            <a href="{% url 'create_purchase' %}" class="nav-link rounded-5 active" role="tab" aria-selected="true">
+              ➕ Create Purchase
+            </a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a href="{% url 'purchase_total' %}" class="nav-link rounded-5" role="tab" aria-selected="false">
+              View Purchase Total
+            </a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a href="{% url 'home' %}"  class="nav-link rounded-5" role="tab" aria-selected="false">Back to Home</a>
+
+          </li>
+        </ul>
     </div>
 
     {% if month_name and year %}
@@ -86,11 +102,16 @@
                         <td>{{ purchase.supplier_name }}</td>
                         <td>{{ purchase.total_amount }}</td>
                         <td>
+                            {% if purchase.attachment %}
+                                <a href="{{ purchase.attachment.url }}" target="_blank" class="btn btn-sm btn-info">View</a>
+                            {% else %}
+                                <span class="text-muted">No file</span>
+                            {% endif %}
+                            <a href="{% url 'purchase_add_attachment' purchase.pk %}" class="btn btn-secondary btn-sm">Attach File</a>
+                        </td>
+                        <td>
                             <a href="{% url 'update_purchase' purchase.pk %}" class="btn btn-warning btn-sm mt-1">Edit</a>
                             <a href="{% url 'delete_purchase' purchase.pk %}" class="btn btn-danger btn-sm ms-2">Delete</a>
-                            <a href="{% url 'purchase_pdf' purchase.pk %}" class="btn btn-info btn-sm mt-1" target="_blank">
-                                Download PDF
-                            </a>
                         </td>
                     </tr>
                 {% endfor %}
@@ -103,6 +124,36 @@
         <a href="{% url 'create_purchase' %}" class="btn btn-primary">Create New Purchase</a>
         <a href="{% url 'home' %}" class="btn btn-outline-dark">Back to Home</a>
     </div>
-</div>
+    </div>
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+            <strong class="me-auto" id="toast-title">Notification</strong>
+            <small id="toast-time"></small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toast-body">
+            <!-- Message will appear here -->
+            </div>
+        </div>
+    </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+        function showToast(title, message) {
+            document.getElementById('toast-title').textContent = title;
+            document.getElementById('toast-body').textContent = message;
+            document.getElementById('toast-time').textContent = new Date().toLocaleTimeString();
+            const toast = new bootstrap.Toast(document.getElementById('liveToast'));
+            toast.show();
+        }
+        </script>
+        {% if messages %}
+        <script>
+            {% for message in messages %}
+                showToast("{{ message.tags|title }}", "{{ message }}");
+            {% endfor %}
+        </script>
+        {% endif %}
+        <button type="button" class="btn btn-primary" onclick="showToast('Title', 'Message')">Show Toast</button>
 </body>
 </html>

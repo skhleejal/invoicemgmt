@@ -20,6 +20,7 @@
         </div>
     {% endif %}
 
+
     <h1 class="mb-4">Invoice List</h1>
     <form method="get" class="mb-3" id="invoice-filter-form">
         <input type="text" name="q" placeholder="Search by customer or invoice number..." value="{{ query|default:'' }}" class="form-control" style="width: 300px; display: inline-block;">
@@ -27,18 +28,54 @@
         <button type="submit" class="btn btn-primary">Search</button>
     </form>
     <div class="container">
-    
+    <!-- <a href="{% url 'invoice_total' %}" class="btn btn-primary mb-3">
+        View Invoice Total
+    </a> -->
     <!-- ✅ Place button block here -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Invoices</h2>
-        <a href="{% url 'import_invoices' %}" class="btn btn-success">
+        <!-- <a href="{% url 'import_invoices' %}" class="btn btn-success">
             📥 Import Invoices from Excel
+        </a>-->
+    </div> 
+
+
+    <!-- <button id="export-excel-btn" class="btn btn-success mb-3">
+        <i class="fas fa-file-excel"></i> Export to Excel
+    </button> -->
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <!-- <a href="{% url 'create_invoice' %}" class="btn btn-primary">Create New Invoice</a>
+        <a href="{% url 'invoice_total' %}" class="btn btn-primary mb-3">
+            View Invoice Total
         </a>
+        <a href="{% url 'customer_list' %}" class="btn btn-secondary">View Customers</a>
+        <a href="{% url 'home' %}" class="btn btn-outline-dark">Back to Home</a> -->
+        <ul class="nav nav-pills nav-fill gap-2 p-1 small bg-primary rounded-5 shadow-sm mb-4" role="tablist"
+            style="--bs-nav-link-color: var(--bs-white); --bs-nav-pills-link-active-color: var(--bs-primary); --bs-nav-pills-link-active-bg: var(--bs-white);">
+          <li class="nav-item" role="presentation">
+            <a href="{% url 'create_invoice' %}" class="nav-link rounded-5 active" role="tab" aria-selected="true">
+              ➕ Create Invoice
+            </a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a href="{% url 'invoice_total' %}" class="nav-link rounded-5" role="tab" aria-selected="false">
+              View Invoice Total
+            </a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a href="{% url 'customer_list' %}" class="nav-link rounded-5" role="tab" aria-selected="false">
+              View Customers
+            </a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a href="{% url 'home' %}" class="nav-link rounded-5" role="tab" aria-selected="false">
+              Back to Home
+            </a>
+          </li>
+        </ul>
     </div>
 
-    <button id="export-excel-btn" class="btn btn-success mb-3">
-        <i class="fas fa-file-excel"></i> Export to Excel
-    </button>
     <script>
     document.getElementById('export-excel-btn').onclick = function(e) {
         e.preventDefault();
@@ -75,17 +112,24 @@
                         <td>{{ invoice.amount_in_words }}</td>
                         <td>
                             {% if invoice.status == 'open' %}
-                                <a href="{% url 'mark_invoice_paid' invoice.pk %}" class="btn btn-success btn-sm">Mark as Paid</a>
+                                <a href="{% url 'mark_invoice_paid' invoice.pk %}" class="btn btn-success btn-sm btn-sm me-2"
+                                   onclick="return confirm('Are you sure you want to mark this invoice as paid?');">
+                                   Mark as Paid
+                                </a>
                             {% else %}
                                 <span class="badge bg-success">Paid</span>
                             {% endif %}
                                 <a href="{% url 'delete_invoice' invoice.pk %}" class="btn btn-danger btn-sm ms-2">Delete</a>
                             <br>
-                            <a href="{% url 'update_invoice' invoice.pk %}" class="btn btn-warning btn-sm mt-1">Edit</a>
-                            <a href="{% url 'generate_invoice_pdf' invoice.pk %}" class="btn btn-info btn-sm mt-1" target="_blank">
+                            <a href="{% url 'update_invoice' invoice.pk %}" class="btn btn-warning btn-sm mt-2">Edit</a>
+                            <a href="{% url 'generate_invoice_pdf' invoice.pk %}" class="btn btn-info btn-sm mt-2" target="_blank">
                                 Download PDF
                             </a>
-
+                             <a href="{% url 'cancel_invoice' invoice.pk %}" class="btn btn-sm mt-3"
+                                style="background-color: olivedrab; color: white;"
+                                onclick="return confirm('Are you sure you want to cancel this invoice?');">
+                                Cancel Invoice
+                            </a>
                         </td>
                     </tr>
                 {% endfor %}

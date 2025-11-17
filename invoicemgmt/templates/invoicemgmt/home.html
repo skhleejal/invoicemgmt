@@ -32,49 +32,71 @@
     <div class="container mt-4">
         <div class="row">
             <div class="col-lg-3 col-md-6 mb-3">
-                <div class="small-box bg-success text-white p-3 rounded">
-                    <h3>{{ sales_amount }}</h3>
-                    <p>Sales Amount</p>
-                </div>
+                <a href="{% url 'paid_bills_list' %}" class="text-decoration-none">
+                    <div class="small-box bg-success text-white p-3 rounded text-center h-100">
+                        <h3>{{ sales_amount }}</h3>
+                        <p>Sales Amount</p>
+                    </div>
+                </a>
             </div>
             <div class="col-lg-3 col-md-6 mb-3">
-                <div class="small-box bg-primary text-white p-3 rounded">
-                    <h3>{{ total_invoices }}</h3>
-                    <p>Total Invoices</p>
-                </div>
+                <a href="{% url 'invoice_list' %}" class="text-decoration-none">
+                    <div class="small-box bg-primary text-white p-3 rounded text-center h-100">
+                        <h3>{{ total_invoices }}</h3>
+                        <p>Total Invoices</p>
+                    </div>
+                </a>
             </div>
             <div class="col-lg-3 col-md-6 mb-3">
-                <div class="small-box bg-warning text-dark p-3 rounded">
-                    <h3>{{ pending_bills }}</h3>
-                    <p>Pending Bills</p>
-                </div>
+                <a href="{% url 'pending_bills_list' %}" class="text-decoration-none">
+                    <div class="small-box bg-warning text-dark p-3 rounded text-center h-100">
+                        <h3>{{ pending_bills }}</h3>
+                        <p>Pending Bills</p>
+                    </div>
+                </a>
             </div>
             <div class="col-lg-3 col-md-6 mb-3">
-                <div class="small-box bg-danger text-white p-3 rounded">
-                    <h3>{{ due_amount }}</h3>
-                    <p>Due Amount</p>
-                </div>
+                <a href="{% url 'due_amount_list' %}" class="text-decoration-none">
+                    <div class="small-box bg-danger text-white p-3 rounded text-center h-100">
+                        <h3>{{ due_amount }}</h3>
+                        <p>Due Amount</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <a href="{% url 'purchase_list' %}" class="text-decoration-none">
+                    <div class="small-box bg-primary text-white p-3 rounded text-center h-100">
+                        <h3>{{ purchase_count }}</h3>
+                        <p>Total Purchases</p>
+                    </div>
+                </a>
             </div>
         </div>
 
         <div class="row mt-4">
             <div class="col-lg-3 col-md-6 mb-3">
-                <div class="small-box bg-info text-white p-3 rounded">
-                    <h3>{{ total_products }}</h3>
-                    <p>Total Products</p>
-                </div>
+                <a href="{% url 'product_list' %}" class="text-decoration-none">
+                    <div class="small-box bg-info text-white p-3 rounded text-center h-100">
+                        <h3>{{ total_products }}</h3>
+                        <p>Total Products</p>
+                    </div>
+                </a>
             </div>
             <div class="col-lg-3 col-md-6 mb-3">
-                <div class="small-box bg-secondary text-white p-3 rounded">
-                    <h3>{{ total_customers }}</h3>
-                    <p>Total Customers</p>
-                </div>
+                <a href="{% url 'customer_list' %}" class="text-decoration-none">
+                    <div class="small-box bg-secondary text-white p-3 rounded text-center h-100">
+                        <h3>{{ total_customers }}</h3>
+                        <p>Total Customers</p>
+                    </div>
+                </a>
             </div>
             <div class="col-lg-3 col-md-6 mb-3">
-                <div class="small-box bg-success text-white p-3 rounded">
-                    <h3>{{ paid_bills }}</h3>
-                    <p>Paid Bills</p>
-                </div>
+                <a href="{% url 'paid_bills_list' %}" class="text-decoration-none">
+                    <div class="small-box bg-success text-white p-3 rounded text-center h-100">
+                        <h3>{{ paid_bills }}</h3>
+                        <p>Paid Bills</p>
+                    </div>
+                </a>
             </div>
         </div>
 

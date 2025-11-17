@@ -1,9 +1,9 @@
-<!-- {% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block content %}
 <div class="container mt-5">
     <h2>Quotations</h2>
-    <a href="{% url 'create_quotation' %}" class="btn btn-primary mb-3">Create New Quotation</a>
+    <a href="{% url 'quotation_create' %}" class="btn btn-primary mb-3">Create New Quotation</a>
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
@@ -19,7 +19,7 @@
             <tr>
                 <td>{{ quotation.pk }}</td>
                 <td>{{ quotation.customer }}</td>
-                <td>{{ quotation.date }}</td>
+                <td>{{ quotation.quotation_date }}</td>
                 <td>{{ quotation.total_amount }}</td>
                 <td>
                     <a href="{% url 'send_quotation_email' quotation.pk %}" class="btn btn-sm btn-success">
@@ -35,4 +35,4 @@
         </tbody>
     </table>
 </div>
-{% endblock %} -->
+{% endblock %}

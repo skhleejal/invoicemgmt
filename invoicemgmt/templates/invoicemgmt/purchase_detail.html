@@ -51,6 +51,10 @@
     <h3>Total VAT: {{ purchase.vat_amount }}</h3>
     <h3>Grand Total (Including VAT): {{ purchase.total_amount }}</h3>
 
+    {% if purchase.attachment %}
+        <a href="{{ purchase.attachment.url }}" target="_blank">View Attachment</a>
+    {% endif %}
+
     <a href="{% url 'purchase_list' %}" class="btn btn-secondary mt-3">Back to Purchases</a>
 </div>
 </body>

@@ -60,7 +60,7 @@
 </head>
 <body>
 
-    <!-- Sidebar -->
+    <!-- Sidebar
     <div id="sidebar" class="sidebar shadow">
         <button class="close-btn" id="close-sidebar">×</button>
         <h4 class="text-center mt-3">High Speed</h4>
@@ -73,13 +73,73 @@
         <a href="{% url 'create_purchase' %}">🛒 Create Purchase</a>
         <a href="{% url 'create_invoice' %}">➕ Create Invoice</a>
         <li><a href="{% url 'delivery_note_list' %}">Delivery Notes</a></li>
+        <li>
+            <a href="{% url 'quotation_list' %}" class="nav-link">
+                <i class="bi bi-file-earmark-text"></i> Quotations
+            </a>
+        </li>
         <a class="nav-link" href="{% url 'ai_support' %}">
             <i class="fas fa-robot"></i> AI Support
         </a>
-
+       
         <a href="/admin/">⚙️ Admin</a>
-    </div>
+    </div> -->
+    <!-- <div class="container-fluid">
+  <div class="col-3">
+    <nav id="sidebar-menu" class="h-100 flex-column align-items-stretch pe-4 border-end">
+      <nav class="nav nav-pills flex-column">
+        <a class="nav-link mb-2" href="{% url 'home' %}">Dashboard🏠</a>
+        <a class="nav-link mb-2" href="{% url 'customer_list' %}">👤Customers</a>
+        <nav class="nav nav-pills flex-column ms-3">
+          <a class="nav-link my-1" href="{% url 'create_customer' %}">Add Customer➕</a>
+        </nav>
+        <a class="nav-link mb-2" href="{% url 'invoice_list' %}">📄Invoices</a>
+        <nav class="nav nav-pills flex-column ms-3">
+          <a class="nav-link my-1" href="{% url 'create_invoice' %}">Create Invoice➕</a>
+        </nav>
+        <a class="nav-link mb-2" href="{% url 'product_list' %}">Products</a>
+        <a class="nav-link mb-2" href="/admin/"></a>
+        <a class="nav-link mb-2" href="{% url 'delivery_note_list' %}">Delivery Notes</a>
+        <a class="nav-link mb-2" href="{% url 'quotation_list' %}">Quotations</a>
+        <a class="nav-link mb-2" href="{% url 'purchase_list' %}">📦View Purchases</a>
+        <nav class="nav nav-pills flex-column ms-3">
+          <a class="nav-link my-1" href="{% url 'create_purchase' %}">Create Purchase🛒</a>
+        </nav>
+        <a class="nav-link mb-2" href="{% url 'ai_support' %}">AI Support</a>
+      </nav>
+    </nav>
+  </div>
+  <div class="col-9">
+     Main content here -->
+   
+  <!-- </div> -->
+<!-- </div> --> 
+     <!-- Sidebar -->
+    <div id="sidebar" class="sidebar shadow">
+        <button class="close-btn" id="close-sidebar">×</button>
+        <h4 class="text-center mt-3">High Speed</h4>
+        <nav class="nav nav-pills flex-column">
+            <a class="nav-link mb-2" href="{% url 'home' %}">Dashboard🏠</a>
+            <a class="nav-link mb-2" href="{% url 'customer_list' %}">👤 Customers</a>
+            <nav class="nav nav-pills flex-column ms-3">
+                <a class="nav-link my-1" href="{% url 'create_customer' %}">Add Customer➕</a>
+            </nav>
+            <a class="nav-link mb-2" href="{% url 'invoice_list' %}">📄 Invoices</a>
+            <nav class="nav nav-pills flex-column ms-3">
+                <a class="nav-link my-1" href="{% url 'create_invoice' %}">Create Invoice➕</a>
+            </nav>
+            <a class="nav-link mb-2" href="{% url 'product_list' %}">Products</a>
+                    <a class="nav-link mb-2" href="{% url 'purchase_list' %}">📦 View Purchases</a>
+            <nav class="nav nav-pills flex-column ms-3">
+                <a class="nav-link my-1" href="{% url 'create_purchase' %}">Create Purchase🛒</a>
+            </nav>
+            <a class="nav-link mb-2" href="{% url 'delivery_note_list' %}">Delivery Notes</a>
+            <a class="nav-link mb-2" href="{% url 'quotation_list' %}">Quotations</a>
 
+            <a class="nav-link mb-2" href="{% url 'ai_support' %}">AI Support</a>
+            <a class="nav-link mb-2" href="/admin/">⚙️ Admin</a>
+        </nav>
+    </div>
     <!-- Top Nav -->
     <nav class="navbar navbar-dark bg-primary">
         <div class="container-fluid">
