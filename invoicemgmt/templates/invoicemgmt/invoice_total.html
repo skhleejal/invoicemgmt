@@ -23,6 +23,7 @@
                     <tr>
                         <th>Month</th>
                         <th>Total Amount (AED)</th>
+                        <th>VAT Amount (AED)</th> 
                     </tr>
                 </thead>
                 <tbody>
@@ -30,6 +31,7 @@
                     <tr>
                         <td>{{ entry.month|date:"F Y" }}</td>
                         <td>{{ entry.total }}</td>
+                        <td>{{ entry.vat_amount|floatformat:3 }}</td>
                     </tr>
                     {% empty %}
                     <tr>

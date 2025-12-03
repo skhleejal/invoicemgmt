@@ -158,7 +158,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         const toggleBtn = document.getElementById("menu-toggle");
         const sidebar = document.getElementById("sidebar");
@@ -173,6 +173,43 @@
         });
     </script>
 
+    <div id="cursor-dot"></div>
+    <div id="cursor-ring"></div>
+
+    <script>
+        const dot = document.getElementById('cursor-dot');
+        const ring = document.getElementById('cursor-ring');
+
+        let mouseX = 0, mouseY = 0;
+        let ringX = 0, ringY = 0;
+
+        document.addEventListener('mousemove', e => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            dot.style.left = (mouseX - 3) + 'px';
+            dot.style.top = (mouseY - 3) + 'px';
+        });
+
+        function animateRing() {
+            ringX += (mouseX - ringX) * 0.2;
+            ringY += (mouseY - ringY) * 0.2;
+            ring.style.left = (ringX - 15) + 'px';
+            ring.style.top = (ringY - 15) + 'px';
+            requestAnimationFrame(animateRing);
+        }
+        animateRing();
+
+        document.querySelectorAll('input, textarea, select').forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('edit-mode'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('edit-mode'));
+        });
+        document.querySelectorAll('button, a').forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('action-mode'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('action-mode'));
+        });
+    </script>
     {% block scripts %}{% endblock %}
+
+
 </body>
 </html>

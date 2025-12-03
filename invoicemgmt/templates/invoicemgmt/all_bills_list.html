@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Paid Bills{% endblock %}
+{% block title %}All Bills{% endblock %}
 {% block content %}
 <div class="container mt-5">
-    <h2 class="mb-4">Paid Bills</h2>
+    <h2 class="mb-4">All Bills</h2>
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
@@ -11,6 +11,7 @@
                 <th>Customer</th>
                 <th>Total Amount</th>
                 <th>Status</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -20,7 +21,11 @@
                 <td>{{ invoice.invoice_date }}</td>
                 <td>{{ invoice.customer.name }}</td>
                 <td>{{ invoice.total_amount }}</td>
-                <td><span class="badge bg-success">{{ invoice.status|title }}</span></td>
+                <td>
+                    <span class="badge {% if invoice.status == 'paid' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                        {{ invoice.status|title }}
+                    </span>
+                </td>
                 <td>
                     <a href="{% url 'generate_invoice_pdf' invoice.pk %}" class="btn btn-info btn-sm mt-2" target="_blank">
                         Download PDF
@@ -29,7 +34,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="5" class="text-center">No paid bills found.</td>
+                <td colspan="6" class="text-center">No bills found.</td>
             </tr>
             {% endfor %}
         </tbody>

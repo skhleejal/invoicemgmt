@@ -30,7 +30,8 @@ urlpatterns = [
     path('invoices/pending/', views.pending_bills_list, name='pending_bills_list'),
     path('invoices/due/', views.due_amount_list, name='due_amount_list'),
     path('invoices/total/', views.invoice_total, name='invoice_total'),
-
+    path('invoices/<int:pk>/add_attachment/', views.invoice_add_attachment, name='invoice_add_attachment'),
+    path('invoices/all/', views.all_bills_list, name='all_bills_list'),
     # Product-related URLs
     # path('products/', product_list, name='product_list'),
     # path('products/add/', add_product, name='add_product'),

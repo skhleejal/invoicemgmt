@@ -1,9 +1,48 @@
-/* General Reset */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
+
+/* ...existing code... */
+
+/* Hide default cursor */
+body, button, input, a {
+    cursor: auto !important;
+}
+/* Custom cursor styles */
+#cursor-dot {
+    width: 6px; height: 6px;
+    background: #00ff41;
+    position: fixed;
+    border-radius: 50%;
+    z-index: 99999;
+    pointer-events: none;
+}
+#cursor-ring {
+    width: 30px; height: 30px;
+    border: 1px solid #00ff41;
+    position: fixed;
+    border-radius: 50%;
+    z-index: 99999;
+    pointer-events: none;
+    transition: width 0.2s, height 0.2s, border-radius 0.2s, background-color 0.2s;
+    mix-blend-mode: screen;
+}
+body.edit-mode #cursor-ring {
+    width: 40px;
+    height: 20px;
+    border-radius: 4px;
+    border-color: #ffcc00;
+    background-color: rgba(255, 204, 0, 0.1);
+}
+body.action-mode #cursor-ring {
+    width: 50px; height: 50px;
+    background-color: #00ff41;
+    opacity: 0.3;
+    border: none;
+}
+/* ...existing code... */
 
 body {
     font-family: 'Arial', sans-serif;

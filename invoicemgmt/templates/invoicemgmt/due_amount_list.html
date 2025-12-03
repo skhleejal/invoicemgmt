@@ -21,6 +21,11 @@
                 <td>{{ invoice.customer.name }}</td>
                 <td>{{ invoice.total_amount }}</td>
                 <td><span class="badge bg-danger">{{ invoice.status|title }}</span></td>
+                <td>
+                    <a href="{% url 'generate_invoice_pdf' invoice.pk %}" class="btn btn-info btn-sm mt-2" target="_blank">
+                        Download PDF
+                    </a>
+                </td>
             </tr>
             {% empty %}
             <tr>

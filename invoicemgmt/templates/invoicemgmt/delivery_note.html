@@ -34,7 +34,7 @@
             </tr>
         </thead>
         <tbody>
-            <!-- Loop through delivery items if you have a related model -->
+            
             {% for item in note.items.all %}
             <tr>
                 <td>{{ forloop.counter }}</td>
@@ -54,6 +54,7 @@
     </div>
     <div class="section mt-4">
         <strong>Terms & Conditions:</strong><br>
+        
         {{ note.terms }}
     </div>
 </div>

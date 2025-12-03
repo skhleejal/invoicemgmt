@@ -4,6 +4,41 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+    <style>
+    .futuristic-header-blue {
+        background: linear-gradient(90deg, #2193b0, #6dd5ed);
+        color: #fff;
+        font-weight: bold;
+        border-radius: 18px 18px 0 0;
+        padding: 1rem;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+    }
+    .futuristic-header-pink {
+        background: linear-gradient(90deg, #ee9ca7, #ffdde1);
+        color: #b3003c;
+        font-weight: bold;
+        border-radius: 18px 18px 0 0;
+        padding: 1rem;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+    }
+    .collapse-btn {
+        background: #fff;
+        border: 1px solid #ccc;
+        color: #2193b0;
+        border-radius: 6px;
+        padding: 0.3em 1em;
+        margin-left: auto;
+        cursor: pointer;
+        font-size: 1em;
+    }
+    </style>
+
     {% if low_stock_products %}
         <div class="alert alert-warning mt-4">
             <strong>⚠ Low Stock Alert:</strong>
@@ -15,6 +50,106 @@
         </div>
     {% endif %}
 
+    
+        <!-- {% if upcoming_due_invoices %}
+        <div class="card border-warning mb-4 shadow-sm">
+            <div class="card-header bg-warning bg-gradient text-dark d-flex align-items-center">
+                <i class="bi bi-bell-fill me-2"></i>
+                <strong>Payment Due Soon!</strong>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for invoice in upcoming_due_invoices %}
+                    <li class="list-group-item">
+                        <span class="fw-bold text-primary">#{{ invoice.invoice_number }}</span>
+                        <span class="fw-bold">{{ invoice.customer.name }}</span>
+                        <span class="badge bg-warning text-dark ms-2">{{ invoice.payment_method }}</span>
+                        <br>
+                        <small>Due on <span class="fw-bold">{{ invoice.due_date|date:"Y-m-d" }}</span></small>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if overdue_invoices %}
+        <div class="card border-danger mb-4 shadow-sm">
+            <div class="card-header bg-danger bg-gradient text-white d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Payment Overdue!</strong>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for invoice in overdue_invoices %}
+                    <li class="list-group-item">
+                        <span class="fw-bold text-danger">#{{ invoice.invoice_number }}</span>
+                        <span class="fw-bold">{{ invoice.customer.name }}</span>
+                        <span class="badge bg-danger ms-2">{{ invoice.payment_method }}</span>
+                        <br>
+                        <small>Was due on <span class="fw-bold">{{ invoice.due_date|date:"Y-m-d" }}</span></small>
+                        <span class="text-danger ms-2"><b>Due by {{ invoice.days_overdue }} day{{ invoice.days_overdue|pluralize }}</b></span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %} -->
+
+    <!-- {% if upcoming_due_invoices %}
+    <div class="alert alert-warning mt-3">
+        <strong>Payment Due Soon!</strong>
+        <ul>
+            {% for invoice in upcoming_due_invoices %}
+            <li>
+                Invoice #{{ invoice.invoice_number }} for {{ invoice.customer.name }} is due on {{ invoice.due_date|date:"Y-m-d" }} ({{ invoice.payment_method }}).
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+
+    {% if overdue_invoices %}
+    <div class="alert alert-danger mt-3">
+        <strong>Payment Overdue!</strong>
+        <ul>
+            {% for invoice in overdue_invoices %}
+            <li>
+                Invoice #{{ invoice.invoice_number }} for {{ invoice.customer.name }} was due on {{ invoice.due_date|date:"Y-m-d" }} ({{ invoice.payment_method }}). <b>Due by {{ invoice.days_overdue }} day{{ invoice.days_overdue|pluralize }}</b>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% endif %} -->
+    <!-- Payment Due Modal -->
+<!-- <div class="modal fade" id="paymentDueModal" tabindex="-1" aria-labelledby="paymentDueModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title" id="paymentDueModalLabel">Payment Due Soon!</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <ul>
+          {% for invoice in upcoming_due_invoices %}
+          <li>
+            Invoice #{{ invoice.invoice_number }} for {{ invoice.customer.name }} is due on {{ invoice.due_date|date:"Y-m-d" }} ({{ invoice.payment_method }}).
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="remindLaterBtn" data-bs-dismiss="modal">Remind Me Later</button>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+<!-- Remind Me Later Icon -->
+<button id="remindIcon" class="btn btn-warning rounded-circle" style="position:fixed;bottom:30px;right:30px;display:none;z-index:9999;">
+  <i class="bi bi-plus-lg"></i>
+</button>
     {% if user.is_authenticated %}
         <div class="alert alert-success mt-4">
             Welcome, <strong>{{ user.username }}</strong>! 🎉
@@ -32,9 +167,11 @@
     <div class="container mt-4">
         <div class="row">
             <div class="col-lg-3 col-md-6 mb-3">
-                <a href="{% url 'paid_bills_list' %}" class="text-decoration-none">
+                <a href="{% url 'all_bills_list' %}" class="text-decoration-none">
+
+
                     <div class="small-box bg-success text-white p-3 rounded text-center h-100">
-                        <h3>{{ sales_amount }}</h3>
+                        <!-- <h3>{{ sales_amount }}</h3> -->
                         <p>Sales Amount</p>
                     </div>
                 </a>
@@ -58,7 +195,7 @@
             <div class="col-lg-3 col-md-6 mb-3">
                 <a href="{% url 'due_amount_list' %}" class="text-decoration-none">
                     <div class="small-box bg-danger text-white p-3 rounded text-center h-100">
-                        <h3>{{ due_amount }}</h3>
+                        <!-- <h3>{{ due_amount }}</h3> -->
                         <p>Due Amount</p>
                     </div>
                 </a>
@@ -100,7 +237,8 @@
             </div>
         </div>
 
-        <!-- Charts Row -->
+
+
         <div class="row mt-4">
             <div class="col-lg-6 mb-4">
                 <canvas id="salesChart" height="200"></canvas>
@@ -109,6 +247,117 @@
                 <canvas id="statusChart" height="200"></canvas>
             </div>
         </div>
+        
+        <div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-6 mb-3">
+        {% if upcoming_due_invoices %}
+        <div class="card shadow-sm h-100">
+            <div class="futuristic-header-blue">
+                <i class="bi bi-bell-fill me-2"></i>
+                Payment Due Soon!
+                <button class="collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#dueSoonCollapse" aria-expanded="true" aria-controls="dueSoonCollapse">
+                    Toggle
+                </button>
+            </div>
+            <div class="card-body collapse show" id="dueSoonCollapse">
+                <ul class="list-group list-group-flush">
+                    {% for invoice in upcoming_due_invoices %}
+                    <li class="list-group-item">
+                        <span class="fw-bold text-primary">#{{ invoice.invoice_number }}</span>
+                        <span class="fw-bold">{{ invoice.customer.name }}</span>
+                        <span class="badge bg-info text-dark ms-2">{{ invoice.payment_method }}</span>
+                        <br>
+                        <small>Due on <span class="fw-bold">{{ invoice.due_date|date:"Y-m-d" }}</span></small>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+               </div>
+        <div class="col-lg-6 mb-3">
+        {% if overdue_invoices %}
+        <div class="card shadow-sm h-100">
+            <div class="futuristic-header-pink">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                Payment Overdue!
+                <button class="collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#overdueCollapse" aria-expanded="true" aria-controls="overdueCollapse">
+                    Toggle
+                </button>
+            </div>
+            <div class="card-body collapse show" id="overdueCollapse">
+                <ul class="list-group list-group-flush">
+                    {% for invoice in overdue_invoices %}
+                    <li class="list-group-item">
+                        <span class="fw-bold" style="color:#b3003c">#{{ invoice.invoice_number }}</span>
+                        <span class="fw-bold">{{ invoice.customer.name }}</span>
+                        <span class="badge" style="background:#ee9ca7;color:#b3003c;">{{ invoice.payment_method }}</span>
+                        <br>
+                        <small>Was due on <span class="fw-bold">{{ invoice.due_date|date:"Y-m-d" }}</span></small>
+                        <span style="color:#b3003c;" class="ms-2"><b>Due by {{ invoice.days_overdue }} day{{ invoice.days_overdue|pluralize }}</b></span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+        </div>
+    </div>
+
+
+                <!-- <div class="container mt-4">
+        <div class="row">
+            <div class="col-lg-6 mb-3">
+            {% if upcoming_due_invoices %}
+            <div class="card border-warning shadow-sm h-100">
+                <div class="card-header bg-warning bg-gradient text-dark d-flex align-items-center">
+                <i class="bi bi-bell-fill me-2"></i>
+                <strong>Payment Due Soon!</strong>
+                </div>
+                <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for invoice in upcoming_due_invoices %}
+                    <li class="list-group-item">
+                    <span class="fw-bold text-primary">#{{ invoice.invoice_number }}</span>
+                    <span class="fw-bold">{{ invoice.customer.name }}</span>
+                    <span class="badge bg-warning text-dark ms-2">{{ invoice.payment_method }}</span>
+                    <br>
+                    <small>Due on <span class="fw-bold">{{ invoice.due_date|date:"Y-m-d" }}</span></small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                </div>
+            </div>
+            {% endif %}
+            </div>
+            <div class="col-lg-6 mb-3">
+            {% if overdue_invoices %}
+            <div class="card border-danger shadow-sm h-100">
+                <div class="card-header bg-danger bg-gradient text-white d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Payment Overdue!</strong>
+                </div>
+                <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for invoice in overdue_invoices %}
+                    <li class="list-group-item">
+                    <span class="fw-bold text-danger">#{{ invoice.invoice_number }}</span>
+                    <span class="fw-bold">{{ invoice.customer.name }}</span>
+                    <span class="badge bg-danger ms-2">{{ invoice.payment_method }}</span>
+                    <br>
+                    <small>Was due on <span class="fw-bold">{{ invoice.due_date|date:"Y-m-d" }}</span></small>
+                    <span class="text-danger ms-2"><b>Due by {{ invoice.days_overdue }} day{{ invoice.days_overdue|pluralize }}</b></span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                </div>
+            </div>
+            {% endif %}
+            </div>
+        </div>
+        </div> -->
+        
 
         <div class="row mt-4">
             <div class="col-lg-6">
@@ -151,3 +400,27 @@
     <script src="{% static 'js/dashboard_charts.js' %}"></script>
 
 {% endblock %}
+<!-- <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Show modal on first page load
+    var paymentModal = new bootstrap.Modal(document.getElementById('paymentDueModal'));
+    paymentModal.show();
+
+    // Handle "Remind Me Later" button
+    document.getElementById('remindLaterBtn').onclick = function() {
+        document.getElementById('remindIcon').style.display = 'block';
+    };
+
+    // Show modal again when + icon is clicked
+    document.getElementById('remindIcon').onclick = function() {
+        paymentModal.show();
+        this.style.display = 'none';
+    };
+});
+</script>
+<script>
+function showPaymentModal() {
+    var paymentModal = new bootstrap.Modal(document.getElementById('paymentDueModal'));
+    paymentModal.show();
+}
+</script> -->

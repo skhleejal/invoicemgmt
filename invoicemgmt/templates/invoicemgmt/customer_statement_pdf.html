@@ -34,14 +34,14 @@
         }
 
         .to-section {
-            text-align: left; /* Align "To" section to the left */
+            text-align: left; 
             font-size: 14px;
             line-height: 1.5;
-            margin-left: 1cm; /* Adjust line spacing for better readability */
+            margin-left: 1cm;
         }
 
         .date-section {
-            text-align: right; /* Align "Date" section to the right */
+            text-align: right; 
             font-size: 14px;
         }
 
@@ -70,7 +70,7 @@
             margin-top: 20px;
             text-align: right;
             font-size: 16px;
-            margin-right: 1cm; /* Add right margin for better positioning */
+            margin-right: 1cm; 
         }
 
         .payment-instructions {
@@ -83,7 +83,7 @@
     </style>
 </head>
 <body>
-    <!-- Header Section -->
+    
     <h1>Statement</h1>
 
     <table class="header-table">
@@ -103,7 +103,7 @@
         </tr>
     </table>
 
-    <!-- Detailed Statement Section -->
+    
     <table class="statement-table">
         <thead>
             <tr>
@@ -131,19 +131,19 @@
         </tbody>
     </table>
 
-    <!-- Totals Section -->
+    
     <div class="totals-section">
         <p><strong>Total for the Month:</strong> {{ total_for_month|floatformat:2 }}</p>
         <p><strong>Total Balance:</strong> {{ balance_due|floatformat:2 }}</p>
     </div>
 
-    <!-- Payment Instructions -->
+    
     <div class="payment-instructions">
         <p>You may please issue the cheque for due amount at the earliest.</p>
         <p>Payment by cheque in the favor of "<strong>HIGH SPEED GRAPHICS</strong>".</p>
     </div>
 
-    <!-- Signature Section -->
+    
     <div class="signature-section">
         <p>For HIGH SPEED GRAPHICS</p>
         <p>....................................................</p>

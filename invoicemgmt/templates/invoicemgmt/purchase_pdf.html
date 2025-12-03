@@ -71,38 +71,38 @@
             }
             th, td { 
                 border: 1px solid #000; 
-                padding: 6px; /* This is your default style */
+                padding: 6px; 
                 word-wrap: break-word;
             }
             th { 
                 background-color: #f0f0f0; 
             }
 
-            /* --- PASTE THE NEW DYNAMIC CODE HERE --- */
+            
             {% if invoice.line_items.all|length > 4 %}
-            /* This style will ONLY apply if you have 5 or more items */
+           
             th, td {
-                padding: 3px;    /* Makes rows shorter */
-                font-size: 10px; /* Makes text smaller */
+                padding: 3px;   
+                font-size: 10px; 
             }
             {% endif %}
-            /* --- END OF NEW CODE --- */
+            
 
             .no-border td { 
                 border: none; 
             }
 
 
-        /* Correct Signature Styles */
+        
         .signature-container {
             display: flex;
-            justify-content: space-between; /* Aligns items to opposite ends */
+            justify-content: space-between; 
             margin-top: 50px;
             width: 100%;
         }
 
         .signature-box {
-            width: 45%; /* Give each box roughly half the space */
+            width: 45%; 
         }
 
         .signature-sender {
@@ -140,7 +140,7 @@
         </tr>
     </table>
 
-    <!-- Add P.O. fields section -->
+    
     <table class="no-border">
         <tr>
             <td width="20%"><strong>P.O. NUMBER</strong><br>{{ purchase.po_number|default:"None" }}</td>

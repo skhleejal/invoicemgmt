@@ -216,27 +216,75 @@ def home(request):
     #     messages.warning(request, "Your account is pending approval.")
     #     return render(request, 'registration/pending_approval.html')
     
-    # Role-based filtering
+    
     if request.user.is_superuser:
         invoice_qs = Invoice.objects.all()
         total_customers = Customer.objects.count()
     else:
         invoice_qs = Invoice.objects.filter(created_by=request.user)
-        # Only customers served by this user
+       
         total_customers = Customer.objects.filter(invoice__created_by=request.user).distinct().count()
 
-    # Use invoice_qs for all stats!
+    
     sales_amount = invoice_qs.filter(status="paid").aggregate(total=Sum('total_amount'))['total'] or 0
     total_invoices = invoice_qs.count()
     pending_bills = invoice_qs.filter(status="open").count()
     due_amount = invoice_qs.filter(status="open").aggregate(total=Sum('total_amount'))['total'] or 0
     paid_bills = invoice_qs.filter(status="paid").count()
-    recent_invoices = invoice_qs.order_by('-invoice_date')[:5]
+    recent_invoices = invoice_qs.order_by('-invoice_date')[:15]
     purchase_count = Purchase.objects.count()
     # total_products = Product.objects.count()
     # low_stock_products = Product.objects.filter(stock__lt=5)
+    # today = datetime.today().date()
+    # upcoming_due_invoices = []
+    # overdue_invoices = []
+    # for invoice in Invoice.objects.filter(status__iexact="open"):
+    #     # Try to extract the number of days from payment_method (e.g., "30 days credit")
+    import re
+    #     match = re.search(r'(\d+)\s*days', str(invoice.payment_method).lower())
+    #     if match:
+    #         days = int(match.group(1))
+    #         due_date = invoice.invoice_date + timedelta(days=days)
+    #         # If due date is within the next week (7 days)
+    #         if today >= due_date - timedelta(days=14) and today < due_date:
+    #             invoice.due_date = due_date
+    #             upcoming_due_invoices.append(invoice)
+    # for invoice in Invoice.objects.filter(status__iexact="open"):
+    
+    #     match = re.search(r'(\d+)\s*days', str(invoice.payment_method).lower())
+    #     if match:
+    #         days = int(match.group(1))
+    #         due_date = invoice.invoice_date + timedelta(days=days)
+    #         invoice.due_date = due_date
+    #         if today >= due_date - timedelta(days=7) and today < due_date:
+    #             upcoming_due_invoices.append(invoice)
+    #         elif today > due_date:
+    #             invoice.days_overdue = (today - due_date).days
+    #             overdue_invoices.append(invoice)
+    today = datetime.today().date()
+    upcoming_due_invoices = []
+    overdue_invoices = []
+    unique_invoice_numbers = set()
 
-    # --- Chart Data: Last 6 Months Sales ---
+    for invoice in Invoice.objects.filter(status__iexact="open"):
+        match = re.search(r'(\d+)\s*days', str(invoice.payment_method).lower())
+        if match:
+            days = int(match.group(1))
+            due_date = invoice.invoice_date + timedelta(days=days)
+            invoice.due_date = due_date
+            # Only add each invoice once
+            if invoice.invoice_number not in unique_invoice_numbers:
+                if today >= due_date - timedelta(days=14) and today < due_date:
+                    upcoming_due_invoices.append(invoice)
+                    unique_invoice_numbers.add(invoice.invoice_number)
+                elif today > due_date:
+                    invoice.days_overdue = (today - due_date).days
+                    overdue_invoices.append(invoice)
+                    unique_invoice_numbers.add(invoice.invoice_number)
+
+
+
+
     today = datetime.today()
     last_6_months = [today.replace(day=1) - timedelta(days=30*i) for i in reversed(range(6))]
     month_labels = [d.strftime('%b') for d in last_6_months]
@@ -250,7 +298,7 @@ def home(request):
     sales_dict = {entry['month'].strftime('%b'): entry['total'] for entry in monthly_sales if entry['month']}
     chart_data = [float(sales_dict.get(month, 0)) for month in month_labels]
 
-    # --- Doughnut Chart: Money Breakdown by Status ---
+    
     paid_total = invoice_qs.filter(status='paid').aggregate(total=Sum('total_amount'))['total'] or 0
     unpaid_total = invoice_qs.filter(status='unpaid').aggregate(total=Sum('total_amount'))['total'] or 0
     open_total = invoice_qs.filter(status='open').aggregate(total=Sum('total_amount'))['total'] or 0
@@ -261,6 +309,8 @@ def home(request):
     context = {
         'sales_amount': sales_amount,
         'total_invoices': total_invoices,
+        'upcoming_due_invoices': upcoming_due_invoices,
+        'overdue_invoices': overdue_invoices,
         'pending_bills': pending_bills,
         'due_amount': due_amount,
         # 'total_products': total_products,
@@ -399,10 +449,10 @@ def create_invoice(request):
 
         if form.is_valid() and formset.is_valid():
             try:
-                # First, save the main invoice form
+                
                 invoice = form.save(commit=False)
                 invoice.created_by = request.user
-                invoice.save()  # The model's save() method runs here
+                invoice.save() 
 
                 # Now, link the line items to the invoice and save them.
                 # Our signal will automatically handle all the total calculations
@@ -428,17 +478,30 @@ def create_invoice(request):
     })
 
 from django.db.models import Sum
+from decimal import Decimal
 
 @login_required
 def invoice_total(request):
-    invoices = Invoice.objects.all()
+    # invoices = Invoice.objects.all()
+    invoices = Invoice.objects.all().order_by('-invoice_number')
     total_amount = invoices.aggregate(total=Sum('total_amount'))['total'] or 0
 
     # Month-wise totals
     from django.db.models.functions import TruncMonth
-    monthly_totals = invoices.annotate(month=TruncMonth('invoice_date')).values('month').annotate(
-        total=Sum('total_amount')
-    ).order_by('month')
+    # monthly_totals = invoices.annotate(month=TruncMonth('invoice_date')).values('month').annotate(
+    #     total=Sum('total_amount')
+    monthly_totals = (
+        invoices
+        .annotate(month=TruncMonth('invoice_date'))
+        .values('month')
+        .annotate(total=Sum('total_amount'))
+        .order_by('month')
+
+    )
+
+    for entry in monthly_totals:
+        entry['vat_amount'] = entry['total'] * Decimal('0.05') if entry['total'] else Decimal('0.00')
+
 
     return render(request, 'invoicemgmt/invoice_total.html', {
         'total_amount': total_amount,
@@ -486,12 +549,12 @@ def invoice_list(request):
             Q(invoice_number__icontains=query)
         )
     
-    # Dynamically calculate "Amount in Words" for each invoice
+    
     for invoice in invoices:
         invoice.amount_in_words = num2words(invoice.total_amount, lang='en') + " AED"
     
-    # Order the filtered invoices by invoice_number
-    invoices = invoices.order_by('-invoice_number')  # Apply ordering to the filtered queryset
+    
+    invoices = invoices.order_by('-invoice_number')  
     
     return render(request, 'invoicemgmt/invoice_list.html', {'invoices': invoices, 'query': query})
 
@@ -501,7 +564,7 @@ def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     return render(request, 'invoicemgmt/customer_detail.html', {'customer': customer})
 
-
+@permission_required('invoicemgmt.change_customer', raise_exception=True)
 @login_required
 def edit_customer(request, customer_id):
     customer = get_object_or_404(Customer, pk=customer_id)
@@ -509,7 +572,7 @@ def edit_customer(request, customer_id):
         form = CustomerForm(request.POST, instance=customer)
         if form.is_valid():
             form.save()
-            return redirect('customer_list')  # Redirect to the customer list after saving
+            return redirect('customer_list')  
     else:
         form = CustomerForm(instance=customer)
     return render(request, 'invoicemgmt/edit_customer.html', {'form': form, 'customer': customer})
@@ -541,6 +604,39 @@ def update_invoice(request, pk):
         'formset': formset,
         'invoice': invoice
     })
+
+
+@permission_required('invoicemgmt.change_invoice', raise_exception=True)
+@login_required
+def invoice_add_attachment(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+
+    class AttachmentForm(forms.ModelForm):
+        class Meta:
+            model = Invoice
+            fields = ['attachment']
+            widgets = {
+                'attachment': forms.ClearableFileInput(),
+            }
+
+    if request.method == 'POST':
+        form = AttachmentForm(request.POST, request.FILES, instance=invoice)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Attachment added successfully.")
+            return redirect('invoice_list')
+    else:
+        form = AttachmentForm(instance=invoice)
+
+    return render(request, 'invoicemgmt/invoice_add_attachment.html', {
+        'form': form,
+        'invoice': invoice
+    })
+
+@login_required
+def all_bills_list(request):
+    invoices = Invoice.objects.all().order_by('-invoice_number')
+    return render(request, 'invoicemgmt/all_bills_list.html', {'invoices': invoices})
 
 @login_required
 def cancel_invoice(request, pk):
@@ -638,7 +734,7 @@ def import_invoices_from_excel(request):
 
         for _, row in df.iterrows():
             try:
-                # --- Extract & Clean Values ---
+               
                 customer_name = str(row.get("Customer Name", "")).strip()
                 customer_country = str(row.get("Country", "")).strip()
                 product_name = str(row.get("Product", "")).strip()
@@ -649,28 +745,28 @@ def import_invoices_from_excel(request):
                 invoice_date = row.get("Invoice Date")
                 status = str(row.get("Status", "open")).strip().lower()
 
-                # --- Handle Invoice Number ---
+                
                 invoice_number = row.get("Invoice Number")
                 invoice_number = str(int(invoice_number)).strip() if pd.notna(invoice_number) else None
 
-                # --- Check for Duplicate Invoice Number ---
+                
                 if invoice_number and Invoice.objects.filter(invoice_number=invoice_number).exists():
                     messages.warning(request, f"⚠️ Skipped duplicate invoice number: {invoice_number}")
                     continue
 
-                # --- Create/Get Customer ---
+                
                 customer, _ = Customer.objects.get_or_create(
                     name=customer_name,
                     defaults={"country": customer_country}
                 )
 
-                # --- Create/Get Product ---
+                
                 product, _ = Product.objects.get_or_create(
                     name=product_name,
                     defaults={"price": unit_price, "vat_rate": vat_rate}
                 )
 
-                # --- Create Invoice ---
+                
                 invoice = Invoice.objects.create(
                     invoice_number=invoice_number,
                     customer=customer,
@@ -679,7 +775,7 @@ def import_invoices_from_excel(request):
                     status='paid' if status == 'paid' else 'open',
                 )
 
-                # --- Add Line Item ---
+                
                 InvoiceLineItem.objects.create(
                     invoice=invoice,
                     product=product,
@@ -689,7 +785,6 @@ def import_invoices_from_excel(request):
                     description=product_name
                 )
 
-                # --- Final save to recalculate totals & currency-in-words ---
                 invoice.save()
 
             except Exception as e:
@@ -729,18 +824,18 @@ def purchase_pdf(request, pk):
     from num2words import num2words
     purchase = get_object_or_404(Purchase, pk=pk)
 
-    # Format numeric values for line items
+    
     line_items = purchase.line_items.all()
     for item in line_items:
-        # Correct calculations using Decimal for precision
-        item.amount = Decimal(item.quantity) * Decimal(item.price)  # Taxable Amount
-        item.vat_amount = item.amount * (Decimal(item.vat_rate) / Decimal('100'))  # VAT Amount
-        item.total_aed = item.amount + item.vat_amount  # Total AED
+        
+        item.amount = Decimal(item.quantity) * Decimal(item.price)  
+        item.vat_amount = item.amount * (Decimal(item.vat_rate) / Decimal('100'))  
+        item.total_aed = item.amount + item.vat_amount  
 
-    # Convert total amount to words
+   
     amount_in_words = num2words(purchase.total_amount, lang='en') + ' AED' if hasattr(purchase, 'total_amount') else ''
 
-    # Render the template
+    
     template = get_template('invoicemgmt/purchase_pdf.html')
     html = template.render({'purchase': purchase, 'line_items': line_items, 'amount_in_words': amount_in_words})
     pdf_file = BytesIO()
@@ -790,7 +885,6 @@ def purchase_list(request):
     
     purchases = Purchase.objects.all().order_by('-date')
 
-    # Filter by month/year if provided
     if month and year:
         purchases = purchases.filter(date__month=int(month), date__year=int(year))
     elif month:
@@ -800,14 +894,14 @@ def purchase_list(request):
     
     month = int(month) if month else None
     year = int(year) if year else None
-    # Apply search query
+  
     if query:
         purchases = purchases.filter(
             Q(purchase_number__icontains=query) |
             Q(supplier_name__icontains=query)
         )
 
-    # Get month name for display (if month is set)
+  
     month_name = calendar.month_name[int(month)] if month else None
 
     # Recalculate totals dynamically
@@ -978,10 +1072,14 @@ def purchase_total(request):
     purchases = Purchase.objects.all()
     total_amount = purchases.aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
 
-    # Month-wise totals
+    # Month-wise
     monthly_totals = purchases.annotate(month=TruncMonth('date')).values('month').annotate(
         total=Sum('total_amount')
     ).order_by('month')
+
+    for entry in monthly_totals:
+        entry['vat_amount'] = entry['total'] * Decimal('0.05') if entry['total'] else Decimal('0.00')
+
 
     return render(request, 'invoicemgmt/purchase_total.html', {
         'total_amount': total_amount,
@@ -1104,7 +1202,7 @@ def due_amount_list(request):
 
 @login_required
 def ai_support(request):
-    # Define features and their explanations
+    
     features = {
         "invoicing": {
             "title": "Invoicing System",
@@ -1163,12 +1261,12 @@ def ai_support(request):
         }
     }
 
-    # Handle user query
+    
     query = request.GET.get('q', '').lower()
     response = None
 
     if query:
-        # Search through features
+        
         for feature, info in features.items():
             if query in feature.lower() or query in info['description'].lower():
                 response = info
@@ -1194,30 +1292,30 @@ from django.http import HttpResponse
 @login_required
 def export_invoices_to_excel(request):
     query = request.GET.get('q', '')
-    date_filter = request.GET.get('date', '')  # Get the date filter from the request
+    date_filter = request.GET.get('date', '')  
 
     if request.user.is_superuser:
         invoices = Invoice.objects.all().select_related('customer').prefetch_related('line_items')
     else:
         invoices = Invoice.objects.filter(created_by=request.user).select_related('customer').prefetch_related('line_items')
 
-    # Apply query filtering
+    #Query filtering
     if query:
         invoices = invoices.filter(
             Q(customer__name__icontains=query) |
             Q(invoice_number__icontains=query)
         )
 
-    # Apply date filtering
+    
     if date_filter:
         try:
-            # Parse the date and filter invoices
+            
             filter_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
             invoices = invoices.filter(invoice_date=filter_date)
         except ValueError:
             messages.error(request, "Invalid date format. Please use YYYY-MM-DD.")
 
-    # Prepare data for export
+    #  data for export
     data = []
     for invoice in invoices:
         for item in invoice.line_items.all():
@@ -1295,7 +1393,7 @@ def create_delivery_note(request):
             # Save the main delivery note
             note = form.save()
 
-            # Link the line items to the delivery note
+     
             formset.instance = note
             formset.save()
 
@@ -1332,9 +1430,9 @@ def create_delivery_note(request):
             formset.save()
             return redirect('delivery_note_detail', pk=note.pk)
     else:
-        # 1. CORRECTED: Use the correct name for the empty formset (GET request)
+    
         form = DeliveryNoteForm()
-        formset = DeliveryNoteItemFormSet() # <-- FIX IS HERE
+        formset = DeliveryNoteItemFormSet() 
 
     return render(request, 'invoicemgmt/delivery_note_form.html', {
         'form': form,
@@ -1347,7 +1445,7 @@ def delete_delivery_note(request, pk):
     if request.method == "POST":
         note.delete()
         messages.success(request, "Delivery Note deleted successfully.")
-        return redirect('delivery_note_list')  # Change to your list view name
+        return redirect('delivery_note_list')  
     return render(request, "invoicemgmt/delivery_note_confirm_delete.html", {"note": note})
 
 @login_required
@@ -1375,21 +1473,48 @@ def delivery_note_pdf(request, pk):
     return response  
 
 
+# def customer_total_statement(request, customer_id):
+#     customer = get_object_or_404(Customer, pk=customer_id)
+#     invoices = Invoice.objects.filter(customer=customer)
+#     monthly_totals = invoices.annotate(month=TruncMonth('invoice_date')).values('month').annotate(
+#         total_amount=Sum('total_amount'),
+        
+
+    
+#     ).order_by('month')
+#     for entry in monthly_totals:
+#         entry['vat_amount'] = entry['total'] * 0.05 if entry['total'] else 0
+
+    
+#     current_month = datetime.now().month
+#     total_for_month = invoices.filter(invoice_date__month=current_month).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+#     return render(request, 'invoicemgmt/customer_total_statement.html', {
+#         'customer': customer,
+#         'invoices': invoices,
+#         'total_for_month': total_for_month,
+#         'monthly_totals': monthly_totals,
+#     })
+
+
+from django.db.models.functions import TruncMonth
+
 def customer_total_statement(request, customer_id):
     customer = get_object_or_404(Customer, pk=customer_id)
     invoices = Invoice.objects.filter(customer=customer)
     monthly_totals = invoices.annotate(month=TruncMonth('invoice_date')).values('month').annotate(
-        total_amount=Sum('total_amount')
+        total=Sum('total_amount'),
+    ).order_by('month')
 
-    
-    )
-    
-    current_month = datetime.now().month
-    total_for_month = invoices.filter(invoice_date__month=current_month).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-    return render(request, 'invoicemgmt/customer_total_statement.html', {
-        'customer': customer,
-        'invoices': invoices,'total_for_month': total_for_month,
+    # Calculate VAT for each entry (5% of total)
+    for entry in monthly_totals:
+        entry['vat_amount'] = entry['total'] * 0.05 if entry['total'] else 0
+
+    total_amount = invoices.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+
+    return render(request, 'invoicemgmt/invoice_total.html', {
         'monthly_totals': monthly_totals,
+        'total_amount': total_amount,
+        'invoices': invoices,
     })
 
 def customer_paid_statement(request, customer_id):
@@ -1483,47 +1608,44 @@ def customer_unpaid_statement(request, customer_id):
 def generate_statement_pdf(request, customer_id, month):
     customer = get_object_or_404(Customer, pk=customer_id)
 
-    # Calculate opening balance (sum of payments before the month)
     opening_balance = Invoice.objects.filter(customer=customer, invoice_date__lt=f"2025-{month}-01").aggregate(
         total_paid=Sum('total_amount')
     )['total_paid'] or 0
 
-    # Prepare statement entries (ordered by invoice number in ascending order)
     invoices = Invoice.objects.filter(customer=customer, invoice_date__month=month).select_related('customer').order_by('invoice_number')
 
-    # Calculate invoiced amount for the month
+  
     invoiced_amount = sum((invoice.total_amount for invoice in invoices), Decimal(0)) or Decimal(0)
 
-    # Calculate amount paid for the month
     amount_paid = Invoice.objects.filter(customer=customer, invoice_date__month=month, status='paid').aggregate(
         total_paid=Sum('total_amount')
     )['total_paid'] or 0
 
-    # Calculate balance due
+    
     balance_due = opening_balance + invoiced_amount - amount_paid
 
-    # Add PO Pending Amount, PO Number, and cumulative total dynamically
+
     cumulative_total = 0
     total_for_month = 0
     for invoice in invoices:
         invoice.amount_paid = invoice.total_amount if invoice.status == 'paid' else 0
         invoice.po_pending_amount = invoice.total_amount - invoice.amount_paid
-        invoice.po_number = invoice.po_number if invoice.po_number else "N/A"  # Handle missing PO Number
+        invoice.po_number = invoice.po_number if invoice.po_number else "N/A"  
 
-        # Update cumulative total only for invoices with non-zero pending amounts
+        
         if invoice.po_pending_amount > 0:
             cumulative_total += invoice.total_amount
 
         invoice.cumulative_total = cumulative_total
 
-        # Include only invoices with valid amounts in the total for the month
+      
         if invoice.total_amount > 0 and invoice.po_pending_amount > 0:
             total_for_month += invoice.total_amount
 
-    # Current date for "Issued on"
+    
     issued_on = now().strftime("%d/%m/%Y")
 
-    # Render the PDF
+    
     template_path = 'invoicemgmt/customer_statement_pdf.html'
     context = {
         'customer': customer,
@@ -1533,7 +1655,7 @@ def generate_statement_pdf(request, customer_id, month):
         'invoiced_amount': invoiced_amount,
         'amount_paid': amount_paid,
         'balance_due': balance_due,
-        'total_for_month': total_for_month,  # Pass total for the month to the template
+        'total_for_month': total_for_month,  
     }
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="statement_{customer.name}_{month}.pdf"'
@@ -1549,56 +1671,52 @@ from django.db.models import Min
 def generate_combined_statement_pdf(request, customer_id):
     customer = get_object_or_404(Customer, id=customer_id)
 
-    # 1. Determine the earliest invoice date for this customer
-    # Min is now correctly imported
+
     min_date_result = Invoice.objects.filter(customer=customer).aggregate(min_date=Min('invoice_date'))
     min_invoice_date = min_date_result['min_date']
 
-    # 2. Calculate Opening Balance (Total amount DUE before the earliest invoice date)
     if min_invoice_date:
         opening_invoices = Invoice.objects.filter(customer=customer, invoice_date__lt=min_invoice_date)
         
         opening_balance = Decimal(0)
         for inv in opening_invoices:
-            # Calculate the amount paid (assuming 'status' determines if it's fully paid)
+            
             amount_paid = inv.total_amount if inv.status == 'paid' else Decimal(0)
             
-            # Add the pending portion of the invoice to the opening balance
+            
             opening_balance += (inv.total_amount - amount_paid)
             
     else:
         opening_balance = Decimal(0)
     
-    # 3. Fetch all invoices for the statement period, ordered chronologically
+    
     all_invoices = Invoice.objects.filter(customer=customer).order_by('invoice_date')
 
-    # 4. Prepare statement data with running cumulative total (CRITICAL FIX)
+    
     invoice_list = []
     current_running_balance = opening_balance
     
     for invoice in all_invoices:
-        # Calculate amount paid (based on status or a dedicated field)
+        
         amount_paid = invoice.total_amount if invoice.status == 'paid' else Decimal(0)
         
-        # Calculate the pending amount (this is what was missing previously)
+        
         pending_amount_on_invoice = invoice.total_amount - amount_paid
         
-        # Update running balance
         current_running_balance += pending_amount_on_invoice
         
         invoice_list.append({
             'invoice_number': invoice.invoice_number,
             'invoice_date': invoice.invoice_date,
             'po_number': invoice.po_number if invoice.po_number else 'N/A',
-            'amount': invoice.total_amount, # Total amount of the invoice
+            'amount': invoice.total_amount, 
             'pending_amount': pending_amount_on_invoice, 
             'cumulative_total': current_running_balance, 
         })
 
-    # The Final Balance Due 
+    
     final_balance_due = current_running_balance 
-    # fax_value = customer.fax if customer.fax else "None"
-    # Prepare the context for the template
+    
     context = {
         'customer': customer,
         
@@ -1609,7 +1727,7 @@ def generate_combined_statement_pdf(request, customer_id):
         'issued_on': now().strftime("%B %d, %Y"), 
     }
 
-    # Generate the PDF
+    
     template_path = 'invoicemgmt/combined_statement_pdf.html' 
     template = get_template(template_path)
     html = template.render(context)
@@ -1738,7 +1856,6 @@ def quotation_list(request):
     quotations = Quotation.objects.all().order_by('-quotation_date')
     return render(request, 'invoicemgmt/quotation_list.html', {'quotations': quotations})
 
-# filepath: c:\Users\ASUS TUF\Desktop\management-main\management-main\invoicemgmt\views.py
 
 from django.forms import inlineformset_factory
 
